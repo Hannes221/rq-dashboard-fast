@@ -7,6 +7,10 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
+fastapi = "^0.109.0"
+redis = "^5.0.1"
+rq = "^1.15.1"
+uvicorn = "^0.25.0"
 
 
 [build-system]
