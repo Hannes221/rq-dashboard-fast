@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jobs Dashboard</title>
+  </head>
+  <body>
+    <h1>Jobs Dashboard</h1>
+    <!-- Display job data here -->
+    {% for job in job_data %}
+    <p>{{ job }}</p>
+    {% endfor %}
+  </body>
+</html>
