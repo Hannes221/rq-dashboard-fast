@@ -3,13 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Workers Dashboard</title>
+    <title>Queues Dashboard</title>
   </head>
   <body>
-    <h1>Workers Dashboard</h1>
-    <!-- Display worker data here -->
-    {% for worker in worker_data %}
-    <p>{{ worker }}</p>
+    {% extends "base.html" %}
+    <h1>Queues Dashboard</h1>
+    <!-- Display queue data here -->
+    {% for queue in queue_data %}
+    <p>{{ queue }}</p>
     {% endfor %}
   </body>
 </html>
