@@ -1,0 +1,39 @@
+<div id="navbar-dashboard" class="navbar navbar-expand-lg navbar-light">
+    <a class="navbar-brand">RQ-dashboard FastAPI</a>
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item{% if active_tab == 'queues'%} active{% endif %}">
+                <a href="" class="nav-link">Queues</a>
+            </li>
+            <li class="nav-item{% if active_tab == 'jobs'%} active{% endif %}">
+                <a href="" class="nav-link">Jobs</a>
+            </li>
+            <li class="nav-item{% if active_tab == 'workers'%} active{% endif %}">
+                <a href="" class="nav-link">Workers</a>
+            </li>
+        </ul>
+        <div>
+            <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="autorefresh-switch" checked>
+                <label class="custom-control-label" for="autorefresh-switch">
+                    <p id="autorefresh-intro">Autorefresh</p>
+                </label>
+            </div>
+        </div>
+        <div id="rq-instances-row">
+            <select {% if instance_list|length==1 %} disabled {% endif %} id="rq-instances">
+                {% for instance in instance_list %}
+                <option data-instance-number="{{ instance_list.index(instance) }}" {% if
+                    instance_list[current_instance]==instance %} selected {% endif %}>[{{ instance_list.index(instance)
+                    }}] {{ instance }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
