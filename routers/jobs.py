@@ -14,7 +14,7 @@ class JobRegistryStats(BaseModel):
     scheduled: List[str]
 
 @router.get("/jobs", response_model=JobRegistryStats)
-def get_jobs():
+async def get_jobs():
     deferred_jobs = DeferredJobRegistry(connection=redis).get_job_ids()
     finished_jobs = FinishedJobRegistry(connection=redis).get_job_ids()
     failed_jobs = FailedJobRegistry(connection=redis).get_job_ids()

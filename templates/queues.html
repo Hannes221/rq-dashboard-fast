@@ -1,3 +1,4 @@
+{% extends "base.html" %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -6,11 +7,11 @@
     <title>Queues Dashboard</title>
   </head>
   <body>
-    {% extends "base.html" %}
+    {% block content %}
     <h1>Queues Dashboard</h1>
     <!-- Display queue data here -->
     {% for queue in queue_data %}
     <p>{{ queue }}</p>
-    {% endfor %}
+    {% endfor %} {% endblock %}
   </body>
 </html>

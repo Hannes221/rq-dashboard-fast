@@ -5,7 +5,7 @@ router = APIRouter()
 
 
 @router.get("/queues", response_model=list)
-def get_queues():
+async def get_queues():
     queues = queue.all(connection=redis)
     
     return queues

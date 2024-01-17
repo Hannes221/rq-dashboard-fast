@@ -6,7 +6,7 @@ router = APIRouter()
 
 
 @router.get("/workers", response_model=list)
-def get_workers():
+async def get_workers():
     workers = Worker.all(connection=redis)
     
     return workers
