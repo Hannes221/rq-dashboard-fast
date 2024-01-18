@@ -27,7 +27,7 @@ async def get_home(request: Request):
     
 @app.get("/workers", response_class=HTMLResponse)
 async def read_workers(request: Request):
-    worker_data = await workers.get_workers()
+    worker_data = workers.get_workers()
     
     active_tab = 'workers' 
 
@@ -39,7 +39,7 @@ async def read_workers(request: Request):
 
 @app.get("/queues", response_class=HTMLResponse)
 async def read_queues(request: Request):
-    queue_data = await queues.get_queues()
+    queue_data = queues.get_queues()
 
     active_tab = 'queues' 
 
@@ -51,7 +51,7 @@ async def read_queues(request: Request):
 
 @app.get("/jobs", response_class=HTMLResponse)
 async def read_jobs(request: Request):
-    job_data = await jobs.get_jobs()
+    job_data = jobs.get_jobs()
 
     active_tab = 'jobs' 
 
@@ -60,11 +60,6 @@ async def read_jobs(request: Request):
         {"request": request, "job_data": job_data, "active_tab": active_tab,
          "instance_list": [], "rq_dashboard_version": rq_dashboard_version}
     )
-
-
-app.include_router(workers.router)
-app.include_router(jobs.router)
-app.include_router(queues.router)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000, log_level="debug")
