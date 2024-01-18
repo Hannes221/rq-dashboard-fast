@@ -1,0 +1,198 @@
+/* @override http://localhost:9181/static/css/main.css */
+
+body {
+    background-color: #f8f9fa;
+}
+
+.container {
+    background: white;
+    margin-top: 3em;
+}
+
+#content {
+    background: yellow;
+}
+
+.section
+{
+    border: solid 1px #ddd;
+    padding: 2em;
+}
+
+p.intro {
+    min-height: 2em;
+    padding-top: .8em;
+    color: #888;
+}
+
+p.fixed.intro {
+    height: 5em;
+}
+
+h1 {
+    font-family: 'Helvetica Neue', helvetica, sans-serif;
+    font-weight: 300;
+    color: steelblue;
+}
+
+h2 {
+    font-family: 'Helvetica Neue', helvetica, sans-serif;
+    font-weight: 300;
+    color: steelblue;
+}
+
+h3 {
+    font-family: 'Helvetica Neue', helvetica, sans-serif;
+    font-weight: 300;
+    color: steelblue;
+}
+
+table, table tr, table tr td {
+    background-color: snow;
+}
+
+table tbody tr td.narrow {
+    width: 100px;
+}
+
+table#queues {
+    /*width: 300px;*/
+}
+
+table#jobs {
+  word-wrap: break-word;
+}
+
+table#jobs td.actions a {
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+table#jobs span.description {
+    color: #555;
+    font-weight: 600;
+}
+
+table#jobs span.origin {
+    color: #888;
+}
+
+table#jobs div.job_id {
+    font-size: 70%;
+    color: gray;
+    margin-left: 24px;
+}
+
+pre.exc_info {
+    font-size: 80%;
+    color: #555;
+    margin-left: 24px;
+    border-left: 2px solid darkorange;
+    background-color: lightgoldenrodyellow;
+    white-space: pre-wrap;
+}
+
+table#jobs span.creation_date {
+    font-size: 80%;
+}
+
+table#jobs span.end_date {
+    font-size: 80%;
+    margin-left: 24px;
+}
+
+table#workers {
+    /*width: 600px;*/
+}
+
+table tbody tr td {
+    vertical-align: middle;
+}
+
+table tr.failed {
+    color: red;
+    border-top: 2px solid red;
+}
+
+table tr.failed a {
+    color: red;
+}
+
+table tr.failed td {
+    background-color: lightgoldenrodyellow;
+}
+
+span.loading {
+    font-size: .8em;
+    color: #555;
+}
+
+#alert-fixed {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 25%;
+    z-index:9999;
+    text-align: center;
+    display: none;
+}
+
+#rq-instances {
+    margin-left: 15px;
+    margin-right: 13px;
+    width: auto;
+}
+
+#select-registry, #select-per-page, #select-queue {
+    width: auto;
+}
+
+.navbar {
+    border-bottom: solid 1px #ddd;
+}
+
+#navbar-dashboard {
+    background-color: #ececec;
+}
+
+.container {
+    padding-right: 0px;
+    padding-left: 0px;
+}
+
+#filter-form {
+    width: fit-content;
+    margin-left: 0;
+    margin-right: auto;
+}
+
+.ellipsify {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 100%; 
+}
+
+#autorefresh-intro {
+    margin-bottom: 0;
+    font-size: 90%;
+    color: #888;
+}
+
+.footer-text {
+    text-align: center;
+    font-size: 80%;
+    color: #000000ad;
+}
+
+.footer-text a {
+    color: #000000ad;
+}
+
+p.alert-danger {
+    border-bottom: solid 1px #721b245c;
+}
+
+#rq-instances:disabled {
+    color: black;
+}
