@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from rq import Queue, Worker, Connection
 import uvicorn
-from routers import workers, jobs, queues, web
+from routers import workers, jobs, queues
 import redis
 
 app = FastAPI()
@@ -62,7 +62,6 @@ async def read_jobs(request: Request):
 app.include_router(workers.router)
 app.include_router(jobs.router)
 app.include_router(queues.router)
-app.include_router(web.router)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000, log_level="debug")
