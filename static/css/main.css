@@ -2,6 +2,53 @@ body {
     background-color: #f8f9fa;
 }
 
+#header-wrapper {
+    background-color: #ececec;
+    padding: 10px;
+    border-radius: 15px;
+}
+
+#header-dashboard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ececec;
+    padding: 10px;
+    /* Adjust as needed */
+}
+
+.header-nav {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    align-items: center;
+    /* Center-align items */
+    justify-content: center;
+    /* Center the links horizontally */
+}
+
+.header-item {
+    margin-right: 10px;
+    /* Adjust as needed */
+}
+
+.header-link {
+    text-decoration: none;
+    color: black;
+    /* Adjust as needed */
+}
+
+.header-link:hover {
+    color: #007bff;
+    /* Adjust as needed */
+}
+
+.footer-wrapper {
+    background-color: #ececec;
+    padding: 10px;
+    border-radius: 15px;
+}
+
 .container {
     background: white;
     margin-top: 3em;
@@ -11,8 +58,7 @@ body {
     background: yellow;
 }
 
-.section
-{
+.section {
     border: solid 1px #ddd;
     padding: 2em;
 }
@@ -45,7 +91,9 @@ h3 {
     color: steelblue;
 }
 
-table, table tr, table tr td {
+table,
+table tr,
+table tr td {
     background-color: snow;
 }
 
@@ -58,7 +106,7 @@ table#queues {
 }
 
 table#jobs {
-  word-wrap: break-word;
+    word-wrap: break-word;
 }
 
 table#jobs td.actions a {
@@ -130,7 +178,7 @@ span.loading {
     top: 20px;
     left: 20px;
     width: 25%;
-    z-index:9999;
+    z-index: 9999;
     text-align: center;
     display: none;
 }
@@ -141,15 +189,17 @@ span.loading {
     width: auto;
 }
 
-#select-registry, #select-per-page, #select-queue {
+#select-registry,
+#select-per-page,
+#select-queue {
     width: auto;
 }
 
-.navbar {
+.header {
     border-bottom: solid 1px #ddd;
 }
 
-#navbar-dashboard {
+#header-dashboard {
     background-color: #ececec;
 }
 
@@ -168,7 +218,7 @@ span.loading {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    max-width: 100%; 
+    max-width: 100%;
 }
 
 #autorefresh-intro {

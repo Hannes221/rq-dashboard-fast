@@ -1,39 +1,35 @@
-<div id="header-dashboard" class="header-expand-lg header-light">
-    <a class="header-brand">RQ-dashboard FastAPI</a>
-
-    <button class="header-toggler" type="button" data-toggle="collapse" data-target="#headerSupportedContent"
-        aria-controls="headerSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="header-toggler-icon"></span>
-    </button>
-
-    <div class="collapse header-collapse" id="headerSupportedContent">
-        <ul class="header-nav mr-auto">
-            <li class="header-item{% if active_tab == 'queues'%} active{% endif %}">
-                <a href="" class="header-link">Queues</a>
-            </li>
-            <li class="header-item{% if active_tab == 'jobs'%} active{% endif %}">
-                <a href="" class="header-link">Jobs</a>
-            </li>
-            <li class="header-item{% if active_tab == 'workers'%} active{% endif %}">
-                <a href="" class="header-link">Workers</a>
-            </li>
-        </ul>
-        <div>
-            <div class="custom-control custom-switch">
-                <input type="checkbox" class="custom-control-input" id="autorefresh-switch" checked>
-                <label class="custom-control-label" for="autorefresh-switch">
-                    <p id="autorefresh-intro">Autorefresh</p>
-                </label>
-            </div>
+<div id="header-wrapper">
+    <div id="header-dashboard" class="header-expand-lg header-light">
+        <div class="header-brand-container">
+            <h1 class="header-brand">RQ-dashboard FastAPI</h1>
+            <ul class="header-nav">
+                <li class="header-item{% if active_tab == 'queues'%} active{% endif %}">
+                    <a href="" class="header-link">Queues</a>
+                </li>
+                <li class="header-item{% if active_tab == 'jobs'%} active{% endif %}">
+                    <a href="" class="header-link">Jobs</a>
+                </li>
+                <li class="header-item{% if active_tab == 'workers'%} active{% endif %}">
+                    <a href="" class="header-link">Workers</a>
+                </li>
+            </ul>
         </div>
-        <div id="rq-instances-row">
-            <select {% if instance_list|length==1 %} disabled {% endif %} id="rq-instances">
-                {% for instance in instance_list %}
-                <option data-instance-number="{{ instance_list.index(instance) }}" {% if
-                    instance_list[current_instance]==instance %} selected {% endif %}>[{{ instance_list.index(instance)
-                    }}] {{ instance }}</option>
-                {% endfor %}
-            </select>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="autorefresh-switch" checked>
+                    <label class="custom-control-label" for="autorefresh-switch">
+                        <p id="autorefresh-intro">Autorefresh</p>
+                    </label>
+                </div>
+            </div>
+            <div id="rq-instances-row">
+                <select {% if instance_list|length==1 %} disabled {% endif %} id="rq-instances">
+                    {% for instance in instance_list %}
+                    <option data-instance-number="{{ instance_list.index(instance) }}" {% if
+                        instance_list[current_instance]==instance %} selected {% endif %}>[{{ instance_list.index(instance)
+                        }}] {{ instance }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
     </div>
 </div>
