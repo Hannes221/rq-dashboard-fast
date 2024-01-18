@@ -6,8 +6,11 @@ from rq import Queue, Worker, Connection
 import uvicorn
 from routers import workers, jobs, queues
 import redis
+from starlette.staticfiles import StaticFiles
 
 app = FastAPI()
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates_directory = os.path.join(os.getcwd(), 'templates')
 templates = Jinja2Templates(directory=templates_directory)
