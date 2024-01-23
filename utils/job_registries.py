@@ -44,3 +44,36 @@ def get_job_registry_stats():
         finished=finished_jobs,
         queued=queued_jobs
     )
+
+def get_job_registry_stats_for_queue(queue: Queue):
+    redis = Redis()
+    
+    jobs = queue.get_job_ids()
+    jobs_fetched = Job.fetch_many(jobs, connection=redis)
+    
+    started_jobs = []
+    failed_jobs = []
+    deferred_jobs = []
+    finished_jobs = []
+    queued_jobs = []
+
+    for job in jobs_fetched:
+        status = job.get_status()
+        if status == 'started':
+            started_jobs.append(job.id)
+        elif status == 'failed':
+            failed_jobs.append(job.id)
+        elif status == 'deferred':
+            deferred_jobs.append(job.id)
+        elif status == 'finished':
+            finished_jobs.append(job.id)
+        elif status == 'queued':
+            queued_jobs.append(job.id)
+
+    return JobRegistryStats(
+        started=started_jobs,
+        failed=failed_jobs,
+        deferred=deferred_jobs,
+        finished=finished_jobs,
+        queued=queued_jobs
+    )

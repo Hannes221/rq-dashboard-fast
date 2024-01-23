@@ -2,11 +2,12 @@ import os
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from rq import Queue, Worker, Connection
 import uvicorn
-from routers import workers, jobs, queues
-import redis
+from utils import workers
 from starlette.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+
+from utils import jobs, queues
 
 app = FastAPI()
 
@@ -36,6 +37,23 @@ async def read_workers(request: Request):
         {"request": request, "worker_data": worker_data, "active_tab": active_tab,
          "instance_list": [], "rq_dashboard_version": rq_dashboard_version}
     )
+    
+@app.delete("/queues/{name}")
+def delete_jobs_in_queue(queue_name: str):
+    deleted_ids = queues.delete_jobs_for_queue(queue_name)
+    return deleted_ids
+    
+@app.get("/queues/{name}", response_class=HTMLResponse)
+async def read_queues(request: Request, name: str):
+    queue_data = queues.get_job_registry_stats_for_queue(name)
+
+    active_tab = 'queues' 
+
+    return templates.TemplateResponse(
+        "queues.html",
+        {"request": request, "queue_data": queue_data, "active_tab": active_tab,
+         "instance_list": [], "rq_dashboard_version": rq_dashboard_version}
+    )
 
 @app.get("/queues", response_class=HTMLResponse)
 async def read_queues(request: Request):
@@ -48,6 +66,7 @@ async def read_queues(request: Request):
         {"request": request, "queue_data": queue_data, "active_tab": active_tab,
          "instance_list": [], "rq_dashboard_version": rq_dashboard_version}
     )
+    
 
 @app.get("/jobs", response_class=HTMLResponse)
 async def read_jobs(request: Request):
@@ -60,6 +79,7 @@ async def read_jobs(request: Request):
         {"request": request, "job_data": job_data, "active_tab": active_tab,
          "instance_list": [], "rq_dashboard_version": rq_dashboard_version}
     )
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000, log_level="debug")
