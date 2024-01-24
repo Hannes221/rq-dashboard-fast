@@ -20,39 +20,6 @@
 
     <div class="container">{% block content %}{% endblock %}</div>
 
-    <div id="confirmation-modal" class="modal fade">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3>
-              Do you really want to
-              <span id="confirmation-modal-action"></span>?
-            </h3>
-            <button
-              type="button"
-              class="close"
-              data-dismiss="modal"
-              aria-hidden="true"
-            >
-              &times;
-            </button>
-          </div>
-          <div class="modal-footer">
-            <button type="button" id="confirmation-modal-no" class="btn">
-              No
-            </button>
-            <button
-              type="button"
-              id="confirmation-modal-yes"
-              class="btn btn-primary"
-            >
-              Yes
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     {% include "footer.html"%}
   </body>
 </html>
