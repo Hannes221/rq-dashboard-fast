@@ -93,32 +93,47 @@ table tbody tr td.narrow {
     width: 100px;
 }
 
-table#queues {
-    /*width: 300px;*/
+#queues {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
 }
 
-table#jobs {
-    word-wrap: break-word;
+#queues th,
+#queues td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
 }
 
-table#jobs td.actions a {
-    margin-right: 8px;
-    margin-bottom: 8px;
+#queues th {
+    background-color: #f2f2f2;
 }
 
-table#jobs span.description {
-    color: #555;
-    font-weight: 600;
+#queues tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
 }
 
-table#jobs span.origin {
-    color: #888;
+table#all-jobs {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
 }
 
-table#jobs div.job_id {
-    font-size: 70%;
-    color: gray;
-    margin-left: 24px;
+table#all-jobs th,
+table#all-jobs td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+table#all-jobs th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+table#all-jobs tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
 }
 
 pre.exc_info {

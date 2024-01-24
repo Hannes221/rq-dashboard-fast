@@ -12,15 +12,22 @@
   {% block content %}
   <h2>Queues</h2>
   <div class="section">
-    <ul>
-      {% for queue_name in queue_data %}
-      <li>
-        <p>{{ queue_name }}</p>
-      </li>
-      {% endfor %}
-    </ul>
-    {% endblock %}
+    <table id="queues">
+      <thead>
+        <tr>
+          <th>Queue Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for queue_name in queue_data %}
+        <tr>
+          <td>{{ queue_name }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
+  {% endblock %}
 </body>
 
 </html>
