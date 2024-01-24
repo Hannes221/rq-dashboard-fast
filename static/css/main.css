@@ -26,11 +26,16 @@ body {
 
 .header-item {
     margin-right: 10px;
+    font-family: 'Helvetica Neue', helvetica, sans-serif;
 }
 
 .header-link {
     text-decoration: none;
     color: black;
+}
+
+.custom-control-label {
+    font-family: 'Helvetica Neue', helvetica, sans-serif;
 }
 
 .footer-wrapper {
@@ -49,10 +54,13 @@ body {
 
 .section {
     border: solid 1px #ddd;
-    padding-bottom: 10px;
+    padding-bottom: 20px;
+    padding-right: 20px;
+    padding-left: 20px;
     font-family: 'Helvetica Neue', helvetica, sans-serif;
-    max-width: 85%;
-    margin: 0 auto;;
+    max-width: 90%;
+    margin: 0 auto;
+    background-color: steelblue;
 }
 
 p.intro {
@@ -114,28 +122,6 @@ table tbody tr td.narrow {
     background-color: #f9f9f9;
 }
 
-table#all-jobs {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-table#all-jobs th,
-table#all-jobs td {
-    border: 1px solid #ddd;
-    padding: 12px;
-    text-align: left;
-}
-
-table#all-jobs th {
-    background-color: #f2f2f2;
-    font-weight: bold;
-}
-
-table#all-jobs tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
 pre.exc_info {
     font-size: 80%;
     color: #555;
@@ -145,18 +131,43 @@ pre.exc_info {
     white-space: pre-wrap;
 }
 
-table#jobs span.creation_date {
-    font-size: 80%;
-}
-
-table#jobs span.end_date {
-    font-size: 80%;
-    margin-left: 24px;
-}
-
 table#workers {
     /*width: 600px;*/
 }
+
+#jobs {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#jobs th,
+#jobs td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+#jobs th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+#jobs tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#jobs tbody tr:hover {
+    background-color: #f0f0f0;
+}
+
+#jobs td {
+    max-width: 200px; /* Adjust as needed */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 
 table tbody tr td {
     vertical-align: middle;
@@ -238,6 +249,7 @@ span.loading {
     text-align: center;
     font-size: 80%;
     color: #000000ad;
+    font-family: 'Helvetica Neue', helvetica, sans-serif;
 }
 
 .footer-text a {
