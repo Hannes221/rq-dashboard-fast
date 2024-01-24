@@ -10,15 +10,17 @@
 
 <body>
   {% block content %}
-  <h1>Queues Dashboard</h1>
-  <ul>
-    {% for queue_name in queue_data %}
-    <li>
-      <p>{{ queue_name }}</p>
-    </li>
-    {% endfor %}
-  </ul>
-  {% endblock %}
+  <h2>Queues</h2>
+  <div class="section">
+    <ul>
+      {% for queue_name in queue_data %}
+      <li>
+        <p>{{ queue_name }}</p>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endblock %}
+  </div>
 </body>
 
 </html>

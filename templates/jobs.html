@@ -10,12 +10,35 @@
 
 <body>
   {% block content %}
-  <h1>Jobs Dashboard</h1>
-  <ul>
-    {% for job in job_data %}
-    <li>{{ job }}</li>
-    {% endfor %}
-  </ul>
+  <h2>Jobs</h2>
+  <div class="section">
+    <table id="jobs">
+      <thead>
+        <tr>
+          <th>Job Type</th>
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Started</td>
+          <td>{{ job_data.started | length }}</td>
+        </tr>
+        <tr>
+          <td>Failed</td>
+          <td>{{ job_data.failed | length }}</td>
+        </tr>
+        <tr>
+          <td>Deferred</td>
+          <td>{{ job_data.deferred | length }}</td>
+        </tr>
+        <tr>
+          <td>Finished</td>
+          <td>{{ job_data.finished | length }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
   {% endblock %}
 </body>
 

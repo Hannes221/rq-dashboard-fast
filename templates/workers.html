@@ -10,16 +10,18 @@
 
 <body>
   {% block content %}
-  <h1>Workers Dashboard</h1>
-  <ul>
-    {% for worker in worker_data %}
-    <li>
-      <p>ID: {{ worker.id }}</p>
-      <p>Name: {{ worker.name }}</p>
-    </li>
-    {% endfor %}
-  </ul>
-  {% endblock %}
+  <h2>Workers</h2>
+  <div class="section">
+    <ul>
+      {% for worker in worker_data %}
+      <li>
+        <p>ID: {{ worker.id }}</p>
+        <p>Name: {{ worker.name }}</p>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endblock %}
+  </div>
 </body>
 
 </html>
