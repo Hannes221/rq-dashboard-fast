@@ -1,17 +1,22 @@
 {% extends "base.html" %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Jobs Dashboard</title>
-  </head>
-  <body>
-    {% block content %}
-    <h1>Jobs Dashboard</h1>
-    <!-- Display job data here -->
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jobs Dashboard</title>
+</head>
+
+<body>
+  {% block content %}
+  <h1>Jobs Dashboard</h1>
+  <ul>
     {% for job in job_data %}
-    <p>{{ job }}</p>
-    {% endfor %} {% endblock %}
-  </body>
+    <li>{{ job }}</li>
+    {% endfor %}
+  </ul>
+  {% endblock %}
+</body>
+
 </html>

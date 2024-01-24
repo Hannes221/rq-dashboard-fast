@@ -1,17 +1,25 @@
 {% extends "base.html" %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Workers Dashboard</title>
-  </head>
-  <body>
-    {% block content %}
-    <h1>Workers Dashboard</h1>
-    <!-- Display worker data here -->
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workers Dashboard</title>
+</head>
+
+<body>
+  {% block content %}
+  <h1>Workers Dashboard</h1>
+  <ul>
     {% for worker in worker_data %}
-    <p>{{ worker }}</p>
-    {% endfor %} {% endblock %}
-  </body>
+    <li>
+      <p>ID: {{ worker.id }}</p>
+      <p>Name: {{ worker.name }}</p>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endblock %}
+</body>
+
 </html>
