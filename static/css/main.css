@@ -33,12 +33,7 @@ body {
     color: black;
 }
 
-.header-link:hover {
-    color: #007bff;
-}
-
 .footer-wrapper {
-    background-color: #ececec;
     padding: 10px;
     border-radius: 15px;
 }
@@ -54,7 +49,10 @@ body {
 
 .section {
     border: solid 1px #ddd;
-    padding: 2em;
+    padding-bottom: 10px;
+    font-family: 'Helvetica Neue', helvetica, sans-serif;
+    max-width: 85%;
+    margin: 0 auto;;
 }
 
 p.intro {
@@ -82,7 +80,7 @@ h2 {
 h3 {
     font-family: 'Helvetica Neue', helvetica, sans-serif;
     font-weight: 300;
-    color: steelblue;
+    color: black;
 }
 
 table,
@@ -229,10 +227,6 @@ span.loading {
 
 .footer-text a {
     color: #000000ad;
-}
-
-p.alert-danger {
-    border-bottom: solid 1px #721b245c;
 }
 
 #rq-instances:disabled {
