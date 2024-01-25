@@ -46,7 +46,7 @@ def get_job_registry_amount() -> list[QueueRegistryStats]:
             elif status == 'queued':
                 queued_jobs += 1
                 
-        result.append(QueueRegistryStats(queue.name, queued_jobs, started_jobs, failed_jobs, deferred_jobs, finished_jobs))
+        result.append(QueueRegistryStats(queue_name=queue.name, queued=queued_jobs, started=started_jobs, failed=failed_jobs, deferred=deferred_jobs, finished=finished_jobs))
     return result
 
 def delete_jobs_for_queue(queue_name) -> list[str]:

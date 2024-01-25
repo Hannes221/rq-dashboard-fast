@@ -40,16 +40,16 @@ def get_job_registrys():
         for job in jobs_fetched:
             status = job.get_status()
             if status == 'started':
-                started_jobs.append(JobData(job.id, job.description, job.created_at))
+                started_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
             elif status == 'failed':
-                failed_jobs.append(JobData(job.id, job.description, job.created_at))
+                failed_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
             elif status == 'deferred':
-                deferred_jobs.append(JobData(job.id, job.description, job.created_at))
+                deferred_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
             elif status == 'finished':
-                finished_jobs.append(JobData(job.id, job.description, job.created_at))
+                finished_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
             elif status == 'queued':
-                queued_jobs.append(JobData(job.id, job.description, job.created_at))
-        result.append(QueueJobRegistryStats(queue.name, queued_jobs, started_jobs, failed_jobs, deferred_jobs, finished_jobs))
+                queued_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
+        result.append(QueueJobRegistryStats(queue_name=queue.name, queued=queued_jobs, started=started_jobs, failed=failed_jobs, deferred=deferred_jobs, finished=finished_jobs))
                 
     return result
 
