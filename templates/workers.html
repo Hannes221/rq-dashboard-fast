@@ -12,14 +12,29 @@
   {% block content %}
   <h2>Workers</h2>
   <div class="section">
-    <ul>
-      {% for worker in worker_data %}
-      <li>
-        <p>ID: {{ worker.id }}</p>
-        <p>Name: {{ worker.name }}</p>
-      </li>
-      {% endfor %}
-    </ul>
+    <table id="workers">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Current Job</th>
+          <th>Queues</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for worker in worker_data %}
+        <tr>
+          <td>{{ worker.name }}</td>
+          <td>{{ worker.current_job }}</td>
+          <td>
+            {% for queue_name in worker.queues %}
+            {{ queue_name }}
+            {% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
   {% endblock %}
 </body>

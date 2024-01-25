@@ -16,12 +16,22 @@
       <thead>
         <tr>
           <th>Queue Name</th>
+          <th>Queued</th>
+          <th>Started</th>
+          <th>Failed</th>
+          <th>Deferred</th>
+          <th>Finished</th>
         </tr>
       </thead>
       <tbody>
-        {% for queue_name in queue_data %}
+        {% for queue_stats in queue_data %}
         <tr>
-          <td>{{ queue_name }}</td>
+          <td>{{ queue_stats.queue_name }}</td>
+          <td>{{ queue_stats.queued }}</td>
+          <td>{{ queue_stats.started }}</td>
+          <td>{{ queue_stats.failed }}</td>
+          <td>{{ queue_stats.deferred }}</td>
+          <td>{{ queue_stats.finished }}</td>
         </tr>
         {% endfor %}
       </tbody>

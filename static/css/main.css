@@ -131,8 +131,54 @@ pre.exc_info {
     white-space: pre-wrap;
 }
 
-table#workers {
-    /*width: 600px;*/
+#workers {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#workers th,
+#workers td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+#workers th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+#workers tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#workers tbody tr:hover {
+    background-color: #f0f0f0;
+}
+
+#workers td {
+    max-width: 200px; /* Adjust as needed */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+table tbody tr td {
+    vertical-align: middle;
+}
+
+table tr.failed {
+    color: red;
+    border-top: 2px solid red;
+}
+
+table tr.failed a {
+    color: red;
+}
+
+table tr.failed td {
+    background-color: lightgoldenrodyellow;
 }
 
 #jobs {
@@ -167,7 +213,6 @@ table#workers {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-
 
 table tbody tr td {
     vertical-align: middle;
