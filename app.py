@@ -3,11 +3,10 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 import uvicorn
-from utils import workers
 from starlette.staticfiles import StaticFiles
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-
-from utils import jobs, queues
+from utils.jobs import get_jobs
+from utils.workers import get_workers
+from utils.queues import delete_jobs_for_queue, get_job_registry_amount
 
 app = FastAPI()
 
@@ -28,7 +27,7 @@ async def get_home(request: Request):
     
 @app.get("/workers", response_class=HTMLResponse)
 async def read_workers(request: Request):
-    worker_data = workers.get_workers()
+    worker_data = get_workers()
     
     active_tab = 'workers' 
 
@@ -40,24 +39,13 @@ async def read_workers(request: Request):
     
 @app.delete("/queues/{name}")
 def delete_jobs_in_queue(queue_name: str):
-    deleted_ids = queues.delete_jobs_for_queue(queue_name)
+    deleted_ids = delete_jobs_for_queue(queue_name)
     return deleted_ids
     
-@app.get("/queues/{name}", response_class=HTMLResponse)
-async def read_queues(request: Request, name: str):
-    queue_data = queues.get_job_registry_stats_for_queue(name)
-
-    active_tab = 'queues' 
-
-    return templates.TemplateResponse(
-        "queues.html",
-        {"request": request, "queue_data": queue_data, "active_tab": active_tab,
-         "instance_list": [], "rq_dashboard_version": rq_dashboard_version}
-    )
 
 @app.get("/queues", response_class=HTMLResponse)
 async def read_queues(request: Request):
-    queue_data = queues.get_queues()
+    queue_data = get_job_registry_amount()
 
     active_tab = 'queues' 
 
@@ -70,7 +58,7 @@ async def read_queues(request: Request):
 
 @app.get("/jobs", response_class=HTMLResponse)
 async def read_jobs(request: Request):
-    job_data = jobs.get_jobs()
+    job_data = get_jobs()
 
     active_tab = 'jobs' 
 
