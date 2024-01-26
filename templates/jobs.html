@@ -13,54 +13,37 @@
   {% block content %}
   <h2>Jobs</h2>
   <div class="section">
+    <p>
+      This list contains all the jobs that are currently queued. You can delete a job by clicking the delete button.
+    </p>
     <table id="jobs">
       <thead>
         <tr>
-          <th>Status</th>
-          <th>Count</th>
-          <th>Jobs</th>
+          <th>Name</th>
+          <th>Age</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
+        {% for queue in job_data %}
         <tr>
-          <td>Started</td>
-          <td>{{ job_data.started | length }}</td>
+          <td>{{ queue.queue_name }}</td>
+          <td></td>
           <td>
-            {% for job_id in job_data.started %}
-              {{ job_id }}<br>
+            {% for job in queue.queued %}
+            <div>
+              <span>{{ job.name }}</span>
+              <span>{{ job.created_at }}</span>
+              <button class="delete-button" onclick="deleteJob('{{ job.id }}')">Delete</button>
+            </div>
             {% endfor %}
           </td>
         </tr>
-        <tr>
-          <td>Failed</td>
-          <td>{{ job_data.failed | length }}</td>
-          <td>
-            {% for job_id in job_data.failed %}
-              {{ job_id }}<br>
-            {% endfor %}
-          </td>
-        </tr>
-        <tr>
-          <td>Deferred</td>
-          <td>{{ job_data.deferred | length }}</td>
-          <td>
-            {% for job_id in job_data.deferred %}
-              {{ job_id }}<br>
-            {% endfor %}
-          </td>
-        </tr>
-        <tr>
-          <td>Finished</td>
-          <td>{{ job_data.finished | length }}</td>
-          <td>
-            {% for job_id in job_data.finished %}
-              {{ job_id }}<br>
-            {% endfor %}
-          </td>
-        </tr>
+        {% endfor %}
       </tbody>
     </table>
   </div>
+
   {% endblock %}
 </body>
 
