@@ -304,3 +304,16 @@ span.loading {
 #rq-instances:disabled {
     color: black;
 }
+
+.delete-button {
+    background-color: #ff0000;
+    color: #ffffff;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.delete-button:hover {
+    background-color: #cc0000;
+}
