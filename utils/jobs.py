@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import Any, List
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from redis import Redis
@@ -10,10 +10,21 @@ from utils.queues import get_queues
 
 router = APIRouter()
     
+    
 class JobData(BaseModel):
     id: str
     name: str
     created_at: datetime
+    
+class JobDataDetailed(BaseModel):
+    id: str
+    name: str
+    created_at: datetime
+    enqueued_at: datetime | None
+    ended_at: datetime | None
+    result: Any
+    exc_info: str | None
+    meta: dict
 
 class QueueJobRegistryStats(BaseModel):
     queue_name: str
@@ -60,3 +71,8 @@ def get_jobs() -> list[QueueJobRegistryStats]:
     except Exception as e:
         # Handle specific exceptions if needed
         raise HTTPException(status_code=500, detail=str(e))
+
+def get_job(job_id: str) -> JobDataDetailed:
+    job = Job.fetch(job_id, connection=Redis())
+
+    return JobDataDetailed(id=job.id, name=job.description, created_at=job.created_at, enqueued_at=job.enqueued_at, ended_at=job.ended_at, result=job.result, exc_info=job.exc_info, meta=job.meta)
