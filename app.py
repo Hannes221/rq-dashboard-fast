@@ -2,72 +2,75 @@ import os
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-import uvicorn
 from starlette.staticfiles import StaticFiles
+import uvicorn
 from utils.jobs import get_jobs
 from utils.workers import get_workers
 from utils.queues import delete_jobs_for_queue, get_job_registry_amount
 
-app = FastAPI()
+class DashboardApp(FastAPI):
+    def __init__(self, redis_url: str = "redis://localhost:6379", *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.mount("/static", StaticFiles(directory="static"), name="static")
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+        templates_directory = os.path.join(os.getcwd(), 'templates')
+        self.templates = Jinja2Templates(directory=templates_directory)
+        self.redis_url = redis_url 
 
-templates_directory = os.path.join(os.getcwd(), 'templates')
-templates = Jinja2Templates(directory=templates_directory)
+        self.rq_dashboard_version = "1.0" 
 
-rq_dashboard_version = "1.0" 
+        @self.get("/", response_class=HTMLResponse)
+        async def get_home(request: Request):
+            return self.templates.TemplateResponse(
+                "base.html",
+                {"request": request, "active_tab": "jobs",
+                 "instance_list": [], "rq_dashboard_version": "1.0"}
+            )
 
-@app.get("/", response_class=HTMLResponse)
-async def get_home(request: Request):
-    return templates.TemplateResponse(
-        "base.html",
-        {"request": request, "active_tab": "jobs",
-         "instance_list": [], "rq_dashboard_version": "1.0"}
-    )
-    
-@app.get("/workers", response_class=HTMLResponse)
-async def read_workers(request: Request):
-    worker_data = get_workers()
-    
-    active_tab = 'workers' 
+        @self.get("/workers", response_class=HTMLResponse)
+        async def read_workers(request: Request):
+            worker_data = get_workers(self.redis_url)
 
-    return templates.TemplateResponse(
-        "workers.html",
-        {"request": request, "worker_data": worker_data, "active_tab": active_tab,
-         "instance_list": [], "rq_dashboard_version": rq_dashboard_version}
-    )
-    
-@app.delete("/queues/{name}")
-def delete_jobs_in_queue(queue_name: str):
-    deleted_ids = delete_jobs_for_queue(queue_name)
-    return deleted_ids
-    
+            active_tab = 'workers' 
 
-@app.get("/queues", response_class=HTMLResponse)
-async def read_queues(request: Request):
-    queue_data = get_job_registry_amount()
+            return self.templates.TemplateResponse(
+                "workers.html",
+                {"request": request, "worker_data": worker_data, "active_tab": active_tab,
+                 "instance_list": [], "rq_dashboard_version": self.rq_dashboard_version}
+            )
 
-    active_tab = 'queues' 
+        @self.delete("/queues/{name}")
+        def delete_jobs_in_queue(queue_name: str):
+            deleted_ids = delete_jobs_for_queue(queue_name, self.redis_url)
+            return deleted_ids
 
-    return templates.TemplateResponse(
-        "queues.html",
-        {"request": request, "queue_data": queue_data, "active_tab": active_tab,
-         "instance_list": [], "rq_dashboard_version": rq_dashboard_version}
-    )
-    
+        @self.get("/queues", response_class=HTMLResponse)
+        async def read_queues(request: Request):
+            queue_data = get_job_registry_amount(self.redis_url)
 
-@app.get("/jobs", response_class=HTMLResponse)
-async def read_jobs(request: Request):
-    job_data = get_jobs()
+            active_tab = 'queues' 
 
-    active_tab = 'jobs' 
+            return self.templates.TemplateResponse(
+                "queues.html",
+                {"request": request, "queue_data": queue_data, "active_tab": active_tab,
+                 "instance_list": [], "rq_dashboard_version": self.rq_dashboard_version}
+            )
 
-    return templates.TemplateResponse(
-        "jobs.html",
-        {"request": request, "job_data": job_data, "active_tab": active_tab,
-         "instance_list": [], "rq_dashboard_version": rq_dashboard_version}
-    )
+        @self.get("/jobs", response_class=HTMLResponse)
+        async def read_jobs(request: Request):
+            job_data = get_jobs(self.redis_url)
 
+            active_tab = 'jobs' 
+
+            return self.templates.TemplateResponse(
+                "jobs.html",
+                {"request": request, "job_data": job_data, "active_tab": active_tab,
+                 "instance_list": [], "rq_dashboard_version": self.rq_dashboard_version}
+            )
+
+
+app = DashboardApp()
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000, log_level="debug")

@@ -23,13 +23,15 @@ class QueueJobRegistryStats(BaseModel):
     deferred: List[JobData]
     finished: List[JobData]
 
-def get_job_registrys():
-    queues = get_queues()
+def get_job_registrys(redis_url: str):
+    redis = Redis.from_url(redis_url)
+    
+    queues = get_queues(redis_url)
     result = []
     for queue in queues:
         jobs = queue.get_job_ids()
         
-        jobs_fetched = Job.fetch_many(jobs, connection=Redis())
+        jobs_fetched = Job.fetch_many(jobs, connection=redis)
         
         started_jobs = []
         failed_jobs = []
@@ -53,9 +55,9 @@ def get_job_registrys():
                 
     return result
 
-def get_jobs() -> list[QueueJobRegistryStats]:
+def get_jobs(redis_url: str) -> list[QueueJobRegistryStats]:
     try:
-        job_stats = get_job_registrys()
+        job_stats = get_job_registrys(redis_url)
         return job_stats
     except Exception as e:
         # Handle specific exceptions if needed

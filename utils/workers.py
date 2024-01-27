@@ -1,13 +1,14 @@
 from pydantic import BaseModel
+from redis import Redis
 from rq import Worker
-from utils.redis_conn import redis
 
 class WorkerData(BaseModel):
     name: str
     current_job: str
     queues: list[str]
 
-def get_workers() -> list[WorkerData]:
+def get_workers(redis_url: str) -> list[WorkerData]:
+    redis = Redis.from_url(redis_url)
     workers = Worker.all(connection=redis)
     result = []
     
