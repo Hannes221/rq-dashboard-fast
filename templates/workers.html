@@ -1,42 +1,37 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block content %}
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Workers Dashboard</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Workers Dashboard</title>
-</head>
-
-<body>
-  {% block content %}
-  <h2>Workers</h2>
-  <div class="section">
-    <table id="workers">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Current Job</th>
-          <th>Queues</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for worker in worker_data %}
-        <tr>
-          <td>{{ worker.name }}</td>
-          <td>{{ worker.current_job }}</td>
-          <td>
-            {% for queue_name in worker.queues %}
-            {{ queue_name }}
-            {% if not forloop.last %}, {% endif %}
-            {% endfor %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% endblock %}
-</body>
-
+  <body>
+    <h2>Workers</h2>
+    <div class="section">
+      <table id="workers">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Current Job</th>
+            <th>Queues</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for worker in worker_data %}
+          <tr>
+            <td>{{ worker.name }}</td>
+            <td>{{ worker.current_job }}</td>
+            <td>
+              {% for queue_name in worker.queues %} {{ queue_name }} {% if not
+              loop.last %}, {% endif %} {% endfor %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </body>
 </html>
+{% endblock %}

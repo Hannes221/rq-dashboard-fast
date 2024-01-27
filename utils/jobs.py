@@ -4,7 +4,6 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from redis import Redis
 from rq.job import Job
-from rq import Queue
 
 from utils.queues import get_queues
 
