@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block content %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -9,7 +9,6 @@
   </head>
 
   <body>
-    {% block content %}
     <h2>Jobs</h2>
     <div class="section">
       <p>
@@ -28,7 +27,11 @@
         <tbody>
           {% for queue in job_data %} {% for job in queue.queued %}
           <tr>
-            <td>{{ job.id }}</td>
+            <td>
+              <a href="{{ url_for('get_job_data', job_id=job.id) }}"
+                >{{ job.id }}</a
+              >
+            </td>
             <td>{{ job.name }}</td>
             <td>{{ job.created_at }}</td>
             <td>
@@ -41,7 +44,6 @@
         </tbody>
       </table>
     </div>
-
-    {% endblock %}
   </body>
 </html>
+{% endblock %}

@@ -69,10 +69,16 @@ async def read_jobs(request: Request):
     )
     
 @app.get("/job/{job_id}", response_model=JobDataDetailed)
-async def get_job_data(job_id: str):
+async def get_job_data(job_id: str, request: Request):
     job = get_job(job_id)
     
-    return job
+    active_tab = "job"
+    
+    return templates.TemplateResponse(
+        "job.html",
+        {"request": request, "job_data": job, "active_tab": active_tab, 
+         "instance_list": [], "rq_dashboard_version": rq_dashboard_version}
+    )
 
 
 if __name__ == "__main__":
