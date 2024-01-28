@@ -1,15 +1,55 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% block content %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jobs Dashboard</title>
-    <link rel="stylesheet" href="/static/css/main.css" />
+    <script>
+      function updateJobsData() {
+        $.ajax({
+          url: '/jobs/json',
+          type: 'GET',
+          dataType: 'json',
+          success: function (data) {
+            updateJobsTable(data);
+          },
+          error: function (error) {
+            console.error('Error fetching jobs data: ', error);
+          },
+        });
+      }
+
+      function updateJobsTable(data) {
+        var tableBody = $('#jobs tbody');
+        tableBody.empty();
+
+        $.each(data, function (index, queue) {
+          $.each(queue.queued, function (jobIndex, job) {
+            var row = $('<tr>');
+            row.append($('<td>').text(job.id));
+            row.append($('<td>').text(job.name));
+            row.append($('<td>').text(job.created_at));
+            row.append(
+              $('<td>').append(
+                $('<button>')
+                  .text('Delete')
+                  .addClass('delete-button')
+                  .on('click', function () {
+                    deleteJob(job.id);
+                  })
+              )
+            );
+            tableBody.append(row);
+          });
+        });
+      }
+
+      setInterval(updateJobsData, 5000);
+    </script>
   </head>
 
   <body>
-    {% block content %}
     <h2>Jobs</h2>
     <div class="section">
       <p>
@@ -41,7 +81,6 @@
         </tbody>
       </table>
     </div>
-
-    {% endblock %}
   </body>
 </html>
+{% endblock %}

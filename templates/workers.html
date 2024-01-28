@@ -5,6 +5,46 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Workers Dashboard</title>
+
+    <script>
+      function updateData() {
+        $.ajax({
+          url: '/workers/json',
+          type: 'GET',
+          dataType: 'json',
+          success: function (data) {
+            updateTable(data);
+          },
+          error: function (error) {
+            console.error('Error fetching data: ', error);
+          },
+        });
+      }
+
+      function updateTable(data) {
+        var tableBody = $('#workers tbody');
+        tableBody.empty();
+
+        $.each(data, function (index, worker) {
+          var row = $('<tr>');
+          row.append($('<td>').text(worker.name));
+          row.append($('<td>').text(worker.current_job));
+
+          var queuesCell = $('<td>');
+          $.each(worker.queues, function (queueIndex, queue) {
+            queuesCell.append(queue);
+            if (queueIndex < worker.queues.length - 1) {
+              queuesCell.append(', ');
+            }
+          });
+          row.append(queuesCell);
+
+          tableBody.append(row);
+        });
+      }
+
+      setInterval(updateData, 5000);
+    </script>
   </head>
 
   <body>
