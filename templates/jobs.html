@@ -1,12 +1,26 @@
 {% extends "base.html" %}{% block content %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Jobs Dashboard</title>
-    <script>
-      function updateJobsData() {
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jobs Dashboard</title>
+  <script>
+
+    var autoRefreshEnabled = true;
+
+    function toggleAutorefresh() {
+      autoRefreshEnabled = !autoRefreshEnabled;
+      if (autoRefreshEnabled) {
+        setInterval(updateJobsData, 5000);
+      } else {
+        clearInterval()
+      }
+    }
+
+    function updateJobsData() {
+      if (autoRefreshEnabled) {
         $.ajax({
           url: '/jobs/json',
           type: 'GET',
@@ -19,11 +33,11 @@
           },
         });
       }
+    }
 
-      function updateJobsTable(data) {
-        var tableBody = $('#jobs tbody');
-        tableBody.empty();
-
+    function updateJobsTable(data) {
+      var tableBody = $('#jobs tbody');
+      tableBody.empty();
         $.each(data, function (index, queue) {
           $.each(queue.queued, function (jobIndex, job) {
             var row = $('<tr>');
@@ -46,14 +60,27 @@
             tableBody.append(row);
           });
         });
-      }
+      });
+    }
 
+    $('#autorefresh-switch').on('change', function () {
+      toggleAutorefresh();
+    })
+
+    if (autoRefreshEnabled) {
       setInterval(updateJobsData, 5000);
-    </script>
-  </head>
+    }
 
+  </script>
+</head>
   <body>
     <h2>Jobs</h2>
+    <div class="custom-switch">
+    <input type="checkbox" class="custom-control-input" id="autorefresh-switch" checked>
+    <label class="custom-control-label">
+      Autorefresh
+    </label>
+  </div>
     <div class="section">
       <p>
         This list contains all the jobs that are currently queued. You can
