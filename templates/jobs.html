@@ -68,7 +68,11 @@
         <tbody>
           {% for queue in job_data %} {% for job in queue.queued %}
           <tr>
-            <td>{{ job.id }}</td>
+            <td>
+              <a href="{{ url_for('get_job_data', job_id=job.id) }}"
+                >{{ job.id }}</a
+              >
+            </td>
             <td>{{ job.name }}</td>
             <td>{{ job.created_at }}</td>
             <td>
