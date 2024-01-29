@@ -38,24 +38,27 @@
     function updateJobsTable(data) {
       var tableBody = $('#jobs tbody');
       tableBody.empty();
-
-      $.each(data, function (index, queue) {
-        $.each(queue.queued, function (jobIndex, job) {
-          var row = $('<tr>');
-          row.append($('<td>').text(job.id));
-          row.append($('<td>').text(job.name));
-          row.append($('<td>').text(job.created_at));
-          row.append(
-            $('<td>').append(
-              $('<button>')
-                .text('Delete')
-                .addClass('delete-button')
-                .on('click', function () {
-                  deleteJob(job.id);
-                })
-            )
-          );
-          tableBody.append(row);
+        $.each(data, function (index, queue) {
+          $.each(queue.queued, function (jobIndex, job) {
+            var row = $('<tr>');
+            var jobLink = $('<a>')
+              .attr('href', '/job/' + job.id)
+              .text(job.id);
+            row.append($('<td>').append(jobLink));
+            row.append($('<td>').text(job.name));
+            row.append($('<td>').text(job.created_at));
+            row.append(
+              $('<td>').append(
+                $('<button>')
+                  .text('Delete')
+                  .addClass('delete-button')
+                  .on('click', function () {
+                    deleteJob(job.id);
+                  })
+              )
+            );
+            tableBody.append(row);
+          });
         });
       });
     }
@@ -70,46 +73,48 @@
 
   </script>
 </head>
-
-<body>
-  <h2>Jobs</h2>
-  <div class="custom-switch">
+  <body>
+    <h2>Jobs</h2>
+    <div class="custom-switch">
     <input type="checkbox" class="custom-control-input" id="autorefresh-switch" checked>
     <label class="custom-control-label">
       Autorefresh
     </label>
   </div>
-  <div class="section">
-    <p>
-      This list contains all the jobs that are currently queued. You can
-      delete a job by clicking the delete button.
-    </p>
-    <table id="jobs">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Date</th>
-          <th>Options</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for queue in job_data %} {% for job in queue.queued %}
-        <tr>
-          <td>{{ job.id }}</td>
-          <td>{{ job.name }}</td>
-          <td>{{ job.created_at }}</td>
-          <td>
-            <button class="delete-button" onclick="deleteJob('{{ job.id }}')">
-              Delete
-            </button>
-          </td>
-        </tr>
-        {% endfor %} {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</body>
-
+    <div class="section">
+      <p>
+        This list contains all the jobs that are currently queued. You can
+        delete a job by clicking the delete button.
+      </p>
+      <table id="jobs">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Options</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for queue in job_data %} {% for job in queue.queued %}
+          <tr>
+            <td>
+              <a href="{{ url_for('get_job_data', job_id=job.id) }}"
+                >{{ job.id }}</a
+              >
+            </td>
+            <td>{{ job.name }}</td>
+            <td>{{ job.created_at }}</td>
+            <td>
+              <button class="delete-button" onclick="deleteJob('{{ job.id }}')">
+                Delete
+              </button>
+            </td>
+          </tr>
+          {% endfor %} {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </body>
 </html>
 {% endblock %}
