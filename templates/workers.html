@@ -1,13 +1,27 @@
 {% extends "base.html" %} {% block content %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Workers Dashboard</title>
 
-    <script>
-      function updateData() {
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workers Dashboard</title>
+
+  <script>
+
+    var autoRefreshEnabled = true;
+
+    function toggleAutorefresh() {
+      autoRefreshEnabled = !autoRefreshEnabled;
+      if (autoRefreshEnabled) {
+        setInterval(updateData, 5000);
+      } else {
+        clearInterval()
+      }
+    }
+
+    function updateData() {
+      if (autoRefreshEnabled) {
         $.ajax({
           url: '/workers/json',
           type: 'GET',
@@ -20,58 +34,72 @@
           },
         });
       }
+    }
 
-      function updateTable(data) {
-        var tableBody = $('#workers tbody');
-        tableBody.empty();
+    function updateTable(data) {
+      var tableBody = $('#workers tbody');
+      tableBody.empty();
 
-        $.each(data, function (index, worker) {
-          var row = $('<tr>');
-          row.append($('<td>').text(worker.name));
-          row.append($('<td>').text(worker.current_job));
+      $.each(data, function (index, worker) {
+        var row = $('<tr>');
+        row.append($('<td>').text(worker.name));
+        row.append($('<td>').text(worker.current_job));
 
-          var queuesCell = $('<td>');
-          $.each(worker.queues, function (queueIndex, queue) {
-            queuesCell.append(queue);
-            if (queueIndex < worker.queues.length - 1) {
-              queuesCell.append(', ');
-            }
-          });
-          row.append(queuesCell);
-
-          tableBody.append(row);
+        var queuesCell = $('<td>');
+        $.each(worker.queues, function (queueIndex, queue) {
+          queuesCell.append(queue);
+          if (queueIndex < worker.queues.length - 1) {
+            queuesCell.append(', ');
+          }
         });
-      }
+        row.append(queuesCell);
 
-      setInterval(updateData, 5000);
-    </script>
-  </head>
+        tableBody.append(row);
+      });
+    }
 
-  <body>
-    <h2>Workers</h2>
-    <div class="section">
-      <table id="workers">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Current Job</th>
-            <th>Queues</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for worker in worker_data %}
-          <tr>
-            <td>{{ worker.name }}</td>
-            <td>{{ worker.current_job }}</td>
-            <td>
-              {% for queue_name in worker.queues %} {{ queue_name }} {% if not
-              loop.last %}, {% endif %} {% endfor %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </body>
+    $('#autorefresh-switch').on('change', function () {
+      toggleAutorefresh();
+    });
+
+    if (autoRefreshEnabled) {
+      setInterval(updateData, 5000)
+    }
+  </script>
+</head>
+
+<body>
+  <h2>Workers</h2>
+  <div class="custom-switch">
+    <input type="checkbox" class="custom-control-input" id="autorefresh-switch" checked>
+    <label class="custom-control-label">
+      Autorefresh
+    </label>
+  </div>
+  <div class="section">
+    <table id="workers">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Current Job</th>
+          <th>Queues</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for worker in worker_data %}
+        <tr>
+          <td>{{ worker.name }}</td>
+          <td>{{ worker.current_job }}</td>
+          <td>
+            {% for queue_name in worker.queues %} {{ queue_name }} {% if not
+            loop.last %}, {% endif %} {% endfor %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</body>
+
 </html>
 {% endblock %}

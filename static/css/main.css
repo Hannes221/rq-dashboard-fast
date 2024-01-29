@@ -38,6 +38,14 @@ body {
     font-family: 'Helvetica Neue', helvetica, sans-serif;
 }
 
+.custom-control {
+    padding: 20px;
+}
+
+.custom-switch {
+    margin-bottom: 20px;
+}
+
 .footer-wrapper {
     padding: 10px;
     border-radius: 15px;
