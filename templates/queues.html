@@ -1,108 +1,116 @@
 {% extends "base.html" %}{% block content %}
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Queues Dashboard</title>
+    <script>
+      let autoRefreshEnabled = true;
+      let autoRefreshInterval;
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Queues Dashboard</title>
-  <script>
-
-    var autoRefreshEnabled = true;
-
-    function toggleAutorefresh() {
-      autoRefreshEnabled = !autoRefreshEnabled;
-      if (autoRefreshEnabled) {
-        setInterval(updateQueuesData, 5000);
-      } else {
-        clearInterval()
+      function toggleAutorefresh() {
+        autoRefreshEnabled = !autoRefreshEnabled;
+        if (autoRefreshEnabled) {
+          autoRefreshInterval = setInterval(updateQueuesData, 5000);
+        } else {
+          clearInterval(autoRefreshInterval);
+        }
       }
-    }
 
-    function updateQueuesData() {
-      if (autoRefreshEnabled) {
-        $.ajax({
-          url: '/queues/json',
-          type: 'GET',
-          dataType: 'json',
-          success: function (data) {
-            updateQueuesTable(data);
-          },
-          error: function (error) {
-            console.error('Error fetching queues data: ', error);
-          },
+      $(document).ready(function () {
+        $('#autorefresh-switch').on('change', function () {
+          toggleAutorefresh();
+        });
+
+        autoRefreshEnabled = $('#autorefresh-switch').is(':checked');
+        if (autoRefreshEnabled) {
+          autoRefreshInterval = setInterval(updateQueuesData, 5000);
+        }
+      });
+
+      function updateQueuesData() {
+        if (autoRefreshEnabled) {
+          $.ajax({
+            url: '/queues/json',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+              updateQueuesTable(data);
+            },
+            error: function (error) {
+              console.error('Error fetching queues data: ', error);
+            },
+          });
+        }
+      }
+
+      function updateQueuesTable(data) {
+        var tableBody = $('#queues tbody');
+
+        if (tableBody.children().length > 0) {
+          tableBody.empty();
+        }
+
+        $.each(data, function (index, queue_stats) {
+          var row = $('<tr>');
+          row.append($('<td>').text(queue_stats.queue_name));
+          row.append($('<td>').text(queue_stats.queued));
+          row.append($('<td>').text(queue_stats.started));
+          row.append($('<td>').text(queue_stats.failed));
+          row.append($('<td>').text(queue_stats.deferred));
+          row.append($('<td>').text(queue_stats.finished));
+          tableBody.append(row);
         });
       }
-    }
 
-    function updateQueuesTable(data) {
-      var tableBody = $('#queues tbody');
-
-      if (tableBody.children().length > 0) {
-        tableBody.empty();
-      }
-
-      $.each(data, function (index, queue_stats) {
-        var row = $('<tr>');
-        row.append($('<td>').text(queue_stats.queue_name));
-        row.append($('<td>').text(queue_stats.queued));
-        row.append($('<td>').text(queue_stats.started));
-        row.append($('<td>').text(queue_stats.failed));
-        row.append($('<td>').text(queue_stats.deferred));
-        row.append($('<td>').text(queue_stats.finished));
-        tableBody.append(row);
+      $(document).ready(function () {
+        updateQueuesData();
       });
-    }
 
-    $(document).ready(function () {
-      updateQueuesData();
-    });
+      if (autoRefreshEnabled) {
+        setInterval(updateQueuesData, 5000);
+      }
+    </script>
+  </head>
 
-    $('#autorefresh-switch').on('change', function () {
-      toggleAutorefresh();
-    });
-
-    if (autoRefreshEnabled) {
-      setInterval(updateQueuesData, 5000);
-    }
-  </script>
-</head>
-
-<body>
-  <h2>Queues</h2>
-  <div class="custom-switch">
-    <input type="checkbox" class="custom-control-input" id="autorefresh-switch" checked>
-    <label class="custom-control-label">
-      Autorefresh
-    </label>
-  </div>
-  <div class="section">
-    <table id="queues">
-      <thead>
-        <tr>
-          <th>Queue Name</th>
-          <th>Queued</th>
-          <th>Started</th>
-          <th>Failed</th>
-          <th>Deferred</th>
-          <th>Finished</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for queue_stats in queue_data %}
-        <tr>
-          <td>{{ queue_stats.queue_name }}</td>
-          <td>{{ queue_stats.queued }}</td>
-          <td>{{ queue_stats.started }}</td>
-          <td>{{ queue_stats.failed }}</td>
-          <td>{{ queue_stats.deferred }}</td>
-          <td>{{ queue_stats.finished }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% endblock %}
-</body>
-
+  <body>
+    <h2>Queues</h2>
+    <div class="custom-switch">
+      <input
+        type="checkbox"
+        class="custom-control-input"
+        id="autorefresh-switch"
+        checked
+      />
+      <label class="custom-control-label"> Autorefresh </label>
+    </div>
+    <div class="section">
+      <table id="queues">
+        <thead>
+          <tr>
+            <th>Queue Name</th>
+            <th>Queued</th>
+            <th>Started</th>
+            <th>Failed</th>
+            <th>Deferred</th>
+            <th>Finished</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for queue_stats in queue_data %}
+          <tr>
+            <td>{{ queue_stats.queue_name }}</td>
+            <td>{{ queue_stats.queued }}</td>
+            <td>{{ queue_stats.started }}</td>
+            <td>{{ queue_stats.failed }}</td>
+            <td>{{ queue_stats.deferred }}</td>
+            <td>{{ queue_stats.finished }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endblock %}
+  </body>
 </html>

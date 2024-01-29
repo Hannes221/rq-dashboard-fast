@@ -1,105 +1,113 @@
 {% extends "base.html" %} {% block content %}
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Workers Dashboard</title>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Workers Dashboard</title>
+    <script>
+      let autoRefreshEnabled = true;
+      let autoRefreshInterval = null;
 
-  <script>
+      function toggleAutorefresh() {
+        autoRefreshEnabled = !autoRefreshEnabled;
+        if (autoRefreshEnabled) {
+          autoRefreshInterval = setInterval(updateData, 5000);
+        } else {
+          clearInterval(autoRefreshInterval);
+        }
+      }
 
-    var autoRefreshEnabled = true;
+      $(document).ready(function () {
+        $('#autorefresh-switch').on('change', function () {
+          toggleAutorefresh();
+        });
 
-    function toggleAutorefresh() {
-      autoRefreshEnabled = !autoRefreshEnabled;
+        autoRefreshEnabled = $('#autorefresh-switch').is(':checked');
+        if (autoRefreshEnabled) {
+          autoRefreshInterval = setInterval(updateData, 5000);
+        }
+      });
+
+      function updateData() {
+        if (autoRefreshEnabled) {
+          $.ajax({
+            url: '/workers/json',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+              updateTable(data);
+            },
+            error: function (error) {
+              console.error('Error fetching data: ', error);
+            },
+          });
+        }
+      }
+
+      function updateTable(data) {
+        var tableBody = $('#workers tbody');
+        tableBody.empty();
+
+        $.each(data, function (index, worker) {
+          var row = $('<tr>');
+          row.append($('<td>').text(worker.name));
+          row.append($('<td>').text(worker.current_job));
+
+          var queuesCell = $('<td>');
+          $.each(worker.queues, function (queueIndex, queue) {
+            queuesCell.append(queue);
+            if (queueIndex < worker.queues.length - 1) {
+              queuesCell.append(', ');
+            }
+          });
+          row.append(queuesCell);
+
+          tableBody.append(row);
+        });
+      }
+
       if (autoRefreshEnabled) {
         setInterval(updateData, 5000);
-      } else {
-        clearInterval()
       }
-    }
+    </script>
+  </head>
 
-    function updateData() {
-      if (autoRefreshEnabled) {
-        $.ajax({
-          url: '/workers/json',
-          type: 'GET',
-          dataType: 'json',
-          success: function (data) {
-            updateTable(data);
-          },
-          error: function (error) {
-            console.error('Error fetching data: ', error);
-          },
-        });
-      }
-    }
-
-    function updateTable(data) {
-      var tableBody = $('#workers tbody');
-      tableBody.empty();
-
-      $.each(data, function (index, worker) {
-        var row = $('<tr>');
-        row.append($('<td>').text(worker.name));
-        row.append($('<td>').text(worker.current_job));
-
-        var queuesCell = $('<td>');
-        $.each(worker.queues, function (queueIndex, queue) {
-          queuesCell.append(queue);
-          if (queueIndex < worker.queues.length - 1) {
-            queuesCell.append(', ');
-          }
-        });
-        row.append(queuesCell);
-
-        tableBody.append(row);
-      });
-    }
-
-    $('#autorefresh-switch').on('change', function () {
-      toggleAutorefresh();
-    });
-
-    if (autoRefreshEnabled) {
-      setInterval(updateData, 5000)
-    }
-  </script>
-</head>
-
-<body>
-  <h2>Workers</h2>
-  <div class="custom-switch">
-    <input type="checkbox" class="custom-control-input" id="autorefresh-switch" checked>
-    <label class="custom-control-label">
-      Autorefresh
-    </label>
-  </div>
-  <div class="section">
-    <table id="workers">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Current Job</th>
-          <th>Queues</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for worker in worker_data %}
-        <tr>
-          <td>{{ worker.name }}</td>
-          <td>{{ worker.current_job }}</td>
-          <td>
-            {% for queue_name in worker.queues %} {{ queue_name }} {% if not
-            loop.last %}, {% endif %} {% endfor %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</body>
-
+  <body>
+    <h2>Workers</h2>
+    <div class="custom-switch">
+      <input
+        type="checkbox"
+        class="custom-control-input"
+        id="autorefresh-switch"
+        checked
+      />
+      <label class="custom-control-label"> Autorefresh </label>
+    </div>
+    <div class="section">
+      <table id="workers">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Current Job</th>
+            <th>Queues</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for worker in worker_data %}
+          <tr>
+            <td>{{ worker.name }}</td>
+            <td>{{ worker.current_job }}</td>
+            <td>
+              {% for queue_name in worker.queues %} {{ queue_name }} {% if not
+              loop.last %}, {% endif %} {% endfor %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </body>
 </html>
 {% endblock %}
