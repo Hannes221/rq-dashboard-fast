@@ -72,6 +72,16 @@
         });
       }
 
+      function deleteJob(job_id) {
+        $.ajax({
+          url: '/job/' + job_id,
+          type: 'DELETE',
+          error: function (error) {
+            console.error('Error fetching job data: ', error);
+          },
+        });
+      }
+
       if (autoRefreshEnabled) {
         setInterval(updateJobsData, 5000);
       }
