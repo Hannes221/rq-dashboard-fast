@@ -27,7 +27,10 @@
         $.each(data, function (index, queue) {
           $.each(queue.queued, function (jobIndex, job) {
             var row = $('<tr>');
-            row.append($('<td>').text(job.id));
+            var jobLink = $('<a>')
+              .attr('href', '/job/' + job.id)
+              .text(job.id);
+            row.append($('<td>').append(jobLink));
             row.append($('<td>').text(job.name));
             row.append($('<td>').text(job.created_at));
             row.append(
