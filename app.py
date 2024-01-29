@@ -4,9 +4,9 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 import uvicorn
 from starlette.staticfiles import StaticFiles
-from utils.jobs import get_jobs, JobDataDetailed, get_job
-from utils.workers import get_workers
-from utils.queues import delete_jobs_for_queue, get_job_registry_amount
+from utils.jobs import QueueJobRegistryStats, get_jobs, JobDataDetailed, get_job
+from utils.workers import WorkerData, get_workers
+from utils.queues import QueueRegistryStats, delete_jobs_for_queue, get_job_registry_amount
 
 app = FastAPI()
 
@@ -36,6 +36,12 @@ async def read_workers(request: Request):
         {"request": request, "worker_data": worker_data, "active_tab": active_tab,
          "instance_list": [], "rq_dashboard_version": rq_dashboard_version}
     )
+
+@app.get("/workers/json", response_model=list[WorkerData])
+async def read_workers():
+    worker_data = get_workers()
+    
+    return worker_data
     
 @app.delete("/queues/{name}")
 def delete_jobs_in_queue(queue_name: str):
@@ -55,6 +61,12 @@ async def read_queues(request: Request):
          "instance_list": [], "rq_dashboard_version": rq_dashboard_version}
     )
     
+@app.get("/queues/json", response_model=list[QueueRegistryStats])
+async def read_queues():
+    queue_data = get_job_registry_amount()
+
+    return queue_data
+    
 
 @app.get("/jobs", response_class=HTMLResponse)
 async def read_jobs(request: Request):
@@ -67,6 +79,12 @@ async def read_jobs(request: Request):
         {"request": request, "job_data": job_data, "active_tab": active_tab,
          "instance_list": [], "rq_dashboard_version": rq_dashboard_version}
     )
+    
+@app.get("/jobs/json", response_model=list[QueueJobRegistryStats])
+async def read_jobs():
+    job_data = get_jobs()
+
+    return job_data
     
 @app.get("/job/{job_id}", response_model=JobDataDetailed)
 async def get_job_data(job_id: str, request: Request):
