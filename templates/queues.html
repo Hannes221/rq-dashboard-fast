@@ -45,6 +45,16 @@
         }
       }
 
+      function deleteJobsInQueue(queue_name) {
+        $.ajax({
+          url: '/queues/' + queue_name,
+          type: 'DELETE',
+          error: function (error) {
+            console.error('Error deleting jobs in queue: ', error);
+          },
+        });
+      }
+
       function updateQueuesTable(data) {
         var tableBody = $('#queues tbody');
 
@@ -60,6 +70,16 @@
           row.append($('<td>').text(queue_stats.failed));
           row.append($('<td>').text(queue_stats.deferred));
           row.append($('<td>').text(queue_stats.finished));
+          row.append(
+            $('<td>').append(
+              $('<button>')
+                .text('Delete Jobs')
+                .addClass('delete-button')
+                .on('click', function () {
+                  deleteJobsInQueue(queue_stats.queue_name);
+                })
+            )
+          );
           tableBody.append(row);
         });
       }
@@ -97,6 +117,7 @@
             <th>Failed</th>
             <th>Deferred</th>
             <th>Finished</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -108,6 +129,14 @@
             <td>{{ queue_stats.failed }}</td>
             <td>{{ queue_stats.deferred }}</td>
             <td>{{ queue_stats.finished }}</td>
+            <td>
+              <button
+                class="delete-button"
+                onclick="deleteJobsInQueue('{{ queue_stats.queue_name }}')"
+              >
+                Delete Jobs
+              </button>
+            </td>
           </tr>
           {% endfor %}
         </tbody>

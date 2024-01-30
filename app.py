@@ -43,7 +43,7 @@ async def read_workers():
     
     return worker_data
     
-@app.delete("/queues/{name}")
+@app.delete("/queues/{queue_name}")
 def delete_jobs_in_queue(queue_name: str):
     deleted_ids = delete_jobs_for_queue(queue_name)
     return deleted_ids
