@@ -325,3 +325,7 @@ span.loading {
 .delete-button:hover {
     background-color: #cc0000;
 }
+
+.h2-autorefresh {
+    padding-left: 50px;
+}
