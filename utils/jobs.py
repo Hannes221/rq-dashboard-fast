@@ -75,3 +75,8 @@ def get_job(job_id: str) -> JobDataDetailed:
     job = Job.fetch(job_id, connection=Redis())
 
     return JobDataDetailed(id=job.id, name=job.description, created_at=job.created_at, enqueued_at=job.enqueued_at, ended_at=job.ended_at, result=job.result, exc_info=job.exc_info, meta=job.meta)
+
+def delete_job_id(job_id: str):
+    job = Job.fetch(job_id, connection=Redis())
+    if job:
+        job.delete()

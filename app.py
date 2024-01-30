@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 import uvicorn
 from starlette.staticfiles import StaticFiles
-from utils.jobs import QueueJobRegistryStats, get_jobs, JobDataDetailed, get_job
+from utils.jobs import QueueJobRegistryStats, get_jobs, JobDataDetailed, get_job, delete_job_id
 from utils.workers import WorkerData, get_workers
 from utils.queues import QueueRegistryStats, delete_jobs_for_queue, get_job_registry_amount
 
@@ -97,6 +97,11 @@ async def get_job_data(job_id: str, request: Request):
         {"request": request, "job_data": job, "active_tab": active_tab, 
          "instance_list": [], "rq_dashboard_version": rq_dashboard_version}
     )
+    
+@app.delete("/job/{job_id}")
+def delete_job(job_id: str):
+    delete_job_id(job_id=job_id)
+
 
 
 if __name__ == "__main__":
