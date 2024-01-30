@@ -52,9 +52,6 @@ def get_job_registry_amount() -> list[QueueRegistryStats]:
 def delete_jobs_for_queue(queue_name) -> list[str]:
     queue = Queue(queue_name, connection=Redis())
     
-    jobs = queue.get_job_ids()
-    
-    for job in jobs:
-        queue.pop_job_id(job)
+    result = queue.empty()
         
-    return jobs
+    return result
