@@ -48,27 +48,34 @@
       function updateJobsTable(data) {
         var tableBody = $('#jobs tbody');
         tableBody.empty();
+
         $.each(data, function (index, queue) {
-          $.each(queue.queued, function (jobIndex, job) {
-            var row = $('<tr>');
-            var jobLink = $('<a>')
-              .attr('href', '/job/' + job.id)
-              .text(job.id);
-            row.append($('<td>').append(jobLink));
-            row.append($('<td>').text(job.name));
-            row.append($('<td>').text(job.created_at));
-            row.append(
-              $('<td>').append(
-                $('<button>')
-                  .text('Delete')
-                  .addClass('delete-button')
-                  .on('click', function () {
-                    deleteJob(job.id);
-                  })
-              )
-            );
-            tableBody.append(row);
-          });
+          $.each(
+            ['queued', 'started', 'failed', 'deferred', 'finished'],
+            function (stateIndex, state) {
+              $.each(queue[state], function (jobIndex, job) {
+                var row = $('<tr>');
+                var jobLink = $('<a>')
+                  .attr('href', '/job/' + job.id)
+                  .text(job.id);
+                row.append($('<td>').append(jobLink));
+                row.append($('<td>').append(state));
+                row.append($('<td>').text(job.name));
+                row.append($('<td>').text(job.created_at));
+                row.append(
+                  $('<td>').append(
+                    $('<button>')
+                      .text('Delete')
+                      .addClass('delete-button')
+                      .on('click', function () {
+                        deleteJob(job.id);
+                      })
+                  )
+                );
+                tableBody.append(row);
+              });
+            }
+          );
         });
       }
 
@@ -97,19 +104,22 @@
         <thead>
           <tr>
             <th>ID</th>
+            <th>Status</th>
             <th>Name</th>
             <th>Date</th>
             <th>Options</th>
           </tr>
         </thead>
         <tbody>
-          {% for queue in job_data %} {% for job in queue.queued %}
+          {% for queue in job_data %} {% for state in ["queued", "started",
+          "failed", "deferred", "finished"] %} {% for job in queue[state] %}
           <tr>
             <td>
               <a href="{{ url_for('get_job_data', job_id=job.id) }}"
                 >{{ job.id }}</a
               >
             </td>
+            <td>{{ state }}</td>
             <td>{{ job.name }}</td>
             <td>{{ job.created_at }}</td>
             <td>
@@ -118,7 +128,7 @@
               </button>
             </td>
           </tr>
-          {% endfor %} {% endfor %}
+          {% endfor %} {% endfor %} {% endfor %}
         </tbody>
       </table>
     </div>

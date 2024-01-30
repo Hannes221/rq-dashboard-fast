@@ -38,6 +38,10 @@ def get_job_registrys():
     result = []
     for queue in queues:
         jobs = queue.get_job_ids()
+        jobs.extend(queue.finished_job_registry.get_job_ids())
+        jobs.extend(queue.failed_job_registry.get_job_ids())
+        jobs.extend(queue.started_job_registry.get_job_ids())
+        jobs.extend(queue.deferred_job_registry.get_job_ids())
         
         jobs_fetched = Job.fetch_many(jobs, connection=Redis())
         
