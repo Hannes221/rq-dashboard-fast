@@ -29,14 +29,19 @@
         }
       });
 
-      function updateJobsData() {
+      function filterJobsByState() {
+        let selectedState = $('#state-filter').val();
+        updateJobsData(selectedState)
+      }
+
+      function updateJobsData(selectedState) {
         if (autoRefreshEnabled) {
           $.ajax({
             url: '/jobs/json',
             type: 'GET',
             dataType: 'json',
             success: function (data) {
-              updateJobsTable(data);
+              updateJobsTable(data, selectedState);
             },
             error: function (error) {
               console.error('Error fetching jobs data: ', error);
@@ -45,7 +50,7 @@
         }
       }
 
-      function updateJobsTable(data) {
+      function updateJobsTable(data, selectedState) {
         var tableBody = $('#jobs tbody');
         tableBody.empty();
 
@@ -53,6 +58,7 @@
           $.each(
             ['queued', 'started', 'failed', 'deferred', 'finished'],
             function (stateIndex, state) {
+              if (state === selectedState || selectedState === 'all') {
               $.each(queue[state], function (jobIndex, job) {
                 var row = $('<tr>');
                 var jobLink = $('<a>')
@@ -75,7 +81,7 @@
                 tableBody.append(row);
               });
             }
-          );
+        });
         });
       }
 
@@ -113,6 +119,17 @@
         delete a job by clicking the delete button.
       </p>
       <table id="jobs">
+        <div class="filter-section">
+          <label for="state-filter">Filter by State:</label>
+          <select id="state-filter" onchange="filterJobsByState()">
+            <option value="all">All</option>
+            <option value="queued">queued</option>
+            <option value="started">started</option>
+            <option value="failed">failed</option>
+            <option value="deferred">deferred</option>
+            <option value="finished">finished</option>
+          </select>
+        </div>
         <thead>
           <tr>
             <th>ID</th>
