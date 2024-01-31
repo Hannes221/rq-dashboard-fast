@@ -31,16 +31,17 @@
 
       function filterJobsByState() {
         let selectedState = $('#state-filter').val();
-        updateJobsData(selectedState)
+        updateJobsData(selectedState);
       }
 
-      function updateJobsData(selectedState) {
+      function updateJobsData() {
         if (autoRefreshEnabled) {
           $.ajax({
             url: '/jobs/json',
             type: 'GET',
             dataType: 'json',
             success: function (data) {
+              let selectedState = $('#state-filter').val();
               updateJobsTable(data, selectedState);
             },
             error: function (error) {
@@ -59,29 +60,30 @@
             ['queued', 'started', 'failed', 'deferred', 'finished'],
             function (stateIndex, state) {
               if (state === selectedState || selectedState === 'all') {
-              $.each(queue[state], function (jobIndex, job) {
-                var row = $('<tr>');
-                var jobLink = $('<a>')
-                  .attr('href', '/job/' + job.id)
-                  .text(job.id);
-                row.append($('<td>').append(jobLink));
-                row.append($('<td>').append(state));
-                row.append($('<td>').text(job.name));
-                row.append($('<td>').text(job.created_at));
-                row.append(
-                  $('<td>').append(
-                    $('<button>')
-                      .text('Delete')
-                      .addClass('delete-button')
-                      .on('click', function () {
-                        deleteJob(job.id);
-                      })
-                  )
-                );
-                tableBody.append(row);
-              });
+                $.each(queue[state], function (jobIndex, job) {
+                  var row = $('<tr>');
+                  var jobLink = $('<a>')
+                    .attr('href', '/job/' + job.id)
+                    .text(job.id);
+                  row.append($('<td>').append(jobLink));
+                  row.append($('<td>').append(state));
+                  row.append($('<td>').text(job.name));
+                  row.append($('<td>').text(job.created_at));
+                  row.append(
+                    $('<td>').append(
+                      $('<button>')
+                        .text('Delete')
+                        .addClass('delete-button')
+                        .on('click', function () {
+                          deleteJob(job.id);
+                        })
+                    )
+                  );
+                  tableBody.append(row);
+                });
+              }
             }
-        });
+          );
         });
       }
 
@@ -102,17 +104,17 @@
   </head>
   <body>
     <div class="h2-autorefresh">
-    <h2>Jobs</h2>
-    <div class="custom-switch">
-      <input
-        type="checkbox"
-        class="custom-control-input"
-        id="autorefresh-switch"
-        checked
-      />
-      <label class="custom-control-label"> Autorefresh </label>
+      <h2>Jobs</h2>
+      <div class="custom-switch">
+        <input
+          type="checkbox"
+          class="custom-control-input"
+          id="autorefresh-switch"
+          checked
+        />
+        <label class="custom-control-label"> Autorefresh </label>
+      </div>
     </div>
-  </div>
     <div class="section">
       <p>
         This list contains all the jobs that are currently queued. You can
