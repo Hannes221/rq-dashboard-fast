@@ -5,16 +5,32 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jobs Dashboard</title>
+    <link rel="stylesheet" href="/static/css/main.css" />
+
     <script>
       let autoRefreshEnabled = true;
       let autoRefreshInterval;
+
+      function showNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.textContent = message
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 3000)
+      }
 
       function toggleAutorefresh() {
         autoRefreshEnabled = !autoRefreshEnabled;
         if (autoRefreshEnabled) {
           autoRefreshInterval = setInterval(updateJobsData, 5000);
+          showNotification('Autorefresh enabled');
         } else {
           clearInterval(autoRefreshInterval);
+          showNotification('Autorefresh disabled');
         }
       }
 
@@ -92,6 +108,7 @@
       if (autoRefreshEnabled) {
         setInterval(updateJobsData, 5000);
       }
+
     </script>
   </head>
   <body>

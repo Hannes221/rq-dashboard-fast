@@ -10,12 +10,26 @@
       let autoRefreshEnabled = true;
       let autoRefreshInterval = null;
 
+      function showNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.textContent = message;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+          document.body.removeChild(notification)
+        }, 3000)
+      }
+
       function toggleAutorefresh() {
         autoRefreshEnabled = !autoRefreshEnabled;
         if (autoRefreshEnabled) {
           autoRefreshInterval = setInterval(updateData, 5000);
+          showNotification('Autorefresh enabled');
         } else {
           clearInterval(autoRefreshInterval);
+          showNotification('Autorefresh disabled');
         }
       }
 
