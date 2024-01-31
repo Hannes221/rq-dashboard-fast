@@ -329,3 +329,9 @@ span.loading {
 .h2-autorefresh {
     padding-left: 50px;
 }
+
+#jobs tbody tr td.table-cell {
+    max-width: 600px;
+    overflow: hidden;
+    white-space: normal;
+}
