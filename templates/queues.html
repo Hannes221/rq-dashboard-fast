@@ -5,16 +5,31 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Queues Dashboard</title>
+    <link rel="stylesheet" href="/static/css/main.css" />
     <script>
       let autoRefreshEnabled = true;
       let autoRefreshInterval;
 
+      function showNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.textContent = message;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 3000)
+      }
+
       function toggleAutorefresh() {
         autoRefreshEnabled = !autoRefreshEnabled;
         if (autoRefreshEnabled) {
-          autoRefreshInterval = setInterval(updateQueuesData, 5000);
+          autoRefreshInterval = setInterval(updateJobsData, 5000);
+          showNotification('Autorefresh enabled');
         } else {
           clearInterval(autoRefreshInterval);
+          showNotification('Autorefresh disabled');
         }
       }
 
@@ -95,7 +110,7 @@
   </head>
 
   <body>
-    <div class="h2-autorefresh">
+    <div class="h2-section">
     <h2>Queues</h2>
     <div class="custom-switch">
       <input

@@ -326,6 +326,24 @@ span.loading {
     background-color: #cc0000;
 }
 
-.h2-autorefresh {
+.h2-section {
     padding-left: 50px;
 }
+
+#jobs tbody tr td.table-cell {
+    max-width: 600px;
+    overflow: hidden;
+    white-space: normal;
+}
+
+.notification {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    padding: 10px;
+    background-color: grey;
+    color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    font-family: 'Helvetica Neue', helvetica, sans-serif;
+  }
