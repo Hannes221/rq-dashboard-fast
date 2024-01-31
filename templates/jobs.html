@@ -45,6 +45,11 @@
         }
       });
 
+      function filterJobsByState() {
+        let selectedState = $('#state-filter').val();
+        updateJobsData(selectedState);
+      }
+
       function updateJobsData() {
         if (autoRefreshEnabled) {
           $.ajax({
@@ -52,7 +57,8 @@
             type: 'GET',
             dataType: 'json',
             success: function (data) {
-              updateJobsTable(data);
+              let selectedState = $('#state-filter').val();
+              updateJobsTable(data, selectedState);
             },
             error: function (error) {
               console.error('Error fetching jobs data: ', error);
@@ -61,7 +67,7 @@
         }
       }
 
-      function updateJobsTable(data) {
+      function updateJobsTable(data, selectedState) {
         var tableBody = $('#jobs tbody');
         tableBody.empty();
 
@@ -69,27 +75,29 @@
           $.each(
             ['queued', 'started', 'failed', 'deferred', 'finished'],
             function (stateIndex, state) {
-              $.each(queue[state], function (jobIndex, job) {
-                var row = $('<tr>');
-                var jobLink = $('<a>')
-                  .attr('href', '/job/' + job.id)
-                  .text(job.id);
-                row.append($('<td>').append(jobLink));
-                row.append($('<td>').append(state));
-                row.append($('<td>').text(job.name));
-                row.append($('<td>').text(job.created_at));
-                row.append(
-                  $('<td>').append(
-                    $('<button>')
-                      .text('Delete')
-                      .addClass('delete-button')
-                      .on('click', function () {
-                        deleteJob(job.id);
-                      })
-                  )
-                );
-                tableBody.append(row);
-              });
+              if (state === selectedState || selectedState === 'all') {
+                $.each(queue[state], function (jobIndex, job) {
+                  var row = $('<tr>');
+                  var jobLink = $('<a>')
+                    .attr('href', '/job/' + job.id)
+                    .text(job.id);
+                  row.append($('<td>').append(jobLink));
+                  row.append($('<td>').append(state));
+                  row.append($('<td>').text(job.name));
+                  row.append($('<td>').text(job.created_at));
+                  row.append(
+                    $('<td>').append(
+                      $('<button>')
+                        .text('Delete')
+                        .addClass('delete-button')
+                        .on('click', function () {
+                          deleteJob(job.id);
+                        })
+                    )
+                  );
+                  tableBody.append(row);
+                });
+              }
             }
           );
         });
@@ -112,24 +120,35 @@
     </script>
   </head>
   <body>
-    <div class="h2-section">
-    <h2>Jobs</h2>
-    <div class="custom-switch">
-      <input
-        type="checkbox"
-        class="custom-control-input"
-        id="autorefresh-switch"
-        checked
-      />
-      <label class="custom-control-label"> Autorefresh </label>
+    <div class="h2-autorefresh">
+      <h2>Jobs</h2>
+      <div class="custom-switch">
+        <input
+          type="checkbox"
+          class="custom-control-input"
+          id="autorefresh-switch"
+          checked
+        />
+        <label class="custom-control-label"> Autorefresh </label>
+      </div>
     </div>
-  </div>
     <div class="section">
       <p>
         This list contains all the jobs that are currently queued. You can
         delete a job by clicking the delete button.
       </p>
       <table id="jobs">
+        <div class="filter-section">
+          <label for="state-filter">Filter by State:</label>
+          <select id="state-filter" onchange="filterJobsByState()">
+            <option value="all">All</option>
+            <option value="queued">queued</option>
+            <option value="started">started</option>
+            <option value="failed">failed</option>
+            <option value="deferred">deferred</option>
+            <option value="finished">finished</option>
+          </select>
+        </div>
         <thead>
           <tr>
             <th>ID</th>
