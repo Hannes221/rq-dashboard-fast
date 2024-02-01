@@ -166,7 +166,8 @@ pre.exc_info {
 }
 
 #workers td {
-    max-width: 200px; /* Adjust as needed */
+    max-width: 200px;
+    /* Adjust as needed */
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -216,7 +217,7 @@ table tr.failed td {
 }
 
 #jobs td {
-    max-width: 200px; /* Adjust as needed */
+    max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -346,4 +347,8 @@ span.loading {
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
     font-family: 'Helvetica Neue', helvetica, sans-serif;
-  }
+}
+
+.filter-section {
+    margin-top: 10px;
+}
