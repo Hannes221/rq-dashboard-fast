@@ -167,7 +167,6 @@ pre.exc_info {
 
 #workers td {
     max-width: 200px;
-    /* Adjust as needed */
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
