@@ -50,15 +50,22 @@
         updateJobsData(selectedState);
       }
 
+      function filterJobsByQueue() {
+        let selectedQueue = $('#queue-name-filter').val();
+        updateJobsData(selectedQueue);
+      }
+
       function updateJobsData() {
         if (autoRefreshEnabled) {
+          let selectedState = $('#state-filter').val();
+        let selectedQueue = $('#queue-name-filter').val();
           $.ajax({
             url: '/jobs/json',
             type: 'GET',
             dataType: 'json',
             success: function (data) {
               let selectedState = $('#state-filter').val();
-              updateJobsTable(data, selectedState);
+              updateJobsTable(data, selectedState, selectedQueue);
             },
             error: function (error) {
               console.error('Error fetching jobs data: ', error);
@@ -67,7 +74,7 @@
         }
       }
 
-      function updateJobsTable(data, selectedState) {
+      function updateJobsTable(data, selectedState, selectedQueue) {
         var tableBody = $('#jobs tbody');
         tableBody.empty();
 
@@ -135,7 +142,7 @@
     <div class="section">
       <p>
         This list contains all the jobs that are currently queued. You can
-        delete a job by clicking the delete button.
+        delete a job by clicking the delete button and filter the search by job state and queue name.
       </p>
       <table id="jobs">
         <div class="filter-section">
@@ -147,6 +154,15 @@
             <option value="failed">failed</option>
             <option value="deferred">deferred</option>
             <option value="finished">finished</option>
+          </select>
+        </div>
+        <div class="filter-section">
+          <label for="queue-name-filter">Filter by Queue Name:</label>
+          <select id="queue-name-filter" onchange="filterJobsByQueue()">
+            <option value="all">All</option>
+            {% for queue in job_data %}
+              <option value="{{ queue.queue_name }}">{{ queue.queue_name }}</option>
+            {% endfor %}
           </select>
         </div>
         <thead>
