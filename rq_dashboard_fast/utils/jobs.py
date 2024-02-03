@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from redis import Redis
 from rq.job import Job
 
-from utils.queues import get_queues
+from .queues import get_queues
 
 router = APIRouter()
     

@@ -1,23 +1,26 @@
-import os
 from fastapi import FastAPI, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from starlette.staticfiles import StaticFiles
-from utils.jobs import QueueJobRegistryStats, get_jobs, JobDataDetailed, get_job, delete_job_id
-from utils.workers import WorkerData, get_workers
-from utils.queues import QueueRegistryStats, delete_jobs_for_queue, get_job_registry_amount
+from rq_dashboard_fast.utils.jobs import QueueJobRegistryStats, get_jobs, JobDataDetailed, get_job, delete_job_id
+from rq_dashboard_fast.utils.workers import WorkerData, get_workers
+from rq_dashboard_fast.utils.queues import QueueRegistryStats, delete_jobs_for_queue, get_job_registry_amount
+from pathlib import Path
 
 class RedisQueueDashboard(FastAPI):
     def __init__(self, redis_url: str = "redis://localhost:6379", prefix: str = "/rq", *args, **kwargs):
         super().__init__(root_path=prefix, *args, **kwargs)
         
-        self.mount("/static", StaticFiles(directory="static"), name="static")
+        package_directory = Path(__file__).resolve().parent
+        static_directory = package_directory / "static"
+        
+        self.mount("/static", StaticFiles(directory=static_directory), name="static")
 
-        templates_directory = os.path.join(os.getcwd(), 'templates')
+        templates_directory = package_directory / "templates"
         self.templates = Jinja2Templates(directory=templates_directory)
         self.redis_url = redis_url 
 
-        self.rq_dashboard_version = "1.0" 
+        self.rq_dashboard_version = "0.1.1" 
 
         @self.get("/", response_class=HTMLResponse)
         async def get_home(request: Request):
