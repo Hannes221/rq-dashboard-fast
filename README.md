@@ -10,7 +10,7 @@
 ```python
 from fastapi import FastAPI
 from dashboard import RedisQueueDashboard
-dashboard = RedisQueueDashboard(“redis://redis:6379/”)
+dashboard = RedisQueueDashboard(“redis://redis:6379/”, "/rq")
 app = FastAPI()
 app.mount(“/rq”, dashboard)
 ```
