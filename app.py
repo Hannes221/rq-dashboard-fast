@@ -72,7 +72,7 @@ class RedisQueueDashboard(FastAPI):
     
 
         @self.get("/jobs", response_class=HTMLResponse)
-        async def read_jobs(request: Request, queue_name: str = Query(None), state: str = Query(None)):
+        async def read_jobs(request: Request, queue_name: str = Query("all"), state: str = Query("all")):
             job_data = get_jobs(self.redis_url, queue_name, state)
 
             active_tab = 'jobs' 
@@ -105,4 +105,3 @@ class RedisQueueDashboard(FastAPI):
         @self.delete("/job/{job_id}")
         def delete_job(job_id: str):
             delete_job_id(job_id=job_id)
-        

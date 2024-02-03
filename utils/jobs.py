@@ -55,16 +55,16 @@ def get_job_registrys(redis_url: str, queue_name: str = None, state: str = None)
 
         for job in jobs_fetched:
             status = job.get_status()
-            if (queue_name is None or queue_name == queue.name):
-                if status == 'started' and state == None or state == "started":
+            if (queue_name == "all" or queue_name == queue.name):
+                if status == 'started' and state == "all" or state == "started":
                     started_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
-                elif status == 'failed' and state == None or state == "failed":
+                elif status == 'failed' and state == "all" or state == "failed":
                     failed_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
-                elif status == 'deferred' and state == None or state == "deferred":
+                elif status == 'deferred' and state == "all" or state == "deferred":
                     deferred_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
-                elif status == 'finished' and state == None or state == "finished":
+                elif status == 'finished' and state == "all" or state == "finished":
                     finished_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
-                elif status == 'queued' and state == None or state == "queued":
+                elif status == 'queued' and state == "all" or state == "queued":
                     queued_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
         result.append(QueueJobRegistryStats(queue_name=queue.name, queued=queued_jobs, started=started_jobs, failed=failed_jobs, deferred=deferred_jobs, finished=finished_jobs))
                 
