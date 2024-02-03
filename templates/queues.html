@@ -78,13 +78,14 @@
         }
 
         $.each(data, function (index, queue_stats) {
+
           var row = $('<tr>');
           row.append($('<td>').text(queue_stats.queue_name));
-          row.append($('<td>').text(queue_stats.queued));
-          row.append($('<td>').text(queue_stats.started));
-          row.append($('<td>').text(queue_stats.failed));
-          row.append($('<td>').text(queue_stats.deferred));
-          row.append($('<td>').text(queue_stats.finished));
+          row.append($('<td>').append($('<a>').attr('href', prefix + '/jobs' + "?status=queued&queue_name=" + queue_stats.queue_name).text(queue_stats.queued)));
+          row.append($('<td>').append($('<a>').attr('href', prefix + '/jobs' + "?status=started&queue_name=" + queue_stats.queue_name).text(queue_stats.started)));
+          row.append($('<td>').append($('<a>').attr('href', prefix + '/jobs' + "?status=failed&queue_name=" + queue_stats.queue_name).text(queue_stats.failed)))
+          row.append($('<td>').append($('<a>').attr('href', prefix + '/jobs' + "?status=deferred&queue_name=" + queue_stats.queue_name).text(queue_stats.deferred)));
+          row.append($('<td>').append($('<a>').attr('href', prefix + '/jobs' + "?status=deferred&queue_name=" + queue_stats.queue_name).text(queue_stats.finished)));
           row.append(
             $('<td>').append(
               $('<button>')
@@ -137,22 +138,41 @@
         </thead>
         <tbody>
           {% for queue_stats in queue_data %}
-          <tr>
-            <td>{{ queue_stats.queue_name }}</td>
-            <td>{{ queue_stats.queued }}</td>
-            <td>{{ queue_stats.started }}</td>
-            <td>{{ queue_stats.failed }}</td>
-            <td>{{ queue_stats.deferred }}</td>
-            <td>{{ queue_stats.finished }}</td>
-            <td>
-              <button
-                class="delete-button"
-                onclick="deleteJobsInQueue('{{ queue_stats.queue_name }}')"
-              >
-                Delete Jobs
-              </button>
-            </td>
-          </tr>
+            <tr>
+              <td>
+                <a href="/jobs?queue={{ queue_stats.queue_name }}">
+                  {{ queue_stats.queue_name }}
+                </a>
+              </td>
+              <td>
+                <a href="/jobs?queue={{ queue_stats.queue_name }}&state=started">
+                  {{ queue_stats.started }}
+                </a>
+              </td>
+              <td>
+                <a href="/jobs?queue={{ queue_stats.queue_name }}&state=failed">
+                  {{ queue_stats.failed }}
+                </a>
+              </td>
+              <td>
+                <a href="/jobs?queue={{ queue_stats.queue_name }}&state=deferred">
+                  {{ queue_stats.deferred }}
+                </a>
+              </td>
+              <td>
+                <a href="/jobs?queue={{ queue_stats.queue_name }}&state=finished">
+                  {{ queue_stats.finished }}
+                </a>
+              </td>
+              <td>
+                <button
+                  class="delete-button"
+                  onclick="deleteJobsInQueue('{{ queue_stats.queue_name }}')"
+                >
+                  Delete Jobs
+                </button>
+              </td>
+            </tr>
           {% endfor %}
         </tbody>
       </table>
