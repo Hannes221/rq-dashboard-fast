@@ -37,10 +37,6 @@ body {
     font-family: 'Helvetica Neue', helvetica, sans-serif;
 }
 
-.custom-control {
-    padding: 20px;
-}
-
 .custom-switch {
     margin-bottom: 20px;
 }
@@ -48,11 +44,6 @@ body {
 .footer-wrapper {
     padding: 10px;
     border-radius: 15px;
-}
-
-.container {
-    background: white;
-    margin-top: 3em;
 }
 
 #content {
@@ -68,16 +59,6 @@ body {
     max-width: 90%;
     margin: 0 auto;
     background-color: steelblue;
-}
-
-p.intro {
-    min-height: 2em;
-    padding-top: .8em;
-    color: #888;
-}
-
-p.fixed.intro {
-    height: 5em;
 }
 
 h1 {
@@ -125,19 +106,6 @@ table tbody tr td.narrow {
     background-color: #f2f2f2;
 }
 
-#queues tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-pre.exc_info {
-    font-size: 80%;
-    color: #555;
-    margin-left: 24px;
-    border-left: 2px solid darkorange;
-    background-color: lightgoldenrodyellow;
-    white-space: pre-wrap;
-}
-
 #workers {
     width: 100%;
     border-collapse: collapse;
@@ -175,19 +143,6 @@ table tbody tr td {
     vertical-align: middle;
 }
 
-table tr.failed {
-    color: red;
-    border-top: 2px solid red;
-}
-
-table tr.failed a {
-    color: red;
-}
-
-table tr.failed td {
-    background-color: lightgoldenrodyellow;
-}
-
 #jobs {
     width: 100%;
     border-collapse: collapse;
@@ -204,14 +159,6 @@ table tr.failed td {
 #jobs th {
     background-color: #f2f2f2;
     font-weight: bold;
-}
-
-#jobs tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-#jobs tbody tr:hover {
-    background-color: #f0f0f0;
 }
 
 #jobs td {
@@ -251,18 +198,6 @@ span.loading {
     z-index: 9999;
     text-align: center;
     display: none;
-}
-
-#rq-instances {
-    margin-left: 15px;
-    margin-right: 13px;
-    width: auto;
-}
-
-#select-registry,
-#select-per-page,
-#select-queue {
-    width: auto;
 }
 
 .header {
@@ -308,10 +243,6 @@ span.loading {
     color: #000000ad;
 }
 
-#rq-instances:disabled {
-    color: black;
-}
-
 .delete-button {
     background-color: #ff0000;
     color: #ffffff;
@@ -319,10 +250,6 @@ span.loading {
     padding: 5px 10px;
     cursor: pointer;
     border-radius: 3px;
-}
-
-.delete-button:hover {
-    background-color: #cc0000;
 }
 
 .h2-section {
