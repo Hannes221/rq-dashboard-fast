@@ -5,10 +5,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Queues Dashboard</title>
-    <link rel="stylesheet" href="/static/css/main.css" />
     <script>
       let autoRefreshEnabled = true;
       let autoRefreshInterval;
+      const prefix = '{{ prefix }}';
 
       function showNotification(message) {
         const notification = document.createElement('div');
@@ -19,7 +19,7 @@
 
         setTimeout(() => {
           document.body.removeChild(notification);
-        }, 3000)
+        }, 3000);
       }
 
       function toggleAutorefresh() {
@@ -47,7 +47,7 @@
       function updateQueuesData() {
         if (autoRefreshEnabled) {
           $.ajax({
-            url: '/queues/json',
+            url: prefix + '/queues/json',
             type: 'GET',
             dataType: 'json',
             success: function (data) {
@@ -62,7 +62,7 @@
 
       function deleteJobsInQueue(queue_name) {
         $.ajax({
-          url: '/queues/' + queue_name,
+          url: prefix + '/queues/' + queue_name,
           type: 'DELETE',
           error: function (error) {
             console.error('Error deleting jobs in queue: ', error);
@@ -111,17 +111,17 @@
 
   <body>
     <div class="h2-section">
-    <h2>Queues</h2>
-    <div class="custom-switch">
-      <input
-        type="checkbox"
-        class="custom-control-input"
-        id="autorefresh-switch"
-        checked
-      />
-      <label class="custom-control-label"> Autorefresh </label>
+      <h2>Queues</h2>
+      <div class="custom-switch">
+        <input
+          type="checkbox"
+          class="custom-control-input"
+          id="autorefresh-switch"
+          checked
+        />
+        <label class="custom-control-label"> Autorefresh </label>
+      </div>
     </div>
-  </div>
     <div class="section">
       <table id="queues">
         <thead>

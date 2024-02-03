@@ -5,22 +5,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jobs Dashboard</title>
-    <link rel="stylesheet" href="/static/css/main.css" />
 
     <script>
       let autoRefreshEnabled = true;
       let autoRefreshInterval;
+      const prefix = {{ prefix }}
 
       function showNotification(message) {
         const notification = document.createElement('div');
         notification.className = 'notification';
-        notification.textContent = message
+        notification.textContent = message;
 
         document.body.appendChild(notification);
 
         setTimeout(() => {
           document.body.removeChild(notification);
-        }, 3000)
+        }, 3000);
       }
 
       function toggleAutorefresh() {
@@ -58,9 +58,9 @@
       function updateJobsData() {
         if (autoRefreshEnabled) {
           let selectedState = $('#state-filter').val();
-        let selectedQueue = $('#queue-name-filter').val();
+          let selectedQueue = $('#queue-name-filter').val();
           $.ajax({
-            url: '/jobs/json',
+            url: prefix + '/jobs/json',
             type: 'GET',
             dataType: 'json',
             success: function (data) {
@@ -112,7 +112,7 @@
 
       function deleteJob(job_id) {
         $.ajax({
-          url: '/job/' + job_id,
+          url: prefix + '/job/' + job_id,
           type: 'DELETE',
           error: function (error) {
             console.error('Error fetching job data: ', error);
@@ -123,7 +123,6 @@
       if (autoRefreshEnabled) {
         setInterval(updateJobsData, 5000);
       }
-
     </script>
   </head>
   <body>
@@ -142,7 +141,8 @@
     <div class="section">
       <p>
         This list contains all the jobs that are currently queued. You can
-        delete a job by clicking the delete button and filter the search by job state and queue name.
+        delete a job by clicking the delete button and filter the search by job
+        state and queue name.
       </p>
       <table id="jobs">
         <div class="filter-section">
@@ -161,7 +161,9 @@
           <select id="queue-name-filter" onchange="filterJobsByQueue()">
             <option value="all">All</option>
             {% for queue in job_data %}
-              <option value="{{ queue.queue_name }}">{{ queue.queue_name }}</option>
+            <option value="{{ queue.queue_name }}">
+              {{ queue.queue_name }}
+            </option>
             {% endfor %}
           </select>
         </div>

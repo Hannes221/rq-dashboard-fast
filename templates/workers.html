@@ -9,6 +9,7 @@
     <script>
       let autoRefreshEnabled = true;
       let autoRefreshInterval = null;
+      const prefix = '{{ prefix }}';
 
       function showNotification(message) {
         const notification = document.createElement('div');
@@ -18,8 +19,8 @@
         document.body.appendChild(notification);
 
         setTimeout(() => {
-          document.body.removeChild(notification)
-        }, 3000)
+          document.body.removeChild(notification);
+        }, 3000);
       }
 
       function toggleAutorefresh() {
@@ -47,7 +48,7 @@
       function updateData() {
         if (autoRefreshEnabled) {
           $.ajax({
-            url: '/workers/json',
+            url: prefix + '/workers/json',
             type: 'GET',
             dataType: 'json',
             success: function (data) {
@@ -90,17 +91,17 @@
 
   <body>
     <div class="h2-section">
-    <h2>Workers</h2>
-    <div class="custom-switch">
-      <input
-        type="checkbox"
-        class="custom-control-input"
-        id="autorefresh-switch"
-        checked
-      />
-      <label class="custom-control-label"> Autorefresh </label>
+      <h2>Workers</h2>
+      <div class="custom-switch">
+        <input
+          type="checkbox"
+          class="custom-control-input"
+          id="autorefresh-switch"
+          checked
+        />
+        <label class="custom-control-label"> Autorefresh </label>
+      </div>
     </div>
-  </div>
     <div class="section">
       <table id="workers">
         <thead>
