@@ -24,8 +24,8 @@ $ pip install rq-dashboard-fast
 
 ## Next Features
 
-- Docker Image
-- Run Standalone (Terminal)
+- [ ] Docker Image
+- [ ] Run Standalone (Terminal)
 
 ## Contributing
 
