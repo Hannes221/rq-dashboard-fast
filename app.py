@@ -1,6 +1,5 @@
 from fastapi import FastAPI
-from dashboard import RedisQueueDashboard
-
+from rq_dashboard_fast import RedisQueueDashboard
 
 dashboard = RedisQueueDashboard("redis://localhost:6379/", prefix="/rq")
 

@@ -9,7 +9,7 @@
     <script>
       let autoRefreshEnabled = true;
       let autoRefreshInterval;
-      const prefix = {{ prefix }}
+      const prefix = '{{ prefix }}';
 
       function showNotification(message) {
         const notification = document.createElement('div');
@@ -43,7 +43,25 @@
         if (autoRefreshEnabled) {
           autoRefreshInterval = setInterval(updateJobsData, 5000);
         }
+
+        const urlParams = new URLSearchParams(window.location.search);
+
+        let defaultState = urlParams.get('state') || 'all';
+        $('#state-filter').val(defaultState);
+
+        let defaultQueue = urlParams.get('queue_name') || 'all';
+        $('#queue-name-filter').val(defaultQueue);
       });
+
+      function getState() {
+        let selectedState = $('#state-filter').val();
+        return selectedState;
+      }
+
+      function getQueue() {
+        let selectedQueue = $('#queue-name-filter').val();
+        return selectedQueue;
+      }
 
       function filterJobsByState() {
         let selectedState = $('#state-filter').val();
@@ -60,12 +78,16 @@
           let selectedState = $('#state-filter').val();
           let selectedQueue = $('#queue-name-filter').val();
           $.ajax({
-            url: prefix + '/jobs/json',
+            url:
+              prefix +
+              '/jobs/json?state=' +
+              selectedState +
+              '&queue_name=' +
+              selectedQueue,
             type: 'GET',
             dataType: 'json',
             success: function (data) {
-              let selectedState = $('#state-filter').val();
-              updateJobsTable(data, selectedState, selectedQueue);
+              updateJobsTable(data);
             },
             error: function (error) {
               console.error('Error fetching jobs data: ', error);
@@ -74,7 +96,7 @@
         }
       }
 
-      function updateJobsTable(data, selectedState, selectedQueue) {
+      function updateJobsTable(data) {
         var tableBody = $('#jobs tbody');
         tableBody.empty();
 
@@ -82,29 +104,27 @@
           $.each(
             ['queued', 'started', 'failed', 'deferred', 'finished'],
             function (stateIndex, state) {
-              if (state === selectedState || selectedState === 'all') {
-                $.each(queue[state], function (jobIndex, job) {
-                  var row = $('<tr>');
-                  var jobLink = $('<a>')
-                    .attr('href', '/job/' + job.id)
-                    .text(job.id);
-                  row.append($('<td>').append(jobLink));
-                  row.append($('<td>').append(state));
-                  row.append($('<td>').text(job.name));
-                  row.append($('<td>').text(job.created_at));
-                  row.append(
-                    $('<td>').append(
-                      $('<button>')
-                        .text('Delete')
-                        .addClass('delete-button')
-                        .on('click', function () {
-                          deleteJob(job.id);
-                        })
-                    )
-                  );
-                  tableBody.append(row);
-                });
-              }
+              $.each(queue[state], function (jobIndex, job) {
+                var row = $('<tr>');
+                var jobLink = $('<a>')
+                  .attr('href', '/job/' + job.id)
+                  .text(job.id);
+                row.append($('<td>').append(jobLink));
+                row.append($('<td>').append(state));
+                row.append($('<td>').text(job.name));
+                row.append($('<td>').text(job.created_at));
+                row.append(
+                  $('<td>').append(
+                    $('<button>')
+                      .text('Delete')
+                      .addClass('delete-button')
+                      .on('click', function () {
+                        deleteJob(job.id);
+                      })
+                  )
+                );
+                tableBody.append(row);
+              });
             }
           );
         });
