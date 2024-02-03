@@ -43,7 +43,25 @@
         if (autoRefreshEnabled) {
           autoRefreshInterval = setInterval(updateJobsData, 5000);
         }
+
+        const urlParams = new URLSearchParams(window.location.search);
+
+        let defaultState = urlParams.get('state') || 'all';
+        $('#state-filter').val(defaultState);
+
+        let defaultQueue = urlParams.get('queue_name') || 'all';
+        $('#queue-name-filter').val(defaultQueue);
       });
+
+      function getState() {
+        let selectedState = $('#state-filter').val();
+        return selectedState;
+      }
+
+      function getQueue() {
+        let selectedQueue = $('#queue-name-filter').val();
+        return selectedQueue;
+      }
 
       function filterJobsByState() {
         let selectedState = $('#state-filter').val();
