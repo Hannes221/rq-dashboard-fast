@@ -38,6 +38,14 @@ body {
     font-family: 'Helvetica Neue', helvetica, sans-serif;
 }
 
+.custom-control {
+    padding: 20px;
+}
+
+.custom-switch {
+    margin-bottom: 20px;
+}
+
 .footer-wrapper {
     padding: 10px;
     border-radius: 15px;
@@ -158,7 +166,7 @@ pre.exc_info {
 }
 
 #workers td {
-    max-width: 200px; /* Adjust as needed */
+    max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -208,7 +216,7 @@ table tr.failed td {
 }
 
 #jobs td {
-    max-width: 200px; /* Adjust as needed */
+    max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -316,4 +324,30 @@ span.loading {
 
 .delete-button:hover {
     background-color: #cc0000;
+}
+
+.h2-section {
+    padding-left: 50px;
+}
+
+#jobs tbody tr td.table-cell {
+    max-width: 600px;
+    overflow: hidden;
+    white-space: normal;
+}
+
+.notification {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    padding: 10px;
+    background-color: grey;
+    color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    font-family: 'Helvetica Neue', helvetica, sans-serif;
+}
+
+.filter-section {
+    margin-top: 10px;
 }

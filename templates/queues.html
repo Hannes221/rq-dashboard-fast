@@ -1,43 +1,162 @@
-{% extends "base.html" %}
+{% extends "base.html" %}{% block content %}
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Queues Dashboard</title>
+    <script>
+      let autoRefreshEnabled = true;
+      let autoRefreshInterval;
+      const prefix = '{{ prefix }}';
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Queues Dashboard</title>
-</head>
+      function showNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.textContent = message;
 
-<body>
-  {% block content %}
-  <h2>Queues</h2>
-  <div class="section">
-    <table id="queues">
-      <thead>
-        <tr>
-          <th>Queue Name</th>
-          <th>Queued</th>
-          <th>Started</th>
-          <th>Failed</th>
-          <th>Deferred</th>
-          <th>Finished</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for queue_stats in queue_data %}
-        <tr>
-          <td>{{ queue_stats.queue_name }}</td>
-          <td>{{ queue_stats.queued }}</td>
-          <td>{{ queue_stats.started }}</td>
-          <td>{{ queue_stats.failed }}</td>
-          <td>{{ queue_stats.deferred }}</td>
-          <td>{{ queue_stats.finished }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% endblock %}
-</body>
+        document.body.appendChild(notification);
 
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 3000);
+      }
+
+      function toggleAutorefresh() {
+        autoRefreshEnabled = !autoRefreshEnabled;
+        if (autoRefreshEnabled) {
+          autoRefreshInterval = setInterval(updateJobsData, 5000);
+          showNotification('Autorefresh enabled');
+        } else {
+          clearInterval(autoRefreshInterval);
+          showNotification('Autorefresh disabled');
+        }
+      }
+
+      $(document).ready(function () {
+        $('#autorefresh-switch').on('change', function () {
+          toggleAutorefresh();
+        });
+
+        autoRefreshEnabled = $('#autorefresh-switch').is(':checked');
+        if (autoRefreshEnabled) {
+          autoRefreshInterval = setInterval(updateQueuesData, 5000);
+        }
+      });
+
+      function updateQueuesData() {
+        if (autoRefreshEnabled) {
+          $.ajax({
+            url: prefix + '/queues/json',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+              updateQueuesTable(data);
+            },
+            error: function (error) {
+              console.error('Error fetching queues data: ', error);
+            },
+          });
+        }
+      }
+
+      function deleteJobsInQueue(queue_name) {
+        $.ajax({
+          url: prefix + '/queues/' + queue_name,
+          type: 'DELETE',
+          error: function (error) {
+            console.error('Error deleting jobs in queue: ', error);
+          },
+        });
+      }
+
+      function updateQueuesTable(data) {
+        var tableBody = $('#queues tbody');
+
+        if (tableBody.children().length > 0) {
+          tableBody.empty();
+        }
+
+        $.each(data, function (index, queue_stats) {
+          var row = $('<tr>');
+          row.append($('<td>').text(queue_stats.queue_name));
+          row.append($('<td>').text(queue_stats.queued));
+          row.append($('<td>').text(queue_stats.started));
+          row.append($('<td>').text(queue_stats.failed));
+          row.append($('<td>').text(queue_stats.deferred));
+          row.append($('<td>').text(queue_stats.finished));
+          row.append(
+            $('<td>').append(
+              $('<button>')
+                .text('Delete')
+                .addClass('delete-button')
+                .on('click', function () {
+                  deleteJobsInQueue(queue_stats.queue_name);
+                })
+            )
+          );
+          tableBody.append(row);
+        });
+      }
+
+      $(document).ready(function () {
+        updateQueuesData();
+      });
+
+      if (autoRefreshEnabled) {
+        setInterval(updateQueuesData, 5000);
+      }
+    </script>
+  </head>
+
+  <body>
+    <div class="h2-section">
+      <h2>Queues</h2>
+      <div class="custom-switch">
+        <input
+          type="checkbox"
+          class="custom-control-input"
+          id="autorefresh-switch"
+          checked
+        />
+        <label class="custom-control-label"> Autorefresh </label>
+      </div>
+    </div>
+    <div class="section">
+      <table id="queues">
+        <thead>
+          <tr>
+            <th>Queue Name</th>
+            <th>Queued</th>
+            <th>Started</th>
+            <th>Failed</th>
+            <th>Deferred</th>
+            <th>Finished</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for queue_stats in queue_data %}
+          <tr>
+            <td>{{ queue_stats.queue_name }}</td>
+            <td>{{ queue_stats.queued }}</td>
+            <td>{{ queue_stats.started }}</td>
+            <td>{{ queue_stats.failed }}</td>
+            <td>{{ queue_stats.deferred }}</td>
+            <td>{{ queue_stats.finished }}</td>
+            <td>
+              <button
+                class="delete-button"
+                onclick="deleteJobsInQueue('{{ queue_stats.queue_name }}')"
+              >
+                Delete Jobs
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endblock %}
+  </body>
 </html>

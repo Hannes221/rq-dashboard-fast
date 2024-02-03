@@ -4,7 +4,7 @@ from rq import Worker
 
 class WorkerData(BaseModel):
     name: str
-    current_job: str
+    current_job: str | None
     queues: list[str]
 
 def get_workers(redis_url: str) -> list[WorkerData]:
@@ -13,6 +13,9 @@ def get_workers(redis_url: str) -> list[WorkerData]:
     result = []
     
     for worker in workers:
-        result.append(WorkerData(name=worker.name, current_job=worker.get_current_job(), queues=worker.queue_names))
+        current_job = worker.get_current_job()
+        if current_job is not None:
+            result.append(WorkerData(name=worker.name, current_job=current_job.description, queues=worker.queue_names()))
+        result.append(WorkerData(name=worker.name, current_job="Idle", queues=worker.queue_names()))
     
     return result
