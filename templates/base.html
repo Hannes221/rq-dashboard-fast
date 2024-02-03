@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', path='/css/main.css') }}"
+    />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <title>RQ dashboard FastAPI</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="initial-scale=1.0" />
-  <link rel="stylesheet" href="/static/css/main.css">
-  <title>RQ dashboard FastAPI</title>
-</head>
-
-<body>
-  {% include "header.html"%} {%if depreciation_options_usage%}
-  {% endif %}
-  <div>{% block content %}{% endblock %}</div>
-  {% include "footer.html"%}
-</body>
-
+  <body>
+    {% include "header.html"%} {%if depreciation_options_usage%} {% endif %}
+    <div>{% block content %}{% endblock %}</div>
+    {% include "footer.html"%}
+  </body>
 </html>

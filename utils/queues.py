@@ -26,28 +26,11 @@ def get_job_registry_amount(redis_url: str) -> list[QueueRegistryStats]:
     queues = get_queues(redis_url)
     result = []
     for queue in queues:
-        jobs = queue.get_job_ids()
-        
-        jobs_fetched = Job.fetch_many(jobs, connection=redis)
-        
-        started_jobs = 0
-        failed_jobs = 0
-        deferred_jobs = 0
-        finished_jobs = 0
-        queued_jobs = 0
-
-        for job in jobs_fetched:
-            status = job.get_status()
-            if status == 'started':
-                started_jobs += 1
-            elif status == 'failed':
-                failed_jobs += 1
-            elif status == 'deferred':
-                deferred_jobs += 1
-            elif status == 'finished':
-                finished_jobs += 1
-            elif status == 'queued':
-                queued_jobs += 1
+        finished_jobs = len(queue.finished_job_registry.get_job_ids())      
+        started_jobs = len(queue.started_job_registry.get_job_ids()) 
+        failed_jobs = len(queue.failed_job_registry.get_job_ids()) 
+        deferred_jobs = len(queue.deferred_job_registry.get_job_ids()) 
+        queued_jobs = len(queue.get_job_ids()) 
                 
         result.append(QueueRegistryStats(queue_name=queue.name, queued=queued_jobs, started=started_jobs, failed=failed_jobs, deferred=deferred_jobs, finished=finished_jobs))
     return result
@@ -57,9 +40,6 @@ def delete_jobs_for_queue(queue_name, redis_url) -> list[str]:
     
     queue = Queue(queue_name, connection=redis)
     
-    jobs = queue.get_job_ids()
-    
-    for job in jobs:
-        queue.pop_job_id(job)
+    result = queue.empty()
         
-    return jobs
+    return result

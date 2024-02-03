@@ -1,45 +1,53 @@
 <div id="header-wrapper">
-    <div id="header-dashboard" class="header-expand-lg header-light">
-        <div class="header-brand-container">
-            <h1 class="header-brand">RQ-dashboard FastAPI  <span>&#x1F6E0;</span></h1>
-        </div>
-        <ul class="header-nav">
-            <li class="header-item">
-                <a href="/jobs" class="header-link">Jobs</a>
-            </li>
-            <li class="header-item">
-                <a href="/queues" class="header-link">Queues</a>
-            </li>
-            <li class="header-item">
-                <a href="/workers" class="header-link">Workers</a>
-            </li>
-        </ul>
-        <div class="custom-control custom-switch">
-            <input type="checkbox" class="custom-control-input" id="autorefresh-switch" checked>
-            <label class="custom-control-label">
-                Autorefresh
-            </label>
-        </div>
+  <div id="header-dashboard" class="header-expand-lg header-light">
+    <div class="header-brand-container">
+      <h1 class="header-brand">RQ-dashboard FastAPI <span>&#x1F6E0;</span></h1>
     </div>
+    <ul class="header-nav">
+      <li class="header-item">
+        <a href="{{prefix}}/jobs" class="header-link">Jobs</a>
+      </li>
+      <li class="header-item">
+        <a href="{{prefix}}/queues" class="header-link">Queues</a>
+      </li>
+      <li class="header-item">
+        <a href="{{prefix}}/workers" class="header-link">Workers</a>
+      </li>
+    </ul>
+  </div>
+</div>
+<div>
+    <ul class="header-nav">
+        <li class="header-item">
+            <a href="/queues" class="header-link">Queues</a>
+        </li>
+        <li class="header-item">
+            <a href="/jobs" class="header-link">Jobs</a>
+        </li>
+        <li class="header-item">
+            <a href="/workers" class="header-link">Workers</a>
+        </li>
+    </ul>
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        var currentPath = window.location.pathname;
+  document.addEventListener('DOMContentLoaded', function () {
+    var currentPath = window.location.pathname;
 
-        var navLinks = document.querySelectorAll(".header-link");
-        navLinks.forEach(function (link) {
-            if (link.getAttribute("href") === currentPath) {
-                link.parentNode.classList.add("selected")
-            }
-        })
-    }) 
+    var navLinks = document.querySelectorAll('.header-link');
+    navLinks.forEach(function (link) {
+      var href = link.getAttribute('href');
+      if (href === currentPath || prefix + href === currentPath) {
+        link.parentNode.classList.add('selected');
+      }
+    });
+  });
 </script>
 
 <style>
-    .selected {
-        color: #007bff;
-        font-size: large;
-        font-weight: bold;
-    }
+  .selected {
+    color: #007bff;
+    font-size: large;
+    font-weight: bold;
+  }
 </style>
