@@ -4,8 +4,7 @@ body {
 
 #header-wrapper {
     background-color: #ececec;
-    padding: 10px;
-    border-radius: 15px;
+    border-radius: 5px;
 }
 
 #header-dashboard {
@@ -20,8 +19,8 @@ body {
     list-style: none;
     display: flex;
     margin: 0;
-    align-items: center;
-    justify-content: center;
+    padding: 20px;
+    padding-left: 50px;
 }
 
 .header-item {
