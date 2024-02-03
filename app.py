@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from starlette.staticfiles import StaticFiles
@@ -72,8 +72,8 @@ class RedisQueueDashboard(FastAPI):
     
 
         @self.get("/jobs", response_class=HTMLResponse)
-        async def read_jobs(request: Request):
-            job_data = get_jobs(self.redis_url)
+        async def read_jobs(request: Request, queue_name: str = Query("all"), state: str = Query("all")):
+            job_data = get_jobs(self.redis_url, queue_name, state)
 
             active_tab = 'jobs' 
 
@@ -82,12 +82,13 @@ class RedisQueueDashboard(FastAPI):
                 {"request": request, "job_data": job_data, "active_tab": active_tab,
                 "instance_list": [], "prefix": prefix, "rq_dashboard_version": self.rq_dashboard_version}
             )
-            
+
         @self.get("/jobs/json", response_model=list[QueueJobRegistryStats])
-        async def read_jobs():
-            job_data = get_jobs(self.redis_url)
+        async def read_jobs(queue_name: str = Query(None), state: str = Query(None)):
+            job_data = get_jobs(self.redis_url, queue_name, state)
 
             return job_data
+
             
         @self.get("/job/{job_id}", response_model=JobDataDetailed)
         async def get_job_data(job_id: str, request: Request):
@@ -104,4 +105,3 @@ class RedisQueueDashboard(FastAPI):
         @self.delete("/job/{job_id}")
         def delete_job(job_id: str):
             delete_job_id(job_id=job_id)
-        

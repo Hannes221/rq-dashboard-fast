@@ -33,7 +33,7 @@ class QueueJobRegistryStats(BaseModel):
     deferred: List[JobData]
     finished: List[JobData]
 
-def get_job_registrys(redis_url: str):
+def get_job_registrys(redis_url: str, queue_name: str = None, state: str = None):
     redis = Redis.from_url(redis_url)
     
     queues = get_queues(redis_url)
@@ -55,23 +55,24 @@ def get_job_registrys(redis_url: str):
 
         for job in jobs_fetched:
             status = job.get_status()
-            if status == 'started':
-                started_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
-            elif status == 'failed':
-                failed_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
-            elif status == 'deferred':
-                deferred_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
-            elif status == 'finished':
-                finished_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
-            elif status == 'queued':
-                queued_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
+            if (queue_name == "all" or queue_name == queue.name):
+                if status == 'started' and state == "all" or state == "started":
+                    started_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
+                elif status == 'failed' and state == "all" or state == "failed":
+                    failed_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
+                elif status == 'deferred' and state == "all" or state == "deferred":
+                    deferred_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
+                elif status == 'finished' and state == "all" or state == "finished":
+                    finished_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
+                elif status == 'queued' and state == "all" or state == "queued":
+                    queued_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
         result.append(QueueJobRegistryStats(queue_name=queue.name, queued=queued_jobs, started=started_jobs, failed=failed_jobs, deferred=deferred_jobs, finished=finished_jobs))
                 
     return result
 
-def get_jobs(redis_url: str) -> list[QueueJobRegistryStats]:
+def get_jobs(redis_url: str, queue_name: str = None, state: str = None) -> list[QueueJobRegistryStats]:
     try:
-        job_stats = get_job_registrys(redis_url)
+        job_stats = get_job_registrys(redis_url, queue_name, state)
         return job_stats
     except Exception as e:
         # Handle specific exceptions if needed
