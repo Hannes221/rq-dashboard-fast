@@ -48,7 +48,7 @@ class RedisQueueDashboard(FastAPI):
             
             return worker_data
     
-        @self.delete("/queues/{name}")
+        @self.delete("/queues/{queue_name}")
         def delete_jobs_in_queue(queue_name: str):
             deleted_ids = delete_jobs_for_queue(queue_name, self.redis_url)
             return deleted_ids
@@ -87,7 +87,7 @@ class RedisQueueDashboard(FastAPI):
             )
 
         @self.get("/jobs/json", response_model=list[QueueJobRegistryStats])
-        async def read_jobs(queue_name: str = Query(None), state: str = Query(None)):
+        async def read_jobs(queue_name: str = Query("all"), state: str = Query("all")):
             job_data = get_jobs(self.redis_url, queue_name, state)
 
             return job_data
@@ -95,7 +95,7 @@ class RedisQueueDashboard(FastAPI):
             
         @self.get("/job/{job_id}", response_model=JobDataDetailed)
         async def get_job_data(job_id: str, request: Request):
-            job = get_job(job_id)
+            job = get_job(self.redis_url, job_id)
             
             active_tab = "job"
             
@@ -107,4 +107,4 @@ class RedisQueueDashboard(FastAPI):
             
         @self.delete("/job/{job_id}")
         def delete_job(job_id: str):
-            delete_job_id(job_id=job_id)
+            delete_job_id(self.redis_url, job_id=job_id)

@@ -94,12 +94,14 @@ def get_jobs(redis_url: str, queue_name: str = None, state: str = None) -> list[
         # Handle specific exceptions if needed
         raise HTTPException(status_code=500, detail=str(e))
 
-def get_job(job_id: str) -> JobDataDetailed:
-    job = Job.fetch(job_id, connection=Redis())
+def get_job(redis_url: str, job_id: str) -> JobDataDetailed:
+    redis = Redis.from_url(redis_url)
+    job = Job.fetch(job_id, connection=redis)
 
     return JobDataDetailed(id=job.id, name=job.description, created_at=job.created_at, enqueued_at=job.enqueued_at, ended_at=job.ended_at, result=job.result, exc_info=job.exc_info, meta=job.meta)
 
-def delete_job_id(job_id: str):
-    job = Job.fetch(job_id, connection=Redis())
+def delete_job_id(redis_url: str, job_id: str):
+    redis = Redis.from_url(redis_url)
+    job = Job.fetch(job_id, connection=redis)
     if job:
         job.delete()
