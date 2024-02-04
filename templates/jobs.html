@@ -112,7 +112,10 @@
                 row.append($('<td>').append(jobLink));
                 row.append($('<td>').append(state));
                 row.append($('<td>').text(job.name));
-                row.append($('<td>').text(job.created_at));
+
+                var formattedDate = new Date(job.created_at).toLocaleString();
+                row.append($('<td>').text(formattedDate));
+
                 row.append(
                   $('<td>').append(
                     $('<button>')
@@ -165,6 +168,7 @@
         state and queue name.
       </p>
       <table id="jobs">
+        <div class="filter-wrapper">
         <div class="filter-section">
           <label for="state-filter">Filter by State:</label>
           <select id="state-filter" onchange="filterJobsByState()">
@@ -173,7 +177,7 @@
             <option value="started">started</option>
             <option value="failed">failed</option>
             <option value="deferred">deferred</option>
-            <option value="finished">finished</option>
+            <option value="finished">finished</option>            
           </select>
         </div>
         <div class="filter-section">
@@ -186,6 +190,7 @@
             </option>
             {% endfor %}
           </select>
+        </div>
         </div>
         <thead>
           <tr>
@@ -209,9 +214,11 @@
             <td>{{ job.name }}</td>
             <td>{{ job.created_at }}</td>
             <td>
+              <div class="delete-button-container">
               <button class="delete-button" onclick="deleteJob('{{ job.id }}')">
                 Delete
               </button>
+            </div>
             </td>
           </tr>
           {% endfor %} {% endfor %} {% endfor %}
