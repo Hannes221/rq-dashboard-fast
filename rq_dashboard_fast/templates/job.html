@@ -13,22 +13,23 @@
       }
 
       .back-button {
-        padding: 5px 10px;
-        color: black;
-        border: 1px solid #007bff;
+        padding: 10px 15px;
+        color: #ececec;
+        border: 2px solid #000000;
         border-radius: 5px;
         text-decoration: none;
-        background-color: #007bff;
+        background-color: #000000;
+        transition: background-color 0.3s ease, color 0.3s ease,
+          border-color 0.3s ease;
+        cursor: pointer;
       }
-
       .back-button:hover {
-        background-color: #007bff;
-        color: white;
-        border-color: #0056b3;
+        background-color: #534c4c;
+        color: #ececec;
+        border-color: #534c4c;
       }
     </style>
   </head>
-
   <body>
     <div class="h2-section">
       <h2>Job Details</h2>
@@ -69,7 +70,7 @@
         </tr>
       </table>
       <div class="back-button-container">
-        <a href="javascript:history.back()" class="back-button">Go Back</a>
+        <a href="javascript:history.back()" class="back-button">Back</a>
       </div>
     </div>
   </body>

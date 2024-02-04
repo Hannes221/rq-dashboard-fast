@@ -25,7 +25,7 @@
       function toggleAutorefresh() {
         autoRefreshEnabled = !autoRefreshEnabled;
         if (autoRefreshEnabled) {
-          autoRefreshInterval = setInterval(updateJobsData, 5000);
+          autoRefreshInterval = setInterval(updateQueuesData, 5000);
           showNotification('Autorefresh enabled');
         } else {
           clearInterval(autoRefreshInterval);
@@ -139,7 +139,7 @@
                   'href',
                   prefix +
                     '/jobs' +
-                    '?state=deferred&queue_name=' +
+                    '?state=finished&queue_name=' +
                     queue_stats.queue_name
                 )
                 .text(queue_stats.finished)

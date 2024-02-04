@@ -107,12 +107,13 @@
               $.each(queue[state], function (jobIndex, job) {
                 var row = $('<tr>');
                 var jobLink = $('<a>')
-                  .attr('href', '/job/' + job.id)
+                  .attr('href', prefix + '/job/' + job.id)
                   .text(job.id);
                 row.append($('<td>').append(jobLink));
                 row.append($('<td>').append(state));
                 row.append($('<td>').text(job.name));
-                row.append($('<td>').text(job.created_at));
+                var formattedDate = new Date(job.created_at).toLocaleString();
+                row.append($('<td>').text(formattedDate));
                 row.append(
                   $('<td>').append(
                     $('<button>')
@@ -165,27 +166,29 @@
         state and queue name.
       </p>
       <table id="jobs">
-        <div class="filter-section">
-          <label for="state-filter">Filter by State:</label>
-          <select id="state-filter" onchange="filterJobsByState()">
-            <option value="all">All</option>
-            <option value="queued">queued</option>
-            <option value="started">started</option>
-            <option value="failed">failed</option>
-            <option value="deferred">deferred</option>
-            <option value="finished">finished</option>
-          </select>
-        </div>
-        <div class="filter-section">
-          <label for="queue-name-filter">Filter by Queue Name:</label>
-          <select id="queue-name-filter" onchange="filterJobsByQueue()">
-            <option value="all">All</option>
-            {% for queue in job_data %}
-            <option value="{{ queue.queue_name }}">
-              {{ queue.queue_name }}
-            </option>
-            {% endfor %}
-          </select>
+        <div class="filter-wrapper">
+          <div class="filter-section">
+            <label for="state-filter">Filter by State:</label>
+            <select id="state-filter" onchange="filterJobsByState()">
+              <option value="all">All</option>
+              <option value="queued">queued</option>
+              <option value="started">started</option>
+              <option value="failed">failed</option>
+              <option value="deferred">deferred</option>
+              <option value="finished">finished</option>
+            </select>
+          </div>
+          <div class="filter-section">
+            <label for="queue-name-filter">Filter by Queue Name:</label>
+            <select id="queue-name-filter" onchange="filterJobsByQueue()">
+              <option value="all">All</option>
+              {% for queue in job_data %}
+              <option value="{{ queue.queue_name }}">
+                {{ queue.queue_name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
         <thead>
           <tr>
@@ -209,9 +212,14 @@
             <td>{{ job.name }}</td>
             <td>{{ job.created_at }}</td>
             <td>
-              <button class="delete-button" onclick="deleteJob('{{ job.id }}')">
-                Delete
-              </button>
+              <div class="delete-button-container">
+                <button
+                  class="delete-button"
+                  onclick="deleteJob('{{ job.id }}')"
+                >
+                  Delete
+                </button>
+              </div>
             </td>
           </tr>
           {% endfor %} {% endfor %} {% endfor %}

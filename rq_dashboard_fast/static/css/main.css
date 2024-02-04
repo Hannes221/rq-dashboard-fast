@@ -1,279 +1,305 @@
 body {
-    background-color: #f8f9fa;
+  background-color: #f8f9fa;
 }
 
 #header-wrapper {
-    background-color: #ececec;
-    border-radius: 5px;
+  background-color: #ececec;
+  border-radius: 5px;
 }
 
 #header-dashboard {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #ececec;
-    padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ececec;
+  padding: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
 }
 
 .header-nav {
-    list-style: none;
-    display: flex;
-    margin: 0;
-    padding: 20px;
-    padding-left: 50px;
+  list-style: none;
+  display: flex;
+  margin: 0;
+  padding: 20px;
+  padding-left: 50px;
 }
 
 .header-item {
-    margin-right: 10px;
-    font-family: 'Helvetica Neue', helvetica, sans-serif;
+  margin-right: 10px;
+  font-family: 'Helvetica Neue', helvetica, sans-serif;
 }
 
 .header-link {
-    text-decoration: none;
-    color: black;
+  text-decoration: none;
+  color: black;
 }
 
 .custom-control-label {
-    font-family: 'Helvetica Neue', helvetica, sans-serif;
+  font-family: 'Helvetica Neue', helvetica, sans-serif;
 }
 
 .custom-switch {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
 .footer-wrapper {
-    padding: 10px;
-    border-radius: 15px;
-}
-
-#content {
-    background: yellow;
+  padding: 10px;
+  border-radius: 15px;
 }
 
 .section {
-    border: solid 1px #ddd;
-    padding-bottom: 20px;
-    padding-right: 20px;
-    padding-left: 20px;
-    font-family: 'Helvetica Neue', helvetica, sans-serif;
-    max-width: 90%;
-    margin: 0 auto;
-    background-color: steelblue;
+  border: solid 1px #ddd;
+  padding-bottom: 20px;
+  padding-right: 20px;
+  padding-left: 20px;
+  font-family: 'Helvetica Neue', helvetica, sans-serif;
+  max-width: 90%;
+  margin: 0 auto;
+  background-color: steelblue;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
 }
 
 h1 {
-    font-family: 'Helvetica Neue', helvetica, sans-serif;
-    font-weight: 300;
-    color: steelblue;
+  font-family: 'Helvetica Neue', helvetica, sans-serif;
+  font-weight: 300;
+  color: steelblue;
 }
 
 h2 {
-    font-family: 'Helvetica Neue', helvetica, sans-serif;
-    font-weight: 300;
-    color: steelblue;
+  font-family: 'Helvetica Neue', helvetica, sans-serif;
+  font-weight: 300;
+  color: steelblue;
 }
 
 h3 {
-    font-family: 'Helvetica Neue', helvetica, sans-serif;
-    font-weight: 300;
-    color: black;
+  font-family: 'Helvetica Neue', helvetica, sans-serif;
+  font-weight: 300;
+  color: black;
 }
 
 table,
 table tr,
 table tr td {
-    background-color: snow;
-}
-
-table tbody tr td.narrow {
-    width: 100px;
+  background-color: snow;
 }
 
 #queues {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
 }
 
 #queues th,
 #queues td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
 }
 
 #queues th {
-    background-color: #f2f2f2;
+  background-color: #f2f2f2;
 }
 
 #workers {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
 }
 
 #workers th,
 #workers td {
-    border: 1px solid #ddd;
-    padding: 12px;
-    text-align: left;
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
 }
 
 #workers th {
-    background-color: #f2f2f2;
-    font-weight: bold;
+  background-color: #f2f2f2;
+  font-weight: bold;
 }
 
 #workers tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
+  background-color: #f9f9f9;
 }
 
 #workers tbody tr:hover {
-    background-color: #f0f0f0;
+  background-color: #f0f0f0;
 }
 
 #workers td {
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 table tbody tr td {
-    vertical-align: middle;
+  vertical-align: middle;
 }
 
 #jobs {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
 }
 
 #jobs th,
 #jobs td {
-    border: 1px solid #ddd;
-    padding: 12px;
-    text-align: left;
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+  background-color: snow;
 }
 
 #jobs th {
-    background-color: #f2f2f2;
-    font-weight: bold;
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+#jobs tbody tr td {
+  vertical-align: middle;
 }
 
 #jobs td {
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-table tbody tr td {
-    vertical-align: middle;
+.delete-button-container {
+  display: flex;
+  justify-content: center;
 }
 
 table tr.failed {
-    color: red;
-    border-top: 2px solid red;
+  color: red;
+  border-top: 2px solid red;
 }
 
 table tr.failed a {
-    color: red;
+  color: red;
 }
 
 table tr.failed td {
-    background-color: lightgoldenrodyellow;
+  background-color: lightgoldenrodyellow;
 }
 
 span.loading {
-    font-size: .8em;
-    color: #555;
+  font-size: 0.8em;
+  color: #555;
 }
 
 #alert-fixed {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    width: 25%;
-    z-index: 9999;
-    text-align: center;
-    display: none;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 25%;
+  z-index: 9999;
+  text-align: center;
+  display: none;
 }
 
 .header {
-    border-bottom: solid 1px #ddd;
+  border-bottom: solid 1px #ddd;
 }
 
 #header-dashboard {
-    background-color: #ececec;
+  background-color: #ececec;
 }
 
 .container {
-    padding-right: 0px;
-    padding-left: 0px;
+  padding-right: 0px;
+  padding-left: 0px;
 }
 
 #filter-form {
-    width: fit-content;
-    margin-left: 0;
-    margin-right: auto;
+  width: fit-content;
+  margin-left: 0;
+  margin-right: auto;
 }
 
 .ellipsify {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    max-width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 #autorefresh-intro {
-    margin-bottom: 0;
-    font-size: 90%;
-    color: #888;
+  margin-bottom: 0;
+  font-size: 90%;
+  color: #888;
 }
 
 .footer-text {
-    text-align: center;
-    font-size: 80%;
-    color: #000000ad;
-    font-family: 'Helvetica Neue', helvetica, sans-serif;
+  text-align: center;
+  font-size: 80%;
+  color: #000000ad;
+  font-family: 'Helvetica Neue', helvetica, sans-serif;
 }
 
 .footer-text a {
-    color: #000000ad;
+  color: #000000ad;
 }
 
 .delete-button {
-    background-color: #ff0000;
-    color: #ffffff;
-    border: none;
-    padding: 5px 10px;
-    cursor: pointer;
-    border-radius: 3px;
+  padding: 6px 9px;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  text-decoration: none;
+  background-color: #ff0000;
+  transition: background-color 0.3s ease, color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.delete-button:hover {
+  background-color: #900a0a;
+  color: #ececec;
+  border-color: #900a0a;
 }
 
 .h2-section {
-    padding-left: 50px;
+  padding-left: 50px;
 }
 
 #jobs tbody tr td.table-cell {
-    max-width: 600px;
-    overflow: hidden;
-    white-space: normal;
+  max-width: 600px;
+  overflow: hidden;
+  white-space: normal;
 }
 
 .notification {
-    position: fixed;
-    top: 15px;
-    left: 15px;
-    padding: 10px;
-    background-color: grey;
-    color: white;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-    font-family: 'Helvetica Neue', helvetica, sans-serif;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  padding: 10px;
+  background-color: grey;
+  color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  font-family: 'Helvetica Neue', helvetica, sans-serif;
+}
+
+.filter-wrapper {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
 }
 
 .filter-section {
-    margin-top: 10px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.filter-section label {
+  margin-right: 10px;
+}
+
+.filter-section select {
+  padding: 8px;
+  border-radius: 5px;
 }
