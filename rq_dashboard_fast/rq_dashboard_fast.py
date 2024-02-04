@@ -20,7 +20,7 @@ class RedisQueueDashboard(FastAPI):
         self.templates = Jinja2Templates(directory=templates_directory)
         self.redis_url = redis_url 
 
-        self.rq_dashboard_version = "0.1.3" 
+        self.rq_dashboard_version = "0.1.4" 
 
         @self.get("/", response_class=HTMLResponse)
         async def get_home(request: Request):
