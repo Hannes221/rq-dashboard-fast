@@ -2,10 +2,6 @@ body {
     background-color: #f8f9fa;
 }
 
-#header-wrapper {
-    background-color: #ececec;
-    border-radius: 5px;
-}
 
 #header-dashboard {
     display: flex;
@@ -13,6 +9,8 @@ body {
     align-items: center;
     background-color: #ececec;
     padding: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
 }
 
 .header-nav {
@@ -46,10 +44,6 @@ body {
     border-radius: 15px;
 }
 
-#content {
-    background: yellow;
-}
-
 .section {
     border: solid 1px #ddd;
     padding-bottom: 20px;
@@ -59,6 +53,8 @@ body {
     max-width: 90%;
     margin: 0 auto;
     background-color: steelblue;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
 }
 
 h1 {
@@ -83,10 +79,6 @@ table,
 table tr,
 table tr td {
     background-color: snow;
-}
-
-table tbody tr td.narrow {
-    width: 100px;
 }
 
 #queues {
@@ -154,11 +146,16 @@ table tbody tr td {
     border: 1px solid #ddd;
     padding: 12px;
     text-align: left;
+    background-color: snow;
 }
 
 #jobs th {
     background-color: #f2f2f2;
     font-weight: bold;
+}
+
+#jobs tbody tr td {
+    vertical-align: middle;
 }
 
 #jobs td {
@@ -243,13 +240,26 @@ span.loading {
     color: #000000ad;
 }
 
+.delete-button-container {
+    display: flex;
+    justify-content: center;
+}
+
 .delete-button {
-    background-color: #ff0000;
+    padding: 6px 9px;
     color: #ffffff;
-    border: none;
-    padding: 5px 10px;
+    border: 2px solid #000000;
+    border-radius: 5px;
+    text-decoration: none;
+    background-color: #ff0000;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     cursor: pointer;
-    border-radius: 3px;
+}
+
+.delete-button:hover {
+    background-color: #900A0A;
+    color: #ececec;
+    border-color: #900A0A;
 }
 
 .h2-section {
@@ -274,6 +284,23 @@ span.loading {
     font-family: 'Helvetica Neue', helvetica, sans-serif;
 }
 
+.filter-wrapper {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
 .filter-section {
     margin-top: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.filter-section label {
+    margin-right: 10px;
+}
+
+.filter-section select {
+    padding: 8px;
+    border-radius: 5px;
 }

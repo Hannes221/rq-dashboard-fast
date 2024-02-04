@@ -1,77 +1,81 @@
 {% extends "base.html" %} {% block content %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Job Details</title>
-    <style>
-      .back-button-container {
-        display: flex;
-        justify-content: center;
-        margin-top: 10px;
-      }
 
-      .back-button {
-        padding: 5px 10px;
-        color: black;
-        border: 1px solid #007bff;
-        border-radius: 5px;
-        text-decoration: none;
-        background-color: #007bff;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Details</title>
+  <style>
+    .back-button-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+    }
 
-      .back-button:hover {
-        background-color: #007bff;
-        color: white;
-        border-color: #0056b3;
-      }
-    </style>
-  </head>
+    .back-button {
+      padding: 10px 15px;
+      color: #ececec;
+      border: 2px solid #000000;
+      border-radius: 5px;
+      text-decoration: none;
+      background-color: #000000;
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+      cursor: pointer;
+    }
 
-  <body>
-    <div class="h2-section">
-      <h2>Job Details</h2>
+    .back-button:hover {
+      background-color: #534C4C;
+      color: #ececec;
+      border-color: #534C4C;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="h2-section">
+    <h2>Job Details</h2>
+  </div>
+  <div class="section">
+    <table id="jobs">
+      <tr>
+        <th>ID</th>
+        <td class="table-cell">{{ job_data.id }}</td>
+      </tr>
+      <tr>
+        <th>Name</th>
+        <td class="table-cell">{{ job_data.name }}</td>
+      </tr>
+      <tr>
+        <th>Created At</th>
+        <td class="table-cell">{{ job_data.created_at }}</td>
+      </tr>
+      <tr>
+        <th>Enqueued At</th>
+        <td class="table-cell">{{ job_data.enqueued_at }}</td>
+      </tr>
+      <tr>
+        <th>Ended At</th>
+        <td class="table-cell">{{ job_data.ended_at }}</td>
+      </tr>
+      <tr>
+        <th>Result</th>
+        <td class="table-cell">{{ job_data.result }}</td>
+      </tr>
+      <tr>
+        <th>Exception Info</th>
+        <td class="table-cell">{{ job_data.exc_info }}</td>
+      </tr>
+      <tr>
+        <th>Meta</th>
+        <td class="table-cell">{{ job_data.meta }}</td>
+      </tr>
+    </table>
+    <div class="back-button-container">
+      <a href="javascript:history.back()" class="back-button">Back</a>
     </div>
-    <div class="section">
-      <table id="jobs">
-        <tr>
-          <th>ID</th>
-          <td class="table-cell">{{ job_data.id }}</td>
-        </tr>
-        <tr>
-          <th>Name</th>
-          <td class="table-cell">{{ job_data.name }}</td>
-        </tr>
-        <tr>
-          <th>Created At</th>
-          <td class="table-cell">{{ job_data.created_at }}</td>
-        </tr>
-        <tr>
-          <th>Enqueued At</th>
-          <td class="table-cell">{{ job_data.enqueued_at }}</td>
-        </tr>
-        <tr>
-          <th>Ended At</th>
-          <td class="table-cell">{{ job_data.ended_at }}</td>
-        </tr>
-        <tr>
-          <th>Result</th>
-          <td class="table-cell">{{ job_data.result }}</td>
-        </tr>
-        <tr>
-          <th>Exception Info</th>
-          <td class="table-cell">{{ job_data.exc_info }}</td>
-        </tr>
-        <tr>
-          <th>Meta</th>
-          <td class="table-cell">{{ job_data.meta }}</td>
-        </tr>
-      </table>
-      <div class="back-button-container">
-        <a href="javascript:history.back()" class="back-button">Go Back</a>
-      </div>
-    </div>
-  </body>
+  </div>
+</body>
+
 </html>
 {% endblock %}
