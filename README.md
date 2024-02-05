@@ -7,6 +7,8 @@
 <br />
 `RQ Dashboard FastAPI` is a general purpose, lightweight FastAPI-based web frontend to monitor your RQ queues, jobs, and workers in real-time.
 
+![mockup](https://github.com/Hannes221/rq-dashboard-fast/assets/115920878/a61961cd-54e3-43eb-8a1c-920074348055)
+
 ## Example Usage
 
 ```python
