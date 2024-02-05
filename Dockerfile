@@ -8,7 +8,7 @@ RUN poetry config virtualenvs.create false
 COPY poetry.lock pyproject.toml ./
 RUN poetry install --no-interaction --no-ansi
 
-COPY app.py /app
 COPY ./rq_dashboard_fast /app/rq_dashboard_fast
+COPY app.py /app
 
 WORKDIR /app

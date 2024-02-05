@@ -5,12 +5,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    environment:
+      - REDIS_URL=${REDIS_URL-redis://redis:6379}
+      - FASTAPI_PORT=${FASTAPI_PORT-8000}
     ports:
-      - '8000:8000'
-    depends_on:
-      - redis
+      - '${FASTAPI_PORT-8000}:8000'
     command:
-      ['uvicorn', '--host', '0.0.0.0', '--port', '8000', 'app:app', '--reload']
-
-  redis:
-    image: redis:7
+      [
+        'sh',
+        '-c',
+        'uvicorn --host 0.0.0.0 --port ${FASTAPI_PORT-8000} app:app --reload',
+      ]
