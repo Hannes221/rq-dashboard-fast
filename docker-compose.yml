@@ -1,0 +1,15 @@
+version: '3.11'
+services:
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - REDIS_URL=${REDIS_URL-redis://redis:6379}
+      - FASTAPI_PORT=${FASTAPI_PORT-8000}
+    ports:
+      - '${FASTAPI_PORT-8000}:${FASTAPI_PORT-8000}'
+    command: ['python', 'app.py']
+
+  redis:
+    image: redis:7

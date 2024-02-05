@@ -20,7 +20,7 @@ dashboard = RedisQueueDashboard(“redis://redis:6379/”, "/rq")
 app.mount(“/rq”, dashboard)
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 ```
 
 Access the Dashboard at
@@ -35,10 +35,78 @@ http://127.0.0.1:8000/rq
 $ pip install rq-dashboard-fast
 ```
 
-## Next Features
+## Running in Docker
 
-- [ ] Docker Image
+1. You can run the RQ Dashboard FastAPI as a Docker container with custom Redis URL:
+
+```
+docker run -e REDIS_URL=<your_redis_url> hannes221/rq-dashboard-fast
+
+```
+
+Access the Dashboard at
+
+```
+http://127.0.0.1:8000/rq
+```
+
+To change change the port, you can specify the following flag:
+
+```
+docker run -e REDIS_URL=<your_redis_url>  -e FASTAPI_PORT=<your_fastapi_port> hannes221/rq-dashboard-fast
+```
+
+Replace <your_fastapi_port> with your desired FastAPI and host port.
+
+2. You can use Docker Compose by creating a docker-compose.yml file:
+
+```
+version: '3.11'
+services:
+  dashboard:
+    image: hannes221/rq-dashboard-fast
+    ports:
+      - '8000:8000'
+    environment:
+      - REDIS_URL=<your_redis_url>
+```
+
+Then run:
+
+```
+docker compose up
+```
+
+Access the Dashboard at
+
+```
+http://127.0.0.1:8000/rq
+```
+
+To change the part update the compsoe file:
+
+```
+version: '3.11'
+services:
+  dashboard:
+    image: hannes221/rq-dashboard-fast
+    ports:
+      - '<your_fastapi_port>:<your_fastapi_port>'
+    environment:
+      - REDIS_URL=<your_redis_url>
+      - FASTAPI_PORT=<your_fastapi_port>
+```
+
+Replace <your_fastapi_port> with your desired FastAPI and host port.
+
+Docker Hub: [hannes221/rq-dashboard-fast](https://hub.docker.com/r/hannes221/rq-dashboard-fast)
+
+## Planned Features
+
 - [ ] Run Standalone (Terminal)
+- [ ] Data from rq-scheduler
+- [ ] Add pagination to jobs page
+- [ ] More data about workers
 
 ## Contributing
 
