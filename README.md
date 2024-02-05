@@ -101,10 +101,12 @@ Replace <your_fastapi_port> with your desired FastAPI and host port.
 
 Docker Hub: [hannes221/rq-dashboard-fast](https://hub.docker.com/r/hannes221/rq-dashboard-fast)
 
-## Next Features
+## Planned Features
 
-- [ ] Docker Image
 - [ ] Run Standalone (Terminal)
+- [ ] Data from rq-scheduler
+- [ ] Add pagination to jobs page
+- [ ] More data about workers
 
 ## Contributing
 
