@@ -8,7 +8,7 @@ from rq_dashboard_fast.utils.queues import QueueRegistryStats, delete_jobs_for_q
 from pathlib import Path
 
 class RedisQueueDashboard(FastAPI):
-    def __init__(self, redis_url: str = "redis://redis:6379", prefix: str = "/rq", *args, **kwargs):
+    def __init__(self, redis_url: str = "redis://localhost:6379", prefix: str = "/rq", *args, **kwargs):
         super().__init__(root_path=prefix, *args, **kwargs)
         
         package_directory = Path(__file__).resolve().parent
@@ -20,7 +20,7 @@ class RedisQueueDashboard(FastAPI):
         self.templates = Jinja2Templates(directory=templates_directory)
         self.redis_url = redis_url 
 
-        self.rq_dashboard_version = "0.1.4" 
+        self.rq_dashboard_version = "0.2.3" 
 
         @self.get("/", response_class=HTMLResponse)
         async def get_home(request: Request):

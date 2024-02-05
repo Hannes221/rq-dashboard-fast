@@ -20,7 +20,7 @@ dashboard = RedisQueueDashboard(“redis://redis:6379/”, "/rq")
 app.mount(“/rq”, dashboard)
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 ```
 
 Access the Dashboard at
@@ -52,7 +52,7 @@ Alternatively, you can use Docker Compose by creating a docker-compose.yml file:
 version: '3.11'
 services:
   dashboard:
-    image: hannescode/rq-dashboard-fast
+    image: hannes221/rq-dashboard-fast
     ports:
       - '<your_fastapi_port>:8000'
     environment:
@@ -71,6 +71,9 @@ Access the Dashboard at
 ```
 http://127.0.0.1:<your_fastapi_port>/rq
 ```
+
+Docker Hub:
+https://hub.docker.com/r/hannes221/rq-dashboard-fast
 
 ## Next Features
 

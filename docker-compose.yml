@@ -9,9 +9,7 @@ services:
       - FASTAPI_PORT=${FASTAPI_PORT-8000}
     ports:
       - '${FASTAPI_PORT-8000}:8000'
-    command:
-      [
-        'sh',
-        '-c',
-        'uvicorn --host 0.0.0.0 --port ${FASTAPI_PORT-8000} app:app --reload',
-      ]
+    command: ['python', 'app.py']
+
+  redis:
+    image: redis:7
