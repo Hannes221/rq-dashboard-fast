@@ -37,16 +37,28 @@ $ pip install rq-dashboard-fast
 
 ## Running in Docker
 
-You can run the RQ Dashboard FastAPI as a Docker container with custom Redis URL and port:
+1. You can run the RQ Dashboard FastAPI as a Docker container with custom Redis URL:
 
 ```
-docker run -p 8000:8000 -e REDIS_URL=<your_redis_url> -e FASTAPI_PORT=<your_fastapi_port> hannescode/rq-dashboard-fast
+docker run -e REDIS_URL=<your_redis_url> hannescode/rq-dashboard-fast
 
 ```
 
-Replace <your_redis_url> with your desired Redis URL and <your_fastapi_port> with your desired FastAPI port.
+Access the Dashboard at
 
-Alternatively, you can use Docker Compose by creating a docker-compose.yml file:
+```
+http://127.0.0.1:8000/rq
+```
+
+To change change the port, you can specify the following flag:
+
+```
+docker run -e REDIS_URL=<your_redis_url>  -e FASTAPI_PORT=<your_fastapi_port> hannescode/rq-dashboard-fast
+```
+
+Replace <your_fastapi_port> with your desired FastAPI and host port.
+
+2. You can use Docker Compose by creating a docker-compose.yml file:
 
 ```
 version: '3.11'
@@ -54,26 +66,40 @@ services:
   dashboard:
     image: hannes221/rq-dashboard-fast
     ports:
-      - '<your_fastapi_port>:8000'
+      - '8000:8000'
     environment:
       - REDIS_URL=<your_redis_url>
-      - FASTAPI_PORT=<your_fastapi_port>
 ```
 
-Replace <your_redis_url> and <your_fastapi_port> with your desired Redis URL and FastAPI port. Then run:
+Then run:
 
 ```
-docker-compose up
+docker compose up
 ```
 
 Access the Dashboard at
 
 ```
-http://127.0.0.1:<your_fastapi_port>/rq
+http://127.0.0.1:8000/rq
 ```
 
-Docker Hub:
-https://hub.docker.com/r/hannes221/rq-dashboard-fast
+To change the part update the compsoe file:
+
+```
+version: '3.11'
+services:
+  dashboard:
+    image: hannes221/rq-dashboard-fast
+    ports:
+      - '<your_fastapi_port>:<your_fastapi_port>'
+    environment:
+      - REDIS_URL=<your_redis_url>
+      - FASTAPI_PORT=<your_fastapi_port>
+```
+
+Replace <your_fastapi_port> with your desired FastAPI and host port.
+
+Docker Hub: [hannes221/rq-dashboard-fast](https://hub.docker.com/r/hannes221/rq-dashboard-fast)
 
 ## Next Features
 
