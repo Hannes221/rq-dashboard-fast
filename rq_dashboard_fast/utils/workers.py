@@ -16,6 +16,7 @@ def get_workers(redis_url: str) -> list[WorkerData]:
         current_job = worker.get_current_job()
         if current_job is not None:
             result.append(WorkerData(name=worker.name, current_job=current_job.description, queues=worker.queue_names()))
-        result.append(WorkerData(name=worker.name, current_job="Idle", queues=worker.queue_names()))
+        else:
+            result.append(WorkerData(name=worker.name, current_job="Idle", queues=worker.queue_names()))
     
     return result

@@ -8,7 +8,7 @@ from rq_dashboard_fast.utils.queues import QueueRegistryStats, delete_jobs_for_q
 from pathlib import Path
 
 class RedisQueueDashboard(FastAPI):
-    def __init__(self, redis_url: str = "redis://localhost:6379", prefix: str = "/rq", *args, **kwargs):
+    def __init__(self, redis_url: str = "redis://redis:6379", prefix: str = "/rq", *args, **kwargs):
         super().__init__(root_path=prefix, *args, **kwargs)
         
         package_directory = Path(__file__).resolve().parent

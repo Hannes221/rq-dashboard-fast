@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 from redis import Redis
 from rq import Queue
-from rq.job import Job
 
 
 class QueueRegistryStats(BaseModel):
@@ -21,8 +20,6 @@ def get_queues(redis_url: str) -> list[Queue]:
     
 
 def get_job_registry_amount(redis_url: str) -> list[QueueRegistryStats]:
-    redis = Redis.from_url(redis_url)
-    
     queues = get_queues(redis_url)
     result = []
     for queue in queues:
