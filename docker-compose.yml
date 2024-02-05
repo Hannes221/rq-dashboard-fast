@@ -1,18 +1,16 @@
 version: '3.11'
 services:
   dashboard:
+    image: python:3.11
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - '8000:8000'
-    environment:
-      REDIS_URL: "redis://redis:6379"
-      PORT: 8000
     depends_on:
       - redis
     command:
       ['uvicorn', '--host', '0.0.0.0', '--port', '8000', 'app:app', '--reload']
-  
+
   redis:
     image: redis:7
