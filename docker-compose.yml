@@ -1,7 +1,6 @@
 version: '3.11'
 services:
   dashboard:
-    image: python:3.11
     build:
       context: .
       dockerfile: Dockerfile
