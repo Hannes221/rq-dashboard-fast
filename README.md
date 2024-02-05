@@ -40,7 +40,7 @@ $ pip install rq-dashboard-fast
 You can run the RQ Dashboard FastAPI as a Docker container with custom Redis URL and port:
 
 ```
-docker run -p 8000:8000 -e REDIS_URL=<your_redis_url> -e FASTAPI_PORT=<your_fastapi_port> hannescode/rq-dashboard-fast
+docker run -p 8000:8000 -e REDIS_URL=<your_redis_url> -e FASTAPI_PORT=<your_fastapi_port> hannes221/rq-dashboard-fast
 
 ```
 
