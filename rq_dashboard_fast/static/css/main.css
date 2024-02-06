@@ -2,11 +2,6 @@ body {
   background-color: #f8f9fa;
 }
 
-#header-wrapper {
-  background-color: #ececec;
-  border-radius: 5px;
-}
-
 #header-dashboard {
   display: flex;
   justify-content: space-between;
