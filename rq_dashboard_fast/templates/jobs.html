@@ -102,7 +102,14 @@
 
         $.each(data, function (index, queue) {
           $.each(
-            ['queued', 'started', 'failed', 'deferred', 'finished'],
+            [
+              'scheduled',
+              'queued',
+              'started',
+              'failed',
+              'deferred',
+              'finished',
+            ],
             function (stateIndex, state) {
               $.each(queue[state], function (jobIndex, job) {
                 var row = $('<tr>');
@@ -171,6 +178,7 @@
             <label for="state-filter">Filter by State:</label>
             <select id="state-filter" onchange="filterJobsByState()">
               <option value="all">All</option>
+              <option value="scheduled">scheduled</option>
               <option value="queued">queued</option>
               <option value="started">started</option>
               <option value="failed">failed</option>
