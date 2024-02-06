@@ -8,7 +8,7 @@ from fastapi import FastAPI
 import time
 
 
-# START REDIS ON PORT 8379 LOCALLY BEFORE RUNNING THIS
+# RUN PYTEST IN DOCKER CONTAINER
 
 queue_name = "test_queue"
 
@@ -17,20 +17,20 @@ async def example_task() -> int:
 
 @pytest.fixture
 def setup_redis():
-    redis = Redis(port=8379)
+    redis = Redis(port=6379, host="redis")
     yield redis
     
 @pytest.fixture
 def client():
     app = FastAPI()
-    dashboard = RedisQueueDashboard(redis_url="redis://localhost:8379", prefix="")
+    dashboard = RedisQueueDashboard(redis_url="redis://redis:6379", prefix="")
 
     app.mount("", dashboard)
     return TestClient(app)
 
 @pytest.fixture
 def create_queue(setup_redis):
-    queue = Queue(connection=setup_redis, name="test_queue")
+    queue = Queue(connection=setup_redis, name=queue_name)
     return queue
 
 @pytest.fixture

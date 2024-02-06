@@ -1,249 +1,257 @@
 {% extends "base.html" %}{% block content %}
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jobs Dashboard</title>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jobs Dashboard</title>
+    <script>
+      let autoRefreshEnabled = true;
+      let autoRefreshInterval;
+      const prefix = '{{ prefix }}';
 
-  <script>
-    let autoRefreshEnabled = true;
-    let autoRefreshInterval;
-    const prefix = '{{ prefix }}';
+      function showNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.textContent = message;
 
-    function showNotification(message) {
-      const notification = document.createElement('div');
-      notification.className = 'notification';
-      notification.textContent = message;
+        document.body.appendChild(notification);
 
-      document.body.appendChild(notification);
-
-      setTimeout(() => {
-        document.body.removeChild(notification);
-      }, 3000);
-    }
-
-    function toggleAutorefresh() {
-      autoRefreshEnabled = !autoRefreshEnabled;
-      if (autoRefreshEnabled) {
-        autoRefreshInterval = setInterval(updateJobsData, 5000);
-        showNotification('Autorefresh enabled');
-      } else {
-        clearInterval(autoRefreshInterval);
-        showNotification('Autorefresh disabled');
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 3000);
       }
-    }
 
-    $(document).ready(function () {
-      $('#autorefresh-switch').on('change', function () {
-        toggleAutorefresh();
+      function toggleAutorefresh() {
+        autoRefreshEnabled = !autoRefreshEnabled;
+        if (autoRefreshEnabled) {
+          autoRefreshInterval = setInterval(updateJobsData, 5000);
+          showNotification('Autorefresh enabled');
+        } else {
+          clearInterval(autoRefreshInterval);
+          showNotification('Autorefresh disabled');
+        }
+      }
+
+      $(document).ready(function () {
+        $('#autorefresh-switch').on('change', function () {
+          toggleAutorefresh();
+        });
+
+        autoRefreshEnabled = $('#autorefresh-switch').is(':checked');
+        if (autoRefreshEnabled) {
+          autoRefreshInterval = setInterval(updateJobsData, 5000);
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+
+        let defaultState = urlParams.get('state') || 'all';
+        $('#state-filter').val(defaultState);
+
+        let defaultQueue = urlParams.get('queue_name') || 'all';
+        $('#queue-name-filter').val(defaultQueue);
       });
 
-      autoRefreshEnabled = $('#autorefresh-switch').is(':checked');
-      if (autoRefreshEnabled) {
-        autoRefreshInterval = setInterval(updateJobsData, 5000);
+      function getState() {
+        let selectedState = $('#state-filter').val();
+        return selectedState;
       }
 
-      const urlParams = new URLSearchParams(window.location.search);
-
-      let defaultState = urlParams.get('state') || 'all';
-      $('#state-filter').val(defaultState);
-
-      let defaultQueue = urlParams.get('queue_name') || 'all';
-      $('#queue-name-filter').val(defaultQueue);
-    });
-
-    function getState() {
-      let selectedState = $('#state-filter').val();
-      return selectedState;
-    }
-
-    function getQueue() {
-      let selectedQueue = $('#queue-name-filter').val();
-      return selectedQueue;
-    }
-
-    function filterJobsByState() {
-      let selectedState = $('#state-filter').val();
-      updateJobsData(selectedState);
-    }
-
-    function filterJobsByQueue() {
-      let selectedQueue = $('#queue-name-filter').val();
-      updateJobsData(selectedQueue);
-    }
-
-    let page = 1;
-
-    function NextPage() {
-      page += 1;
-    }
-
-    function previousPage() {
-      page = Math.max(1, page - 1);
-    }
-
-    function updateJobsData() {
-      if (autoRefreshEnabled) {
-        let selectedState = $('#state-filter').val();
+      function getQueue() {
         let selectedQueue = $('#queue-name-filter').val();
+        return selectedQueue;
+      }
+
+      function filterJobsByState() {
+        let selectedState = $('#state-filter').val();
+        updateJobsData(selectedState);
+      }
+
+      function filterJobsByQueue() {
+        let selectedQueue = $('#queue-name-filter').val();
+        updateJobsData(selectedQueue);
+      }
+
+      let page = 1;
+
+      function NextPage() {
+        page += 1;
+      }
+
+      function previousPage() {
+        page = Math.max(1, page - 1);
+      }
+
+      function updateJobsData() {
+        if (autoRefreshEnabled) {
+          let selectedState = $('#state-filter').val();
+          let selectedQueue = $('#queue-name-filter').val();
+          $.ajax({
+            url:
+              prefix +
+              '/jobs/json?state=' +
+              selectedState +
+              '&queue_name=' +
+              selectedQueue +
+              '&page=' +
+              page,
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+              updateJobsTable(data);
+            },
+            error: function (error) {
+              console.error('Error fetching jobs data: ', error);
+            },
+          });
+        }
+      }
+
+      function updateJobsTable(data) {
+        var tableBody = $('#jobs tbody');
+        tableBody.empty();
+
+        $.each(data, function (index, queue) {
+          $.each(
+            [
+              'scheduled',
+              'queued',
+              'started',
+              'failed',
+              'deferred',
+              'finished',
+            ],
+            function (stateIndex, state) {
+              $.each(queue[state], function (jobIndex, job) {
+                var row = $('<tr>');
+                var jobLink = $('<a>')
+                  .attr('href', prefix + '/job/' + job.id)
+                  .text(job.id);
+                row.append($('<td>').append(jobLink));
+                row.append($('<td>').append(state));
+                row.append($('<td>').text(job.name));
+                var formattedDate = new Date(job.created_at).toLocaleString();
+                row.append($('<td>').text(formattedDate));
+                row.append(
+                  $('<td>').append(
+                    $('<button>')
+                      .text('Delete')
+                      .addClass('delete-button')
+                      .on('click', function () {
+                        deleteJob(job.id);
+                      })
+                  )
+                );
+                tableBody.append(row);
+              });
+            }
+          );
+        });
+      }
+
+      function deleteJob(job_id) {
         $.ajax({
-          url:
-            prefix +
-            '/jobs/json?state=' +
-            selectedState +
-            '&queue_name=' +
-            selectedQueue +
-            '?page=' + page,
-          type: 'GET',
-          dataType: 'json',
-          success: function (data) {
-            updateJobsTable(data);
-          },
+          url: prefix + '/job/' + job_id,
+          type: 'DELETE',
           error: function (error) {
-            console.error('Error fetching jobs data: ', error);
+            console.error('Error fetching job data: ', error);
           },
         });
       }
-    }
 
-    function updateJobsTable(data) {
-      var tableBody = $('#jobs tbody');
-      tableBody.empty();
+      if (autoRefreshEnabled) {
+        setInterval(updateJobsData, 5000);
+      }
+    </script>
+  </head>
 
-      $.each(data, function (index, queue) {
-        $.each(
-          [
-            'scheduled',
-            'queued',
-            'started',
-            'failed',
-            'deferred',
-            'finished',
-          ],
-          function (stateIndex, state) {
-            $.each(queue[state], function (jobIndex, job) {
-              var row = $('<tr>');
-              var jobLink = $('<a>')
-                .attr('href', prefix + '/job/' + job.id)
-                .text(job.id);
-              row.append($('<td>').append(jobLink));
-              row.append($('<td>').append(state));
-              row.append($('<td>').text(job.name));
-              var formattedDate = new Date(job.created_at).toLocaleString();
-              row.append($('<td>').text(formattedDate));
-              row.append(
-                $('<td>').append(
-                  $('<button>')
-                    .text('Delete')
-                    .addClass('delete-button')
-                    .on('click', function () {
-                      deleteJob(job.id);
-                    })
-                )
-              );
-              tableBody.append(row);
-            });
-          }
-        );
-      });
-    }
-
-    function deleteJob(job_id) {
-      $.ajax({
-        url: prefix + '/job/' + job_id,
-        type: 'DELETE',
-        error: function (error) {
-          console.error('Error fetching job data: ', error);
-        },
-      });
-    }
-
-    if (autoRefreshEnabled) {
-      setInterval(updateJobsData, 5000);
-    }
-
-  </script>
-</head>
-
-<body>
-  <div class="h2-section">
-    <h2>Jobs</h2>
-    <div class="custom-switch">
-      <input type="checkbox" class="custom-control-input" id="autorefresh-switch" checked />
-      <label class="custom-control-label"> Autorefresh </label>
-    </div>
-  </div>
-  <div class="section">
-    <p>
-      This list contains all the jobs that are currently queued. You can
-      delete a job by clicking the delete button and filter the search by job
-      state and queue name.
-    </p>
-    <table id="jobs">
-      <div class="filter-wrapper">
-        <div class="filter-section">
-          <label for="state-filter">Filter by State:</label>
-          <select id="state-filter" onchange="filterJobsByState()">
-            <option value="all">All</option>
-            <option value="scheduled">scheduled</option>
-            <option value="queued">queued</option>
-            <option value="started">started</option>
-            <option value="failed">failed</option>
-            <option value="deferred">deferred</option>
-            <option value="finished">finished</option>
-          </select>
-        </div>
-        <div class="filter-section">
-          <label for="queue-name-filter">Filter by Queue Name:</label>
-          <select id="queue-name-filter" onchange="filterJobsByQueue()">
-            <option value="all">All</option>
-            {% for queue in job_data %}
-            <option value="{{ queue.queue_name }}">
-              {{ queue.queue_name }}
-            </option>
-            {% endfor %}
-          </select>
-        </div>
+  <body>
+    <div class="h2-section">
+      <h2>Jobs</h2>
+      <div class="custom-switch">
+        <input
+          type="checkbox"
+          class="custom-control-input"
+          id="autorefresh-switch"
+          checked
+        />
+        <label class="custom-control-label"> Autorefresh </label>
       </div>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Status</th>
-          <th>Name</th>
-          <th>Date</th>
-          <th>Options</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for queue in job_data %} {% for state in ["queued", "started",
-        "failed", "deferred", "finished"] %} {% for job in queue[state] %}
-        <tr>
-          <td>
-            <a href="{{ url_for('get_job_data', job_id=job.id) }}">{{ job.id }}</a>
-          </td>
-          <td>{{ state }}</td>
-          <td>{{ job.name }}</td>
-          <td>{{ job.created_at }}</td>
-          <td>
-            <div class="delete-button-container">
-              <button class="delete-button" onclick="deleteJob('{{ job.id }}')">
-                Delete
-              </button>
-            </div>
-          </td>
-        </tr>
-        {% endfor %} {% endfor %} {% endfor %}
-      </tbody>
-    </table>
-    <div class="pagination">
-      <button onclick="previousPage()">Previous</button>
-      <span>Page {{ page }} of {{ page }}</span>
-      <button onclick="NextPage()">Next</button>
     </div>
-  </div>
-</body>
-
+    <div class="section">
+      <p>
+        This list contains all the jobs that are currently queued. You can
+        delete a job by clicking the delete button and filter the search by job
+        state and queue name.
+      </p>
+      <table id="jobs">
+        <div class="filter-wrapper">
+          <div class="filter-section">
+            <label for="state-filter">Filter by State:</label>
+            <select id="state-filter" onchange="filterJobsByState()">
+              <option value="all">All</option>
+              <option value="scheduled">scheduled</option>
+              <option value="queued">queued</option>
+              <option value="started">started</option>
+              <option value="failed">failed</option>
+              <option value="deferred">deferred</option>
+              <option value="finished">finished</option>
+            </select>
+          </div>
+          <div class="filter-section">
+            <label for="queue-name-filter">Filter by Queue Name:</label>
+            <select id="queue-name-filter" onchange="filterJobsByQueue()">
+              <option value="all">All</option>
+              {% for queue in job_data %}
+              <option value="{{ queue.queue_name }}">
+                {{ queue.queue_name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Status</th>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Options</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for queue in job_data %} {% for state in ["queued", "started",
+          "failed", "deferred", "finished"] %} {% for job in queue[state] %}
+          <tr>
+            <td>
+              <a href="{{ url_for('get_job_data', job_id=job.id) }}"
+                >{{ job.id }}</a
+              >
+            </td>
+            <td>{{ state }}</td>
+            <td>{{ job.name }}</td>
+            <td>{{ job.created_at }}</td>
+            <td>
+              <div class="delete-button-container">
+                <button
+                  class="delete-button"
+                  onclick="deleteJob('{{ job.id }}')"
+                >
+                  Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %} {% endfor %} {% endfor %}
+        </tbody>
+      </table>
+      <div class="pagination">
+        <button onclick="previousPage()">Previous</button>
+        <span>Page {{ page }} of {{ page }}</span>
+        <button onclick="NextPage()">Next</button>
+      </div>
+    </div>
+  </body>
 </html>
 {% endblock %}

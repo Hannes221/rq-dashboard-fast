@@ -45,6 +45,8 @@ def get_job_registrys(redis_url: str, queue_name: str = "all", state: str = "all
     start_index = (page - 1) * per_page
     end_index = start_index + per_page
     
+    scheduled_jobs = []
+    
     for queue in queues:
         if queue_name == "all" or queue_name == queue.name:
             jobs = []
@@ -67,6 +69,13 @@ def get_job_registrys(redis_url: str, queue_name: str = "all", state: str = "all
                 jobs.extend(queue.started_job_registry.get_job_ids())
             elif state == "deferred":
                 jobs.extend(queue.deferred_job_registry.get_job_ids())
+                
+                
+            if state == "all" or state == "scheduled":
+                scheduled = scheduler.get_jobs()
+
+                for job in scheduled:
+                    scheduled_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
 
             jobs_fetched = Job.fetch_many(jobs, connection=redis)
 
@@ -76,12 +85,6 @@ def get_job_registrys(redis_url: str, queue_name: str = "all", state: str = "all
             finished_jobs = []
             queued_jobs = []
             scheduled_jobs = []
-
-            if state == "all" or state == "scheduled":
-                scheduled = scheduler.get_jobs()
-
-                for job in scheduled:
-                    scheduled_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
 
             for job in jobs_fetched[start_index:end_index]:
                 status = job.get_status()
