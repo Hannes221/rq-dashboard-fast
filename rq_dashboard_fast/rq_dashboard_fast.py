@@ -24,87 +24,108 @@ class RedisQueueDashboard(FastAPI):
 
         @self.get("/", response_class=HTMLResponse)
         async def get_home(request: Request):
-            return self.templates.TemplateResponse(
-                "base.html",
-                {"request": request, "active_tab": "jobs",
-                 "instance_list": [], "prefix": prefix, "rq_dashboard_version": self.rq_dashboard_version}
-            )
+            try:
+                return self.templates.TemplateResponse(
+                    "base.html",
+                    {"request": request, "active_tab": "jobs", "prefix": prefix, "rq_dashboard_version": self.rq_dashboard_version}
+                )
+            except Exception as e:
+                print("An error occurred while loading the base template:", e)
 
         @self.get("/workers", response_class=HTMLResponse)
         async def read_workers(request: Request):
-            worker_data = get_workers(self.redis_url)
+            try:
+                worker_data = get_workers(self.redis_url)
 
-            active_tab = 'workers' 
+                active_tab = 'workers' 
 
-            return self.templates.TemplateResponse(
-                "workers.html",
-                {"request": request, "worker_data": worker_data, "active_tab": active_tab,
-                "instance_list": [], "prefix": prefix, "rq_dashboard_version": self.rq_dashboard_version}
-            )
-            
+                return self.templates.TemplateResponse(
+                    "workers.html",
+                    {"request": request, "worker_data": worker_data, "active_tab": active_tab, "prefix": prefix, "rq_dashboard_version": self.rq_dashboard_version}
+                )
+            except Exception as e:
+                print("An error occurred while reading workers:", e)
+
         @self.get("/workers/json", response_model=list[WorkerData])
         async def read_workers():
-            worker_data = get_workers(self.redis_url)
-            
-            return worker_data
-    
+            try:
+                worker_data = get_workers(self.redis_url)
+                
+                return worker_data
+            except Exception as e:
+                print("An error occurred while reading worker data in json:", e)
+                
         @self.delete("/queues/{queue_name}")
         def delete_jobs_in_queue(queue_name: str):
-            deleted_ids = delete_jobs_for_queue(queue_name, self.redis_url)
-            return deleted_ids
-            
+            try:
+                deleted_ids = delete_jobs_for_queue(queue_name, self.redis_url)
+                return deleted_ids
+            except Exception as e:
+                print("An error occurred while deleting jobs in queue:", e)
 
         @self.get("/queues", response_class=HTMLResponse)
         async def read_queues(request: Request):
-            queue_data = get_job_registry_amount(self.redis_url)
+            try:
+                queue_data = get_job_registry_amount(self.redis_url)
 
-            active_tab = 'queues' 
-            
+                active_tab = 'queues' 
 
-            return self.templates.TemplateResponse(
-                "queues.html",
-                {"request": request, "queue_data": queue_data, "active_tab": active_tab,
-                "instance_list": [], "prefix": prefix, "rq_dashboard_version": self.rq_dashboard_version}
-            )
-            
+                return self.templates.TemplateResponse(
+                    "queues.html",
+                    {"request": request, "queue_data": queue_data, "active_tab": active_tab, "prefix": prefix, "rq_dashboard_version": self.rq_dashboard_version}
+                )
+            except Exception as e:
+                print("An error occurred reading queues data template:", e)
+
         @self.get("/queues/json", response_model=list[QueueRegistryStats])
         async def read_queues():
-            queue_data = get_job_registry_amount(self.redis_url)
+            try:
+                queue_data = get_job_registry_amount(self.redis_url)
 
-            return queue_data
-    
+                return queue_data
+            except Exception as e:
+                print("An error occurred reading queues data json:", e)
 
         @self.get("/jobs", response_class=HTMLResponse)
         async def read_jobs(request: Request, queue_name: str = Query("all"), state: str = Query("all")):
-            job_data = get_jobs(self.redis_url, queue_name, state)
+            try:
+                job_data = get_jobs(self.redis_url, queue_name, state)
 
-            active_tab = 'jobs' 
+                active_tab = 'jobs' 
 
-            return self.templates.TemplateResponse(
-                "jobs.html",
-                {"request": request, "job_data": job_data, "active_tab": active_tab,
-                "instance_list": [], "prefix": prefix, "rq_dashboard_version": self.rq_dashboard_version}
-            )
+                return self.templates.TemplateResponse(
+                    "jobs.html",
+                    {"request": request, "job_data": job_data, "active_tab": active_tab, "prefix": prefix, "rq_dashboard_version": self.rq_dashboard_version}
+                )
+            except Exception as e:
+                print("An error occurred reading jobs data template:", e)
 
         @self.get("/jobs/json", response_model=list[QueueJobRegistryStats])
         async def read_jobs(queue_name: str = Query("all"), state: str = Query("all")):
-            job_data = get_jobs(self.redis_url, queue_name, state)
+            try:
+                job_data = get_jobs(self.redis_url, queue_name, state)
 
-            return job_data
+                return job_data
+            except Exception as e:
+                print("An error occurred reading jobs data json:", e)
 
-            
         @self.get("/job/{job_id}", response_model=JobDataDetailed)
         async def get_job_data(job_id: str, request: Request):
-            job = get_job(self.redis_url, job_id)
-            
-            active_tab = "job"
-            
-            return self.templates.TemplateResponse(
-                "job.html",
-                {"request": request, "job_data": job, "active_tab": active_tab, 
-                "instance_list": [], "prefix": prefix, "rq_dashboard_version": self.rq_dashboard_version}
-            )
-            
+            try:
+                job = get_job(self.redis_url, job_id)
+
+                active_tab = "job"
+
+                return self.templates.TemplateResponse(
+                    "job.html",
+                    {"request": request, "job_data": job, "active_tab": active_tab, "prefix": prefix, "rq_dashboard_version": self.rq_dashboard_version}
+                )
+            except Exception as e:
+                print("An error occurred fetching a specific job:", e)
+
         @self.delete("/job/{job_id}")
         def delete_job(job_id: str):
-            delete_job_id(self.redis_url, job_id=job_id)
+            try:
+                delete_job_id(self.redis_url, job_id=job_id)
+            except Exception as e:
+                print("An error occurred while deleting a job:", e)
