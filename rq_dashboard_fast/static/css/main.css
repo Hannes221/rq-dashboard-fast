@@ -10,6 +10,7 @@ body {
   padding: 10px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 20px;
+  border: solid 1px #ddd;
 }
 
 .header-nav {
@@ -51,7 +52,7 @@ body {
   font-family: 'Helvetica Neue', helvetica, sans-serif;
   max-width: 90%;
   margin: 0 auto;
-  background-color: steelblue;
+  background-color: #ececec;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 20px;
 }
@@ -167,6 +168,7 @@ table tbody tr td {
 .delete-button-container {
   display: flex;
   justify-content: center;
+  cursor: pointer;
 }
 
 table tr.failed {
