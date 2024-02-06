@@ -78,6 +78,8 @@
             }
           });
           row.append(queuesCell);
+          row.append($('<td>').text(worker.successful_job_count));
+          row.append($('<td>').text(worker.failed_job_count));
 
           tableBody.append(row);
         });
@@ -109,6 +111,8 @@
             <th>Name</th>
             <th>Current Job</th>
             <th>Queues</th>
+            <th>Successful jobs</th>
+            <th>Failed jobs</th>
           </tr>
         </thead>
         <tbody>
@@ -120,6 +124,8 @@
               {% for queue_name in worker.queues %} {{ queue_name }} {% if not
               loop.last %}, {% endif %} {% endfor %}
             </td>
+            <td>{{ worker.successful_job_count }}</td>
+            <td>{{ worker.failed_job_count }}</td>
           </tr>
           {% endfor %}
         </tbody>
