@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from redis import Redis
 from rq.job import Job
+from rq_scheduler import Scheduler
 
 from .queues import get_queues
 
@@ -27,6 +28,7 @@ class JobDataDetailed(BaseModel):
 
 class QueueJobRegistryStats(BaseModel):
     queue_name: str
+    scheduled: List[JobData]
     queued: List[JobData]
     started: List[JobData]
     failed: List[JobData]
@@ -35,6 +37,7 @@ class QueueJobRegistryStats(BaseModel):
 
 def get_job_registrys(redis_url: str, queue_name: str = "all", state: str = "all"):
     redis = Redis.from_url(redis_url)
+    scheduler = Scheduler(connection=redis, queue_name=queue_name)
     
     queues = get_queues(redis_url)
     result = []
@@ -49,6 +52,8 @@ def get_job_registrys(redis_url: str, queue_name: str = "all", state: str = "all
                 jobs.extend(queue.failed_job_registry.get_job_ids())
                 jobs.extend(queue.started_job_registry.get_job_ids())
                 jobs.extend(queue.deferred_job_registry.get_job_ids())
+            elif state == "scheduled":
+                jobs.extend(queue.scheduled_job_registry.get_job_ids())
             elif state == "queued":
                 jobs.extend(queue.get_job_ids())
             elif state == "finished":
@@ -67,6 +72,13 @@ def get_job_registrys(redis_url: str, queue_name: str = "all", state: str = "all
             deferred_jobs = []
             finished_jobs = []
             queued_jobs = []
+            scheduled_jobs  = []
+            
+            if state == "all" or state == "scheduled":
+                scheduled = scheduler.get_jobs()
+                
+                for job in scheduled:
+                    scheduled_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
 
             for job in jobs_fetched:
                 status = job.get_status()
@@ -81,7 +93,7 @@ def get_job_registrys(redis_url: str, queue_name: str = "all", state: str = "all
                 elif status == 'queued':
                     queued_jobs.append(JobData(id=job.id, name=job.description, created_at=job.created_at))
 
-            result.append(QueueJobRegistryStats(queue_name=queue.name, queued=queued_jobs, started=started_jobs, failed=failed_jobs, deferred=deferred_jobs, finished=finished_jobs))
+            result.append(QueueJobRegistryStats(queue_name=queue.name, scheduled=scheduled_jobs, queued=queued_jobs, started=started_jobs, failed=failed_jobs, deferred=deferred_jobs, finished=finished_jobs))
                 
     return result
 
