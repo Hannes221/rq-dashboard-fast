@@ -75,12 +75,22 @@
 
       let page = 1;
 
-      function NextPage() {
+      window.onload = function () {
+        updatePageNumber();
+      };
+
+      function nextPage() {
         page += 1;
+        updatePageNumber();
       }
 
       function previousPage() {
         page = Math.max(1, page - 1);
+        updatePageNumber();
+      }
+
+      function updatePageNumber() {
+        document.getElementById('page-number').textContent = page;
       }
 
       function updateJobsData() {
@@ -248,8 +258,8 @@
       </table>
       <div class="pagination">
         <button onclick="previousPage()">Previous</button>
-        <span>Page {{ page }} of {{ page }}</span>
-        <button onclick="NextPage()">Next</button>
+        <span>Page: <span id="page-number">{{ page }}</span></span>
+        <button onclick="nextPage()">Next</button>
       </div>
     </div>
   </body>
