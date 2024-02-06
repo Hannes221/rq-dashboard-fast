@@ -87,8 +87,8 @@ class RedisQueueDashboard(FastAPI):
             )
 
         @self.get("/jobs/json", response_model=list[QueueJobRegistryStats])
-        async def read_jobs(queue_name: str = Query("all"), state: str = Query("all")):
-            job_data = get_jobs(self.redis_url, queue_name, state)
+        async def read_jobs(queue_name: str = Query("all"), state: str = Query("all"), page: str = Query(1)):
+            job_data = get_jobs(self.redis_url, queue_name, state, page)
 
             return job_data
 
