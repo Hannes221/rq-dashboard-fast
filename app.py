@@ -5,7 +5,7 @@ from rq_dashboard_fast.rq_dashboard_fast import RedisQueueDashboard
 
 app = FastAPI()
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379")
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 PORT = int(os.getenv("FASTAPI_PORT", 8000))
 
 dashboard = RedisQueueDashboard(redis_url=REDIS_URL, prefix="/rq")
