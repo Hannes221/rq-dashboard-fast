@@ -73,6 +73,16 @@
         updateJobsData(selectedQueue);
       }
 
+      let page = 1;
+
+      function NextPage() {
+        page += 1;
+      }
+
+      function previousPage() {
+        page -= 1;
+      }
+
       function updateJobsData() {
         if (autoRefreshEnabled) {
           let selectedState = $('#state-filter').val();
@@ -83,7 +93,8 @@
               '/jobs/json?state=' +
               selectedState +
               '&queue_name=' +
-              selectedQueue,
+              selectedQueue + 
+              '?page=' + page,
             type: 'GET',
             dataType: 'json',
             success: function (data) {
@@ -151,7 +162,8 @@
       if (autoRefreshEnabled) {
         setInterval(updateJobsData, 5000);
       }
-    </script>
+
+</script>
   </head>
   <body>
     <div class="h2-section">
@@ -233,6 +245,11 @@
           {% endfor %} {% endfor %} {% endfor %}
         </tbody>
       </table>
+      <div class="pagination">
+        <button onclick="previousPage()">Previous</button>
+        <span>Page {{ page }} of {{ page }}</span>
+        <button onclick="NextPage()">Next</button>
+    </div>
     </div>
   </body>
 </html>
