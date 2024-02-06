@@ -105,10 +105,11 @@ Docker Hub: [hannes221/rq-dashboard-fast](https://hub.docker.com/r/hannes221/rq-
 
 ## Planned Features
 
+- [x] Data from rq-scheduler
+- [x] More data about workers
+- [x] Docker Image
 - [ ] Run Standalone (Terminal)
-- [ ] Data from rq-scheduler
 - [ ] Add pagination to jobs page
-- [ ] More data about workers
 
 ## Contributing
 
