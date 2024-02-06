@@ -7,7 +7,7 @@
 <br />
 `RQ Dashboard FastAPI` is a general purpose, lightweight FastAPI-based web frontend to monitor your RQ queues, jobs, and workers in real-time.
 
-![mockup](https://github.com/Hannes221/rq-dashboard-fast/assets/115920878/a61961cd-54e3-43eb-8a1c-920074348055)
+<img width="985" alt="Screenshot 2024-02-06 at 14 29 24" src="https://github.com/Hannes221/rq-dashboard-fast/assets/115920878/430c76b4-226a-43d2-9089-985a8e069ba5">
 
 ## Example Usage
 
@@ -105,10 +105,11 @@ Docker Hub: [hannes221/rq-dashboard-fast](https://hub.docker.com/r/hannes221/rq-
 
 ## Planned Features
 
+- [x] Data from rq-scheduler
+- [x] More data about workers
+- [x] Docker Image
 - [ ] Run Standalone (Terminal)
-- [ ] Data from rq-scheduler
 - [ ] Add pagination to jobs page
-- [ ] More data about workers
 
 ## Contributing
 
