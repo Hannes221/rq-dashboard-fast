@@ -82,11 +82,15 @@
       function nextPage() {
         page += 1;
         updatePageNumber();
+        updateJobsData();
       }
 
       function previousPage() {
-        page = Math.max(1, page - 1);
-        updatePageNumber();
+        if(page > 1){
+          page -= 1;
+          updatePageNumber();
+          updateJobsData();
+        }
       }
 
       function updatePageNumber() {
@@ -257,11 +261,11 @@
         </tbody>
       </table>
       <div class="pagination">
-        <button onclick="previousPage()">Previous</button>
+        <button class="pagination-button" onclick="previousPage()">Previous</button>
         <span>Page: <span id="page-number">{{ page }}</span></span>
-        <button onclick="nextPage()">Next</button>
+        <button class="pagination-button" onclick="nextPage()">Next</button>
       </div>
-    </div>
+  </div>
   </body>
 </html>
 {% endblock %}

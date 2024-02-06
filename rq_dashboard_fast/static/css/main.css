@@ -21,6 +21,26 @@ body {
   padding-left: 50px;
 }
 
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.pagination-button {
+  border-radius: 5px;
+  cursor: pointer;
+  color: #ececec;
+  border: 2px solid #000000;
+  background-color: #000000;
+}
+
+.pagination-button:hover {
+  background-color: #534c4c;
+  color: #ececec;
+  border-color: #534c4c;
+}
+
 .header-item {
   margin-right: 10px;
   font-family: 'Helvetica Neue', helvetica, sans-serif;
