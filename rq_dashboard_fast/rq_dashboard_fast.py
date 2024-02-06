@@ -87,11 +87,11 @@ class RedisQueueDashboard(FastAPI):
                 print("An error occurred reading queues data json:", e)
 
         @self.get("/jobs", response_class=HTMLResponse)
-        async def read_jobs(request: Request, queue_name: str = Query("all"), state: str = Query("all")):
+        async def read_jobs(request: Request, queue_name: str = Query("all"), state: str = Query("all"), page: str = Query(1)):
             try:
                 job_data = get_jobs(self.redis_url, queue_name, state)
 
-                active_tab = 'jobs' 
+                active_tab = 'jobs'
 
                 return self.templates.TemplateResponse(
                     "jobs.html",
@@ -101,7 +101,7 @@ class RedisQueueDashboard(FastAPI):
                 print("An error occurred reading jobs data template:", e)
 
         @self.get("/jobs/json", response_model=list[QueueJobRegistryStats])
-        async def read_jobs(queue_name: str = Query("all"), state: str = Query("all")):
+        async def read_jobs(queue_name: str = Query("all"), state: str = Query("all"), page: str = Query("1")):
             try:
                 job_data = get_jobs(self.redis_url, queue_name, state)
 
