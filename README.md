@@ -32,7 +32,7 @@ http://127.0.0.1:8000/rq
 ```
 
 ## Installing from PyPi
-
+PyPi: [rq-dashboard-fast](https://pypi.org/project/rq-dashboard-fast/)
 ```
 $ pip install rq-dashboard-fast
 ```
