@@ -80,13 +80,11 @@ body {
 h1 {
   font-family: 'Helvetica Neue', helvetica, sans-serif;
   font-weight: 300;
-  color: steelblue;
 }
 
 h2 {
   font-family: 'Helvetica Neue', helvetica, sans-serif;
   font-weight: 300;
-  color: steelblue;
 }
 
 h3 {
@@ -188,7 +186,6 @@ table tbody tr td {
 .delete-button-container {
   display: flex;
   justify-content: center;
-  cursor: pointer;
 }
 
 table tr.failed {
@@ -264,8 +261,10 @@ span.loading {
 
 .delete-button {
   padding: 6px 9px;
-  border: 2px solid #000000;
+  cursor: pointer;
+  color: #ececec;
   border-radius: 5px;
+  border: none;
   text-decoration: none;
   background-color: #ff0000;
   transition: background-color 0.3s ease, color 0.3s ease,
