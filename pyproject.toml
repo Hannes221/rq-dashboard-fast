@@ -18,6 +18,12 @@ rq-scheduler = "^0.13.1"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
 httpx = "^0.26.0"
+pre-commit = "^3.6.0"
+black = "^24.1.1"
+isort = "^5.13.2"
+
+[tool.isort]
+profile = "black"
 
 [build-system]
 requires = ["poetry-core"]
