@@ -122,7 +122,7 @@ def get_job(redis_url: str, job_id: str) -> JobDataDetailed:
 
         return JobDataDetailed(id=job.id, name=job.description, created_at=job.created_at, enqueued_at=job.enqueued_at, ended_at=job.ended_at, result=job.result, exc_info=job.exc_info, meta=job.meta)
     except Exception as error:
-        raise HTTPException(status_code=500, detail=str("Error reading fetching job: ", error))
+        raise HTTPException(status_code=500, detail=str("Error fetching job: ", error))
     
 def delete_job_id(redis_url: str, job_id: str):
     try:
