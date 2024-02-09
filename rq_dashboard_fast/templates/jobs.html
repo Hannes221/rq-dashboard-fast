@@ -73,6 +73,30 @@
         updateJobsData(selectedQueue);
       }
 
+      let page = 1;
+
+      window.onload = function () {
+        updatePageNumber();
+      };
+
+      function nextPage() {
+        page += 1;
+        updatePageNumber();
+        updateJobsData();
+      }
+
+      function previousPage() {
+        if(page > 1){
+          page -= 1;
+          updatePageNumber();
+          updateJobsData();
+        }
+      }
+
+      function updatePageNumber() {
+        document.getElementById('page-number').textContent = page;
+      }
+
       function updateJobsData() {
         if (autoRefreshEnabled) {
           let selectedState = $('#state-filter').val();
@@ -83,7 +107,9 @@
               '/jobs/json?state=' +
               selectedState +
               '&queue_name=' +
-              selectedQueue,
+              selectedQueue +
+              '&page=' +
+              page,
             type: 'GET',
             dataType: 'json',
             success: function (data) {
@@ -153,6 +179,7 @@
       }
     </script>
   </head>
+
   <body>
     <div class="h2-section">
       <h2>Jobs</h2>
@@ -233,7 +260,12 @@
           {% endfor %} {% endfor %} {% endfor %}
         </tbody>
       </table>
-    </div>
+      <div class="pagination">
+        <button class="pagination-button" onclick="previousPage()">Previous</button>
+        <span>Page: <span id="page-number">{{ page }}</span></span>
+        <button class="pagination-button" onclick="nextPage()">Next</button>
+      </div>
+  </div>
   </body>
 </html>
 {% endblock %}
