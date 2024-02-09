@@ -103,6 +103,14 @@ Replace <your_fastapi_port> with your desired FastAPI and host port.
 
 Docker Hub: [hannes221/rq-dashboard-fast](https://hub.docker.com/r/hannes221/rq-dashboard-fast)
 
+## Github Repository
+
+Github: [rq-dashboard-fast](https://github.com/Hannes221/rq-dashboard-fast)
+
+```
+$ pip install rq-dashboard-fast
+```
+
 ## Planned Features
 
 - [x] Data from rq-scheduler
