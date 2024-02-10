@@ -28,15 +28,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Add your steps to setup test environment in Docker
-      - name: Set up Docker for testing
-        uses: docker/setup-buildx-action@v1
+      - name: Wait for services
+        run: docker-compose exec dashboard bash'
 
-      # Run tests within Docker container
       - name: Run tests
-        run: |
-          docker build -t my-test-image .
-          docker run my-test-image pytest
+        run: docker-compose exec dashboard pytest
 
   build-and-publish:
     needs: test
