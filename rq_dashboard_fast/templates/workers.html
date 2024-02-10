@@ -23,6 +23,18 @@
         }, 3000);
       }
 
+      function showErrorNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'error-notification';
+        notification.textContent = message;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 3000);
+      }
+
       function toggleAutorefresh() {
         autoRefreshEnabled = !autoRefreshEnabled;
         if (autoRefreshEnabled) {
@@ -56,7 +68,7 @@
             },
             error: function (error) {
               console.error('Error fetching data: ', error);
-              showNotification('Error fetching workers data');
+              showErrorNotification('Error fetching workers data');
             },
           });
         }

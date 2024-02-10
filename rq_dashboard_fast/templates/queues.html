@@ -22,6 +22,18 @@
         }, 3000);
       }
 
+      function showErrorNotification(message) {
+        const notification = documenr.createElement('div');
+        notification.className = 'error-notification';
+        notification.textContent = message;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 3000)
+      }
+
       function toggleAutorefresh() {
         autoRefreshEnabled = !autoRefreshEnabled;
         if (autoRefreshEnabled) {
@@ -55,7 +67,7 @@
             },
             error: function (error) {
               console.error('Error fetching queues data: ', error);
-              showNotification('Error fetching queues data')
+              showErrorNotification('Error fetching queues data')
             },
           });
         }
@@ -67,7 +79,7 @@
           type: 'DELETE',
           error: function (error) {
             console.error('Error deleting jobs in queue: ', error);
-            showNotification('Error deleting job')
+            showErrorNotification('Error deleting job')
           },
         });
       }
