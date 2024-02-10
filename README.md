@@ -85,7 +85,7 @@ Access the Dashboard at
 http://127.0.0.1:8000/rq
 ```
 
-To change the part update the compsoe file:
+To change the part update the compose file:
 
 ```
 version: '3.11'
@@ -117,6 +117,7 @@ $ pip install rq-dashboard-fast
 - [x] More data about workers
 - [x] Docker Image
 - [x] Add pagination to jobs page
+- [ ] (Statistics) + Export
 - [ ] Run Standalone (Terminal)
 
 ## Contributing
