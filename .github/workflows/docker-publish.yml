@@ -7,10 +7,6 @@ name: Docker
 
 on:
   push:
-    branches: [main]
-    tags: ['v*.*.*']
-  release:
-    types: [published]
 
 env:
   # Use docker.io for Docker Hub if empty

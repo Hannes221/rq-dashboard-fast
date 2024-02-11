@@ -2,10 +2,6 @@ name: Publish on Release if Tests Pass
 
 on:
   push:
-    branches: [main]
-    tags: ['v*.*.*']
-  release:
-    types: [published]
 
 permissions:
   contents: read
