@@ -17,15 +17,3 @@ repos:
         entry: poetry run isort
         language: system
         types: [file, python]
-    test:
-      needs: lint
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout repository
-          uses: actions/checkout@v3
-
-        - name: Wait for services
-          run: docker-compose exec dashboard bash'
-
-        - name: Run tests in Docker
-          run: docker-compose exec dashboard pytest
