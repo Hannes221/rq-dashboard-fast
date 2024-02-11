@@ -2,6 +2,11 @@ fail_fast: true
 repos:
   - repo: local
     hooks:
+      - id: flake8
+        name: flake8
+        entry: poetry run flake8
+        language: system
+        types: [file, python]
       - id: black
         name: black
         entry: poetry run black
@@ -12,3 +17,15 @@ repos:
         entry: poetry run isort
         language: system
         types: [file, python]
+    test:
+      needs: lint
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v3
+
+        - name: Wait for services
+          run: docker-compose exec dashboard bash'
+
+        - name: Run tests in Docker
+          run: docker-compose exec dashboard pytest
