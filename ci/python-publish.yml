@@ -27,6 +27,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Extract version from pyproject.toml and set it as an output variable
+      - name: Get version
+        id: get_version
+        run: echo "::set-output name=version::$(cat pyproject.toml | grep -Po '(?<=^version = ").*(?="$)')"
+
+      # Create Release using the extracted version
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          release_name: Release v${{ steps.get_version.outputs.version }}
+          body: |
+            This is a new release.
+
+          draft: false
+          prerelease: false
+
       # Install Python and dependencies for building package
       - name: Set up Python
         uses: actions/setup-python@v3
