@@ -193,7 +193,7 @@ def get_job(redis_url: str, job_id: str) -> JobDataDetailed:
         )
     except Exception as error:
         raise HTTPException(
-            status_code=500, detail=str("Error reading fetching job: ", error)
+            status_code=500, detail=str("Error fetching job: ", error)
         )
 
 

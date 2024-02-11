@@ -299,6 +299,18 @@ span.loading {
   font-family: 'Helvetica Neue', helvetica, sans-serif;
 }
 
+.error-notification {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  padding: 10px;
+  background-color: #ff0000;
+  color: #ececec;  
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  font-family: 'Helvetica Neue', helvetica, sans-serif;
+}
+
 .filter-wrapper {
   display: flex;
   flex-direction: column;

@@ -12,6 +12,8 @@
 [![PyPi Workflow](https://img.shields.io/github/workflow/status/Hannes221/rq-dashboard-fast/python-publish)](https://github.com/Hannes221/rq-dashboard-fast/actions/workflows/python-publish.yml)
 [![Docker Workflow](https://img.shields.io/github/workflow/status/Hannes221/rq-dashboard-fast/docker-publish)](https://github.com/Hannes221/rq-dashboard-fast/actions/workflows/docker-publish.yml)
 
+<img width="1069" alt="Screenshot 2024-02-09 at 18 14 13" src="https://github.com/Hannes221/rq-dashboard-fast/assets/115920878/81946105-5b02-4413-bdf1-7016c85ad14d">
+
 ## Example Usage
 
 ```python
@@ -90,7 +92,7 @@ Access the Dashboard at
 http://127.0.0.1:8000/rq
 ```
 
-To change the part update the compsoe file:
+To change the part update the compose file:
 
 ```
 version: '3.11'
@@ -122,6 +124,7 @@ $ pip install rq-dashboard-fast
 - [x] More data about workers
 - [x] Docker Image
 - [x] Add pagination to jobs page
+- [ ] (Statistics) + Export
 - [ ] Run Standalone (Terminal)
 
 ## Contributing

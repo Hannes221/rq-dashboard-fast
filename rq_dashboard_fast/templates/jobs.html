@@ -23,6 +23,18 @@
         }, 3000);
       }
 
+      function showErrorNotification(message) {
+        const errorNotification = document.createElement('div');
+        errorNotification.className = 'error-notification';
+        notification.textContent = message;
+
+        document.body.appendChild(errorNotification);
+
+        setTimeout(() => {
+          document.body.removeChild(errorNotification);
+        }, 3000);
+      }
+
       function toggleAutorefresh() {
         autoRefreshEnabled = !autoRefreshEnabled;
         if (autoRefreshEnabled) {
@@ -117,6 +129,7 @@
             },
             error: function (error) {
               console.error('Error fetching jobs data: ', error);
+              showErrorNotification('Error fetching jobs data')
             },
           });
         }
@@ -170,6 +183,7 @@
           type: 'DELETE',
           error: function (error) {
             console.error('Error fetching job data: ', error);
+            showErrorNotification('Error deleting job')
           },
         });
       }
