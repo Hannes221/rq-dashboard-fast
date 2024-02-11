@@ -13,12 +13,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          repository: 'Hannes221/rq-dashboard-fast'
 
       - name: Wait for services
-        run: docker-compose exec dashboard bash'
+        run: docker compose up
 
       - name: Run tests
-        run: docker-compose exec dashboard pytest
+        run: docker exec rq-dashboard-fast-dashboard-1 pytest
 
   deploy:
     needs: test
@@ -26,6 +28,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          repository: 'Hannes221/rq-dashboard-fast'
 
       # Extract version from pyproject.toml and set it as an output variable
       - name: Get version

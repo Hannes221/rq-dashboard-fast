@@ -27,12 +27,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          repository: 'Hannes221/rq-dashboard-fast'
 
       - name: Wait for services
-        run: docker-compose exec dashboard bash'
+        run: docker compose up --build --wait --detach
 
       - name: Run tests
-        run: docker-compose exec dashboard pytest
+        run: docker exec rq-dashboard-fast-dashboard-1 pytest
 
   build-and-publish:
     needs: test
@@ -44,6 +46,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          repository: 'Hannes221/rq-dashboard-fast'
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
