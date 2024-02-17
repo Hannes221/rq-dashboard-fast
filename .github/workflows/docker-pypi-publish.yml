@@ -25,12 +25,59 @@ jobs:
           repository: 'Hannes221/rq-dashboard-fast'
 
       - name: Wait for services
-        run: docker compose up --build --wait --detach
+        run: docker compose up -d
 
       - name: Run tests
         run: docker exec rq-dashboard-fast-dashboard-1 pytest
 
-  build-and-publish:
+      - name: Stop containers
+        run: docker compose down
+
+  build-and-publish-python-package:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          repository: 'Hannes221/rq-dashboard-fast'
+
+      # Create Release using the extracted version
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          release_name: Release ${{ github.event.release.tag_name }}
+          body: |
+            ${{ github.event.release.body}}
+          draft: false
+          prerelease: false
+
+      # Install Python and dependencies for building package
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+      - name: Build package
+        run: python -m build
+
+      # Publish Python package to PyPI
+      - name: Publish package
+        if: success() && github.event.release.published == true
+        uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+  build-and-publish-docker:
     needs: test
     runs-on: ubuntu-latest
     permissions:
