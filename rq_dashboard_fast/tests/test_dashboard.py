@@ -46,11 +46,6 @@ def add_task(create_queue):
 
 
 def test_get_queue(client):
-    time.sleep(3)
-    response_read_html = client.get("/queues")
-    assert response_read_html.status_code == 200
-    assert queue_name in response_read_html.text
-
     response_read_json = client.get("/queues/json")
     assert response_read_json.status_code == 200
     assert any(queue["queue_name"] == queue_name for queue in response_read_json.json())

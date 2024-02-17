@@ -33,6 +33,50 @@ jobs:
       - name: Stop containers
         run: docker compose down
 
+  build-and-publish-python-package:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          repository: 'Hannes221/rq-dashboard-fast'
+
+      # Create Release using the extracted version
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          release_name: Release ${{ github.event.release.tag_name }}
+          body: |
+            ${{ github.event.release.body}}
+          draft: false
+          prerelease: false
+
+      # Install Python and dependencies for building package
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+      - name: Build package
+        run: python -m build
+
+      # Publish Python package to PyPI
+      - name: Publish package
+        if: success() && github.event.release.published == true
+        uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
   build-and-publish-docker:
     needs: test
     runs-on: ubuntu-latest
@@ -105,53 +149,3 @@ jobs:
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
-
-  build-and-publish-python-package:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          repository: 'Hannes221/rq-dashboard-fast'
-
-      # Extract version from pyproject.toml and set it as an output variable
-      - name: Get version
-        id: get_version
-        run: echo "::set-output name=version::$(cat pyproject.toml | grep -Po '(?<=^version = ").*(?="$)')"
-
-      # Create Release using the extracted version
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ steps.get_version.outputs.version }}
-          release_name: Release v${{ steps.get_version.outputs.version }}
-          body: |
-            This is a new release.
-
-          draft: false
-          prerelease: false
-
-      # Install Python and dependencies for building package
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: '3.x'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install build
-      - name: Build package
-        run: python -m build
-
-      # Publish Python package to PyPI
-      - name: Publish package
-        if: success() && github.event.release.published == true
-        uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
