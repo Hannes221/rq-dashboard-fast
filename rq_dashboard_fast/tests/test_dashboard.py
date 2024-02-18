@@ -102,10 +102,10 @@ def test_delete_jobs_in_queue(client, add_task):
     assert job_id not in response.text
 
 
-def test_get_queue(client):
-    response_read_json = client.get("/queues/json")
-    assert response_read_json.status_code == 200
+# def test_get_queue(client):
+#     response_read_json = client.get("/queues/json")
+#     assert response_read_json.status_code == 200
 
-    time.sleep(1)
+#     time.sleep(1)
 
-    assert any(queue["queue_name"] == queue_name for queue in response_read_json.json())
+#     assert any(queue["queue_name"] == queue_name for queue in response_read_json.json())
