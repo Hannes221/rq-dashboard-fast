@@ -1,4 +1,3 @@
-import time
 from random import randint
 
 import pytest
@@ -102,10 +101,13 @@ def test_delete_jobs_in_queue(client, add_task):
     assert job_id not in response.text
 
 
-# def test_get_queue(client):
-#     response_read_json = client.get("/queues/json")
-#     assert response_read_json.status_code == 200
+def test_get_queue_json(client):
+    response_read_json = client.get("/queues/json")
+    assert response_read_json.status_code == 200
+    assert any(queue["queue_name"] == queue_name for queue in response_read_json.json())
 
-#     time.sleep(1)
 
-#     assert any(queue["queue_name"] == queue_name for queue in response_read_json.json())
+def test_get_queues(client):
+    response = client.get("/queues")
+
+    assert queue_name in response.text
