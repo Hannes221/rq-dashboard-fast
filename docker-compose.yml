@@ -9,6 +9,8 @@ services:
       - FASTAPI_PORT=${FASTAPI_PORT-8000}
     ports:
       - '${FASTAPI_PORT-8000}:${FASTAPI_PORT-8000}'
+    volumes:
+      - .:/app
     command: ['python', 'app.py']
 
   redis:
