@@ -81,7 +81,14 @@
         $.each(data, function (index, worker) {
           var row = $('<tr>');
           row.append($('<td>').text(worker.name));
-          row.append($('<td>').text(worker.current_job));
+          if (worker.current_job !== 'Idle') {
+            var jobLink = $('<a>')
+              .attr('href', '/jobs/' + worker.current_job_id)
+              .text(worker.current_job);
+            row.append($('<td>').append(jobLink));
+          } else {
+            row.append($('<td>').text(worker.current_job));
+          }
 
           var queuesCell = $('<td>');
           $.each(worker.queues, function (queueIndex, queue) {
@@ -132,7 +139,13 @@
           {% for worker in worker_data %}
           <tr>
             <td>{{ worker.name }}</td>
-            <td>{{ worker.current_job }}</td>
+            <td>
+              {% if worker.current_job != 'Idle' %}
+              <a href="/jobs/{{ worker.current_job_id }}"
+                >{{ worker.current_job }}</a
+              >
+              {% else %} {{ worker.current_job }} {% endif %}
+            </td>
             <td>
               {% for queue_name in worker.queues %} {{ queue_name }} {% if not
               loop.last %}, {% endif %} {% endfor %}
