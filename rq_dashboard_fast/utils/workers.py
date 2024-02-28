@@ -7,6 +7,7 @@ from rq import Worker
 class WorkerData(BaseModel):
     name: str
     current_job: str | None
+    current_job_id: str | None
     successful_job_count: int
     failed_job_count: int
     queues: list[str]
@@ -25,6 +26,7 @@ def get_workers(redis_url: str) -> list[WorkerData]:
                     WorkerData(
                         name=worker.name,
                         current_job=current_job.description,
+                        current_job_id=current_job.id,
                         successful_job_count=worker.successful_job_count,
                         failed_job_count=worker.failed_job_count,
                         queues=worker.queue_names(),
