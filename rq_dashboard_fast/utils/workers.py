@@ -35,6 +35,7 @@ def get_workers(redis_url: str) -> list[WorkerData]:
                     WorkerData(
                         name=worker.name,
                         current_job="Idle",
+                        successful_job_count=worker.successful_job_count,
                         failed_job_count=worker.failed_job_count,
                         queues=worker.queue_names(),
                     )
