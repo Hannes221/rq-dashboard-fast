@@ -1,16 +1,17 @@
-import time
+import threading
 from random import randint
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from redis import Redis
-from rq import Queue
+from rq import Queue, Worker
 
 from rq_dashboard_fast import RedisQueueDashboard
 
 # RUN PYTEST IN DOCKER CONTAINER
 
+worker_name = "test"
 queue_name = "test_queue"
 
 
@@ -43,6 +44,15 @@ def create_queue(setup_redis):
 def add_task(create_queue):
     job = create_queue.enqueue(example_task)
     return job
+
+
+@pytest.fixture
+def setup_worker(setup_redis):
+    worker = Worker(["default"], connection=setup_redis, name=worker_name)
+    thread = threading.Thread(target=worker.work, daemon=True)
+    thread.start()
+    yield worker
+    worker.teardown()
 
 
 def test_add_job(client, add_task):
@@ -102,10 +112,20 @@ def test_delete_jobs_in_queue(client, add_task):
     assert job_id not in response.text
 
 
-# def test_get_queue(client):
-#     response_read_json = client.get("/queues/json")
-#     assert response_read_json.status_code == 200
+def test_get_queue_json(client):
+    response_read_json = client.get("/queues/json")
+    assert response_read_json.status_code == 200
+    assert any(queue["queue_name"] == queue_name for queue in response_read_json.json())
 
-#     time.sleep(1)
 
-#     assert any(queue["queue_name"] == queue_name for queue in response_read_json.json())
+def test_get_queues(client):
+    response = client.get("/queues")
+
+    assert queue_name in response.text
+
+
+def test_get_workers_json(client, setup_worker):
+    response_read_json = client.get("/workers/json")
+    assert response_read_json.status_code == 200
+
+    assert len(response_read_json.json()) == 1
