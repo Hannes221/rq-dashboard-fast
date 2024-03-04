@@ -1,7 +1,11 @@
+import logging
+
 from fastapi import HTTPException
 from pydantic import BaseModel
 from redis import Redis
 from rq import Worker
+
+logger = logging.getLogger(__name__)
 
 
 class WorkerData(BaseModel):
@@ -45,6 +49,7 @@ def get_workers(redis_url: str) -> list[WorkerData]:
 
         return result
     except Exception as error:
+        logger.exception("Error reading workers for redis connection: ", error)
         raise HTTPException(
             status_code=500,
             detail=str("Error reading workers for redis connection: ", error),
