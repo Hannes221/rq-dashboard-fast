@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import HTTPException
 from pydantic import BaseModel
 from redis import Redis
@@ -13,6 +15,9 @@ class QueueRegistryStats(BaseModel):
     finished: int
 
 
+logger = logging.getLogger(__name__)
+
+
 def get_queues(redis_url: str) -> list[Queue]:
     try:
         redis = Redis.from_url(redis_url)
@@ -21,6 +26,7 @@ def get_queues(redis_url: str) -> list[Queue]:
 
         return queues
     except Exception as error:
+        logger.exception("Error reading Queues for redis connection: ", error)
         raise HTTPException(
             status_code=500,
             detail=str("Error reading Queues for redis connection: ", error),
@@ -50,6 +56,7 @@ def get_job_registry_amount(redis_url: str) -> list[QueueRegistryStats]:
             )
         return result
     except Exception as error:
+        logger.exception("Error reading registrys for queue: ", error)
         raise HTTPException(
             status_code=500, detail=str("Error reading registrys for queue: ", error)
         )
@@ -65,6 +72,7 @@ def delete_jobs_for_queue(queue_name, redis_url) -> list[str]:
 
         return result
     except Exception as error:
+        logger.exception("Error deleting jobs in queue: ", error)
         raise HTTPException(
             status_code=500, detail=str("Error deleting jobs in queue: ", error)
         )

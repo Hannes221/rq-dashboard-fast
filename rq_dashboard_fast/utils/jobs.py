@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import Any, List
 
@@ -37,6 +38,9 @@ class QueueJobRegistryStats(BaseModel):
     failed: List[JobData]
     deferred: List[JobData]
     finished: List[JobData]
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_job_registrys(
@@ -159,6 +163,7 @@ def get_job_registrys(
 
         return result
     except Exception as error:
+        logger.exception("Error fetching job registries: ", error)
         raise HTTPException(
             status_code=500, detail=str("Error fetching job registries: ", error)
         )
@@ -171,6 +176,7 @@ def get_jobs(
         job_stats = get_job_registrys(redis_url, queue_name, state, page)
         return job_stats
     except Exception as error:
+        logger.exception("Error fetching job data: ", error)
         raise HTTPException(
             status_code=500, detail=str("Error fetching job data: ", error)
         )
@@ -192,9 +198,8 @@ def get_job(redis_url: str, job_id: str) -> JobDataDetailed:
             meta=job.meta,
         )
     except Exception as error:
-        raise HTTPException(
-            status_code=500, detail=str("Error fetching job: ", error)
-        )
+        logger.exception("Error fetching job: ", error)
+        raise HTTPException(status_code=500, detail=str("Error fetching job: ", error))
 
 
 def delete_job_id(redis_url: str, job_id: str):
@@ -204,6 +209,7 @@ def delete_job_id(redis_url: str, job_id: str):
         if job:
             job.delete()
     except Exception as error:
+        logger.exception("Error deleting specific job: ", error)
         raise HTTPException(
             status_code=500, detail=str("Error deleting specific job: ", error)
         )
