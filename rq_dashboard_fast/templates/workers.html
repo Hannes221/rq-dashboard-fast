@@ -9,7 +9,10 @@
     <script>
       let autoRefreshEnabled = true;
       let autoRefreshInterval = null;
+      const protocol = '{{ protocol }}';
+      const host = window.location.host;
       const prefix = '{{ prefix }}';
+      const baseurl = protocol + '://' + host + prefix;
 
       function showNotification(message) {
         const notification = document.createElement('div');
@@ -60,7 +63,7 @@
       function updateData() {
         if (autoRefreshEnabled) {
           $.ajax({
-            url: prefix + '/workers/json',
+            url: baseurl + '/workers/json',
             type: 'GET',
             dataType: 'json',
             success: function (data) {
@@ -83,7 +86,7 @@
           row.append($('<td>').text(worker.name));
           if (worker.current_job !== 'Idle') {
             var jobLink = $('<a>')
-              .attr('href', '/jobs/' + worker.current_job_id)
+              .attr('href', baseurl + '/jobs/' + worker.current_job_id)
               .text(worker.current_job);
             row.append($('<td>').append(jobLink));
           } else {
@@ -141,7 +144,7 @@
             <td>{{ worker.name }}</td>
             <td>
               {% if worker.current_job != 'Idle' %}
-              <a href="/jobs/{{ worker.current_job_id }}"
+              <a href="{{baseurl}}/jobs/{{ worker.current_job_id }}"
                 >{{ worker.current_job }}</a
               >
               {% else %} {{ worker.current_job }} {% endif %}
