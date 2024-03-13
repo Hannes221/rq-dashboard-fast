@@ -40,7 +40,7 @@ class RedisQueueDashboard(FastAPI):
         self.templates = Jinja2Templates(directory=templates_directory)
         self.redis_url = redis_url
 
-        self.rq_dashboard_version = "0.3.7"
+        self.rq_dashboard_version = "0.3.8"
 
         logger = logging.getLogger(__name__)
 
