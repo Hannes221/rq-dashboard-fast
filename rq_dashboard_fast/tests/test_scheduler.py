@@ -1,6 +1,7 @@
 import pytest
 from datetime import datetime, timedelta
 from rq_scheduler import Scheduler
+from redis import Redis
 
 from ..utils import get_job_registrys
 
@@ -8,6 +9,9 @@ from ..utils import get_job_registrys
 def setup_redis():
     redis = Redis(port=6379, host="redis")
     yield redis
+
+def example_task():
+    return "Hello World"
 
 @pytest.fixture
 def setup_scheduler(setup_redis):
