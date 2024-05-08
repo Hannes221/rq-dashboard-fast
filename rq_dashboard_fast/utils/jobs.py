@@ -72,18 +72,20 @@ def get_job_registrys(
                     jobs.extend(queue.failed_job_registry.get_job_ids())
                     jobs.extend(queue.started_job_registry.get_job_ids())
                     jobs.extend(queue.deferred_job_registry.get_job_ids())
-                elif state == "scheduled":
                     jobs.extend(queue.scheduled_job_registry.get_job_ids())
-                elif state == "queued":
-                    jobs.extend(queue.get_job_ids())
-                elif state == "finished":
-                    jobs.extend(queue.finished_job_registry.get_job_ids())
-                elif state == "failed":
-                    jobs.extend(queue.failed_job_registry.get_job_ids())
-                elif state == "started":
-                    jobs.extend(queue.started_job_registry.get_job_ids())
-                elif state == "deferred":
-                    jobs.extend(queue.deferred_job_registry.get_job_ids())
+                else:
+                    if state == "scheduled":
+                        jobs.extend(queue.scheduled_job_registry.get_job_ids())
+                    elif state == "queued":
+                        jobs.extend(queue.get_job_ids())
+                    elif state == "finished":
+                        jobs.extend(queue.finished_job_registry.get_job_ids())
+                    elif state == "failed":
+                        jobs.extend(queue.failed_job_registry.get_job_ids())
+                    elif state == "started":
+                        jobs.extend(queue.started_job_registry.get_job_ids())
+                    elif state == "deferred":
+                        jobs.extend(queue.deferred_job_registry.get_job_ids())
 
                 started_jobs = []
                 failed_jobs = []
@@ -92,10 +94,10 @@ def get_job_registrys(
                 queued_jobs = []
                 scheduled_jobs = []
 
-                if state == "all" or state == "scheduled":
-                    scheduled = scheduler.get_jobs()
+                scheduled = scheduler.get_jobs()
 
-                    for job in scheduled:
+                for job in scheduled:
+                    if job.id not in scheduled_jobs:
                         scheduled_jobs.append(
                             JobData(
                                 id=job.id,
@@ -112,7 +114,8 @@ def get_job_registrys(
                 finished_jobs = []
                 queued_jobs = []
 
-                for job in jobs_fetched[start_index:end_index]:
+                jobs = jobs_fetched[start_index:end_index]
+                for job in jobs:
                     status = job.get_status()
                     if status == "started":
                         started_jobs.append(
@@ -148,6 +151,14 @@ def get_job_registrys(
                         )
                     elif status == "queued":
                         queued_jobs.append(
+                            JobData(
+                                id=job.id,
+                                name=job.description,
+                                created_at=job.created_at,
+                            )
+                        )
+                    elif status == "scheduled":
+                        scheduled_jobs.append(
                             JobData(
                                 id=job.id,
                                 name=job.description,

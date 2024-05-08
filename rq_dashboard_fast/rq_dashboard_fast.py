@@ -156,10 +156,10 @@ class RedisQueueDashboard(FastAPI):
             request: Request,
             queue_name: str = Query("all"),
             state: str = Query("all"),
-            page: str = Query(1),
+            page: int = Query(1),
         ):
             try:
-                job_data = get_jobs(self.redis_url, queue_name, state)
+                job_data = get_jobs(self.redis_url, queue_name, state, page=page)
 
                 active_tab = "jobs"
 
@@ -184,10 +184,10 @@ class RedisQueueDashboard(FastAPI):
         async def read_jobs(
             queue_name: str = Query("all"),
             state: str = Query("all"),
-            page: str = Query("1"),
+            page: int = Query(1),
         ):
             try:
-                job_data = get_jobs(self.redis_url, queue_name, state)
+                job_data = get_jobs(self.redis_url, queue_name, state, page=page)
 
                 return job_data
             except Exception as e:

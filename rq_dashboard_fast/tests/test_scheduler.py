@@ -23,12 +23,14 @@ def setup_redis():
 @pytest.fixture
 def create_queue(setup_redis):
     queue = Queue(connection=setup_redis, name=queue_name)
-    yield queue
+    return queue
 
 
 @pytest.fixture
-def setup_scheduler(setup_redis, create_queue):
-    scheduler = Scheduler(connection=setup_redis, queue_name=queue_name)
+def setup_scheduler(setup_redis):
+    scheduler = Scheduler(
+        connection=setup_redis, queue_name=queue_name, name=queue_name
+    )
     yield scheduler
 
 
@@ -36,13 +38,15 @@ def setup_scheduler(setup_redis, create_queue):
 def add_task(setup_scheduler):
     scheduled_time = datetime.now() + timedelta(seconds=1000)
     job = setup_scheduler.enqueue_at(scheduled_time=scheduled_time, func=example_task)
+
     return job
 
 
-def test_scheduled_job(setup_scheduler):
+def test_scheduled_job(add_task, setup_scheduler):
     redis_url = "redis://redis:6379"
 
-    job_registries = get_job_registrys(redis_url, state="scheduled")
+    setup_scheduler.enqueue_job(add_task)
+    job_registries = get_job_registrys(redis_url=redis_url, queue_name=queue_name)
 
     assert any(
         "rq_dashboard_fast.tests.test_scheduler.example_task()" == job.name

@@ -9,8 +9,6 @@ from rq import Queue, Worker
 
 from rq_dashboard_fast import RedisQueueDashboard
 
-# RUN PYTEST IN DOCKER CONTAINER
-
 worker_name = "test"
 queue_name = "test_queue"
 
