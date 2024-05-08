@@ -85,6 +85,13 @@ def get_job_registrys(
                 elif state == "deferred":
                     jobs.extend(queue.deferred_job_registry.get_job_ids())
 
+                started_jobs = []
+                failed_jobs = []
+                deferred_jobs = []
+                finished_jobs = []
+                queued_jobs = []
+                scheduled_jobs = []
+
                 if state == "all" or state == "scheduled":
                     scheduled = scheduler.get_jobs()
 
@@ -98,13 +105,6 @@ def get_job_registrys(
                         )
 
                 jobs_fetched = Job.fetch_many(jobs, connection=redis)
-
-                started_jobs = []
-                failed_jobs = []
-                deferred_jobs = []
-                finished_jobs = []
-                queued_jobs = []
-                scheduled_jobs = []
 
                 for job in jobs_fetched[start_index:end_index]:
                     status = job.get_status()
