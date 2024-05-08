@@ -40,13 +40,14 @@ class RedisQueueDashboard(FastAPI):
         self.templates = Jinja2Templates(directory=templates_directory)
         self.redis_url = redis_url
 
-        self.rq_dashboard_version = "0.3.7"
+        self.rq_dashboard_version = "0.3.8"
 
         logger = logging.getLogger(__name__)
 
         @self.get("/", response_class=HTMLResponse)
         async def get_home(request: Request):
             try:
+                protocol = request.url.scheme
                 return self.templates.TemplateResponse(
                     "base.html",
                     {
@@ -54,6 +55,7 @@ class RedisQueueDashboard(FastAPI):
                         "active_tab": "jobs",
                         "prefix": prefix,
                         "rq_dashboard_version": self.rq_dashboard_version,
+                        "protocol": protocol,
                     },
                 )
             except Exception as e:
@@ -71,6 +73,8 @@ class RedisQueueDashboard(FastAPI):
 
                 active_tab = "workers"
 
+                protocol = request.url.scheme
+
                 return self.templates.TemplateResponse(
                     "workers.html",
                     {
@@ -79,6 +83,7 @@ class RedisQueueDashboard(FastAPI):
                         "active_tab": active_tab,
                         "prefix": prefix,
                         "rq_dashboard_version": self.rq_dashboard_version,
+                        "protocol": protocol,
                     },
                 )
             except Exception as e:
@@ -117,6 +122,8 @@ class RedisQueueDashboard(FastAPI):
 
                 active_tab = "queues"
 
+                protocol = request.url.scheme
+
                 return self.templates.TemplateResponse(
                     "queues.html",
                     {
@@ -125,6 +132,7 @@ class RedisQueueDashboard(FastAPI):
                         "active_tab": active_tab,
                         "prefix": prefix,
                         "rq_dashboard_version": self.rq_dashboard_version,
+                        "protocol": protocol,
                     },
                 )
             except Exception as e:
@@ -155,6 +163,8 @@ class RedisQueueDashboard(FastAPI):
 
                 active_tab = "jobs"
 
+                protocol = request.url.scheme
+
                 return self.templates.TemplateResponse(
                     "jobs.html",
                     {
@@ -163,6 +173,7 @@ class RedisQueueDashboard(FastAPI):
                         "active_tab": active_tab,
                         "prefix": prefix,
                         "rq_dashboard_version": self.rq_dashboard_version,
+                        "protocol": protocol,
                     },
                 )
             except Exception as e:
@@ -190,6 +201,8 @@ class RedisQueueDashboard(FastAPI):
 
                 active_tab = "job"
 
+                protocol = request.url.scheme
+
                 return self.templates.TemplateResponse(
                     "job.html",
                     {
@@ -198,6 +211,7 @@ class RedisQueueDashboard(FastAPI):
                         "active_tab": active_tab,
                         "prefix": prefix,
                         "rq_dashboard_version": self.rq_dashboard_version,
+                        "protocol": protocol,
                     },
                 )
             except Exception as e:

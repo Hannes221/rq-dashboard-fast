@@ -8,7 +8,10 @@
     <script>
       let autoRefreshEnabled = true;
       let autoRefreshInterval;
+      const protocol = '{{ protocol }}';
+      const host = window.location.host;
       const prefix = '{{ prefix }}';
+      const baseurl = protocol + '://' + host + prefix;
 
       function showNotification(message) {
         const notification = document.createElement('div');
@@ -31,7 +34,7 @@
 
         setTimeout(() => {
           document.body.removeChild(notification);
-        }, 3000)
+        }, 3000);
       }
 
       function toggleAutorefresh() {
@@ -59,7 +62,7 @@
       function updateQueuesData() {
         if (autoRefreshEnabled) {
           $.ajax({
-            url: prefix + '/queues/json',
+            url: baseurl + '/queues/json',
             type: 'GET',
             dataType: 'json',
             success: function (data) {
@@ -67,7 +70,7 @@
             },
             error: function (error) {
               console.error('Error fetching queues data: ', error);
-              showErrorNotification('Error fetching queues data')
+              showErrorNotification('Error fetching queues data');
             },
           });
         }
@@ -75,11 +78,11 @@
 
       function deleteJobsInQueue(queue_name) {
         $.ajax({
-          url: prefix + '/queues/' + queue_name,
+          url: baseurl + '/queues/' + queue_name,
           type: 'DELETE',
           error: function (error) {
             console.error('Error deleting jobs in queue: ', error);
-            showErrorNotification('Error deleting job')
+            showErrorNotification('Error deleting job');
           },
         });
       }
@@ -99,7 +102,7 @@
               $('<a>')
                 .attr(
                   'href',
-                  prefix +
+                  baseurl +
                     '/jobs' +
                     '?state=queued&queue_name=' +
                     queue_stats.queue_name
@@ -112,7 +115,7 @@
               $('<a>')
                 .attr(
                   'href',
-                  prefix +
+                  baseurl +
                     '/jobs' +
                     '?state=started&queue_name=' +
                     queue_stats.queue_name
@@ -125,7 +128,7 @@
               $('<a>')
                 .attr(
                   'href',
-                  prefix +
+                  baseurl +
                     '/jobs' +
                     '?state=failed&queue_name=' +
                     queue_stats.queue_name
@@ -138,7 +141,7 @@
               $('<a>')
                 .attr(
                   'href',
-                  prefix +
+                  baseurl +
                     '/jobs' +
                     '?state=deferred&queue_name=' +
                     queue_stats.queue_name
@@ -151,7 +154,7 @@
               $('<a>')
                 .attr(
                   'href',
-                  prefix +
+                  baseurl +
                     '/jobs' +
                     '?state=finished&queue_name=' +
                     queue_stats.queue_name
@@ -213,27 +216,35 @@
           {% for queue_stats in queue_data %}
           <tr>
             <td>
-              <a href="/jobs?queue={{ queue_stats.queue_name }}">
+              <a href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}">
                 {{ queue_stats.queue_name }}
               </a>
             </td>
             <td>
-              <a href="/jobs?queue={{ queue_stats.queue_name }}&state=started">
+              <a
+                href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=started"
+              >
                 {{ queue_stats.started }}
               </a>
             </td>
             <td>
-              <a href="/jobs?queue={{ queue_stats.queue_name }}&state=failed">
+              <a
+                href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=failed"
+              >
                 {{ queue_stats.failed }}
               </a>
             </td>
             <td>
-              <a href="/jobs?queue={{ queue_stats.queue_name }}&state=deferred">
+              <a
+                href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=deferred"
+              >
                 {{ queue_stats.deferred }}
               </a>
             </td>
             <td>
-              <a href="/jobs?queue={{ queue_stats.queue_name }}&state=finished">
+              <a
+                href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=finished"
+              >
                 {{ queue_stats.finished }}
               </a>
             </td>

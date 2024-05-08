@@ -9,8 +9,10 @@
     <script>
       let autoRefreshEnabled = true;
       let autoRefreshInterval;
+      const protocol = '{{ protocol }}';
+      const host = window.location.host;
       const prefix = '{{ prefix }}';
-
+      const baseurl = protocol + '://' + host + prefix;
       function showNotification(message) {
         const notification = document.createElement('div');
         notification.className = 'notification';
@@ -98,7 +100,7 @@
       }
 
       function previousPage() {
-        if(page > 1){
+        if (page > 1) {
           page -= 1;
           updatePageNumber();
           updateJobsData();
@@ -115,7 +117,7 @@
           let selectedQueue = $('#queue-name-filter').val();
           $.ajax({
             url:
-              prefix +
+              baseurl +
               '/jobs/json?state=' +
               selectedState +
               '&queue_name=' +
@@ -129,7 +131,7 @@
             },
             error: function (error) {
               console.error('Error fetching jobs data: ', error);
-              showErrorNotification('Error fetching jobs data')
+              showErrorNotification('Error fetching jobs data');
             },
           });
         }
@@ -153,7 +155,7 @@
               $.each(queue[state], function (jobIndex, job) {
                 var row = $('<tr>');
                 var jobLink = $('<a>')
-                  .attr('href', prefix + '/job/' + job.id)
+                  .attr('href', baseurl + '/job/' + job.id)
                   .text(job.id);
                 row.append($('<td>').append(jobLink));
                 row.append($('<td>').append(state));
@@ -179,11 +181,11 @@
 
       function deleteJob(job_id) {
         $.ajax({
-          url: prefix + '/job/' + job_id,
+          url: baseurl + '/job/' + job_id,
           type: 'DELETE',
           error: function (error) {
             console.error('Error fetching job data: ', error);
-            showErrorNotification('Error deleting job')
+            showErrorNotification('Error deleting job');
           },
         });
       }
@@ -275,11 +277,13 @@
         </tbody>
       </table>
       <div class="pagination">
-        <button class="pagination-button" onclick="previousPage()">Previous</button>
+        <button class="pagination-button" onclick="previousPage()">
+          Previous
+        </button>
         <span>Page: <span id="page-number">{{ page }}</span></span>
         <button class="pagination-button" onclick="nextPage()">Next</button>
       </div>
-  </div>
+    </div>
   </body>
 </html>
 {% endblock %}
