@@ -104,7 +104,6 @@ def get_job_registrys(
                 deferred_jobs = []
                 finished_jobs = []
                 queued_jobs = []
-                scheduled_jobs = []
 
                 for job in jobs_fetched[start_index:end_index]:
                     status = job.get_status()
