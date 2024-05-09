@@ -45,7 +45,6 @@ def add_task(setup_scheduler):
 def test_scheduled_job(add_task, setup_scheduler):
     redis_url = "redis://redis:6379"
 
-    setup_scheduler.enqueue_job(add_task)
     job_registries = get_job_registrys(redis_url=redis_url, queue_name=queue_name)
 
     assert any(
