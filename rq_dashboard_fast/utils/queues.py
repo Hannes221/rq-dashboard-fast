@@ -5,6 +5,8 @@ from pydantic import BaseModel
 from redis import Redis
 from rq import Queue
 
+import json
+
 
 class QueueRegistryStats(BaseModel):
     queue_name: str
@@ -75,4 +77,25 @@ def delete_jobs_for_queue(queue_name, redis_url) -> list[str]:
         logger.exception("Error deleting jobs in queue: ", error)
         raise HTTPException(
             status_code=500, detail=str("Error deleting jobs in queue: ", error)
+        )
+def convert_queue_data_to_json(queue_data: list[QueueRegistryStats]) -> str:
+    try:
+        queue_stats_dict = {}
+        for queue_stats in queue_data:
+            stats_dict = {
+                'queued': queue_stats.queued,
+                'started': queue_stats.started,
+                'failed': queue_stats.failed,
+                'deferred': queue_stats.deferred,
+                'finished': queue_stats.finished
+            }
+            queue_stats_dict[queue_stats.queue_name] = stats_dict
+
+        queue_stats_list = [queue_stats_dict]
+        json_str = json.dumps(queue_stats_list, indent=4)
+        return json_str
+    except Exception as error:
+        logger.exception("Error converting queue items list to JSON: ", error)
+        raise HTTPException(
+            status_code=500, detail=str("Error converting queue items list to JSON: ", error)
         )

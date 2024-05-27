@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from starlette.staticfiles import StaticFiles
 
@@ -225,3 +225,17 @@ class RedisQueueDashboard(FastAPI):
             except Exception as e:
                 logger.exception("An error occurred while deleting a job:", e)
                 raise HTTPException("An error occurred while deleting a job:", e)
+                @self.get("/export")
+        def export():
+            try:
+                queue_data = asyncio.run(read_queues())
+                json_str = convert_queue_data_to_json(queue_data)
+                df = pandas.read_json(StringIO(json_str))
+                output = BytesIO()
+                df.to_csv(output, index=False)
+                output.seek(0)
+                headers = {"Content-Disposition": "attachment; filename=queue_data.csv"}
+                return StreamingResponse(output, headers=headers, media_type="application/octet-stream")
+            except Exception as e:
+                    logger.exception("An error occurred while exporting:", e)
+                    raise HTTPException("An error occurred while exporting:", e)
