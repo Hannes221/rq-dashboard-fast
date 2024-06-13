@@ -26,6 +26,7 @@ class RedisQueueDashboard(FastAPI):
         self,
         redis_url: str = "redis://localhost:6379",
         prefix: str = "/rq",
+        protocol: str | None = None
         *args,
         **kwargs
     ):
@@ -39,6 +40,7 @@ class RedisQueueDashboard(FastAPI):
         templates_directory = package_directory / "templates"
         self.templates = Jinja2Templates(directory=templates_directory)
         self.redis_url = redis_url
+        self.protocol = protocol
 
         self.rq_dashboard_version = "0.4.0"
 
@@ -47,7 +49,7 @@ class RedisQueueDashboard(FastAPI):
         @self.get("/", response_class=HTMLResponse)
         async def get_home(request: Request):
             try:
-                protocol = request.url.scheme
+                protocol = self.protocol if self.protocol else request.url.scheme
                 return self.templates.TemplateResponse(
                     "base.html",
                     {
@@ -73,7 +75,7 @@ class RedisQueueDashboard(FastAPI):
 
                 active_tab = "workers"
 
-                protocol = request.url.scheme
+                protocol = self.protocol if self.protocol else request.url.scheme
 
                 return self.templates.TemplateResponse(
                     "workers.html",
@@ -122,7 +124,7 @@ class RedisQueueDashboard(FastAPI):
 
                 active_tab = "queues"
 
-                protocol = request.url.scheme
+                protocol = self.protocol if self.protocol else request.url.scheme
 
                 return self.templates.TemplateResponse(
                     "queues.html",
@@ -163,7 +165,7 @@ class RedisQueueDashboard(FastAPI):
 
                 active_tab = "jobs"
 
-                protocol = request.url.scheme
+                protocol = self.protocol if self.protocol else request.url.scheme
 
                 return self.templates.TemplateResponse(
                     "jobs.html",
@@ -201,7 +203,7 @@ class RedisQueueDashboard(FastAPI):
 
                 active_tab = "job"
 
-                protocol = request.url.scheme
+                protocol = self.protocol if self.protocol else request.url.scheme
 
                 return self.templates.TemplateResponse(
                     "job.html",
