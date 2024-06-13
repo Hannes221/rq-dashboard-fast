@@ -26,7 +26,7 @@ class RedisQueueDashboard(FastAPI):
         self,
         redis_url: str = "redis://localhost:6379",
         prefix: str = "/rq",
-        protocol: str | None = None
+        protocol: str | None = None,
         *args,
         **kwargs
     ):
