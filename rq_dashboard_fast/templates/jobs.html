@@ -9,13 +9,13 @@
     <script>
       let autoRefreshEnabled = true;
       let autoRefreshInterval;
-      const protocol = '{{ protocol }}';
+      const protocol = "{{ protocol }}";
       const host = window.location.host;
-      const prefix = '{{ prefix }}';
-      const baseurl = protocol + '://' + host + prefix;
+      const prefix = "{{ prefix }}";
+      const baseurl = protocol + "://" + host + prefix;
       function showNotification(message) {
-        const notification = document.createElement('div');
-        notification.className = 'notification';
+        const notification = document.createElement("div");
+        notification.className = "notification";
         notification.textContent = message;
 
         document.body.appendChild(notification);
@@ -26,8 +26,8 @@
       }
 
       function showErrorNotification(message) {
-        const errorNotification = document.createElement('div');
-        errorNotification.className = 'error-notification';
+        const errorNotification = document.createElement("div");
+        errorNotification.className = "error-notification";
         notification.textContent = message;
 
         document.body.appendChild(errorNotification);
@@ -41,49 +41,49 @@
         autoRefreshEnabled = !autoRefreshEnabled;
         if (autoRefreshEnabled) {
           autoRefreshInterval = setInterval(updateJobsData, 5000);
-          showNotification('Autorefresh enabled');
+          showNotification("Autorefresh enabled");
         } else {
           clearInterval(autoRefreshInterval);
-          showNotification('Autorefresh disabled');
+          showNotification("Autorefresh disabled");
         }
       }
 
       $(document).ready(function () {
-        $('#autorefresh-switch').on('change', function () {
+        $("#autorefresh-switch").on("change", function () {
           toggleAutorefresh();
         });
 
-        autoRefreshEnabled = $('#autorefresh-switch').is(':checked');
+        autoRefreshEnabled = $("#autorefresh-switch").is(":checked");
         if (autoRefreshEnabled) {
           autoRefreshInterval = setInterval(updateJobsData, 5000);
         }
 
         const urlParams = new URLSearchParams(window.location.search);
 
-        let defaultState = urlParams.get('state') || 'all';
-        $('#state-filter').val(defaultState);
+        let defaultState = urlParams.get("state") || "all";
+        $("#state-filter").val(defaultState);
 
-        let defaultQueue = urlParams.get('queue_name') || 'all';
-        $('#queue-name-filter').val(defaultQueue);
+        let defaultQueue = urlParams.get("queue_name") || "all";
+        $("#queue-name-filter").val(defaultQueue);
       });
 
       function getState() {
-        let selectedState = $('#state-filter').val();
+        let selectedState = $("#state-filter").val();
         return selectedState;
       }
 
       function getQueue() {
-        let selectedQueue = $('#queue-name-filter').val();
+        let selectedQueue = $("#queue-name-filter").val();
         return selectedQueue;
       }
 
       function filterJobsByState() {
-        let selectedState = $('#state-filter').val();
+        let selectedState = $("#state-filter").val();
         updateJobsData(selectedState);
       }
 
       function filterJobsByQueue() {
-        let selectedQueue = $('#queue-name-filter').val();
+        let selectedQueue = $("#queue-name-filter").val();
         updateJobsData(selectedQueue);
       }
 
@@ -108,66 +108,66 @@
       }
 
       function updatePageNumber() {
-        document.getElementById('page-number').textContent = page;
+        document.getElementById("page-number").textContent = page;
       }
 
       function updateJobsData() {
         if (autoRefreshEnabled) {
-          let selectedState = $('#state-filter').val();
-          let selectedQueue = $('#queue-name-filter').val();
+          let selectedState = $("#state-filter").val();
+          let selectedQueue = $("#queue-name-filter").val();
           $.ajax({
             url:
               baseurl +
-              '/jobs/json?state=' +
+              "/jobs/json?state=" +
               selectedState +
-              '&queue_name=' +
+              "&queue_name=" +
               selectedQueue +
-              '&page=' +
+              "&page=" +
               page,
-            type: 'GET',
-            dataType: 'json',
+            type: "GET",
+            dataType: "json",
             success: function (data) {
               updateJobsTable(data);
             },
             error: function (error) {
-              console.error('Error fetching jobs data: ', error);
-              showErrorNotification('Error fetching jobs data');
+              console.error("Error fetching jobs data: ", error);
+              showErrorNotification("Error fetching jobs data");
             },
           });
         }
       }
 
       function updateJobsTable(data) {
-        var tableBody = $('#jobs tbody');
+        var tableBody = $("#jobs tbody");
         tableBody.empty();
 
         $.each(data, function (index, queue) {
           $.each(
             [
-              'scheduled',
-              'queued',
-              'started',
-              'failed',
-              'deferred',
-              'finished',
+              "scheduled",
+              "queued",
+              "started",
+              "failed",
+              "deferred",
+              "finished",
             ],
             function (stateIndex, state) {
               $.each(queue[state], function (jobIndex, job) {
-                var row = $('<tr>');
-                var jobLink = $('<a>')
-                  .attr('href', baseurl + '/job/' + job.id)
+                var row = $("<tr>");
+                var jobLink = $("<a>")
+                  .attr("href", baseurl + "/job/" + job.id)
                   .text(job.id);
-                row.append($('<td>').append(jobLink));
-                row.append($('<td>').append(state));
-                row.append($('<td>').text(job.name));
+                row.append($("<td>").append(jobLink));
+                row.append($("<td>").append(state));
+                row.append($("<td>").text(job.name));
                 var formattedDate = new Date(job.created_at).toLocaleString();
-                row.append($('<td>').text(formattedDate));
+                row.append($("<td>").text(formattedDate));
                 row.append(
-                  $('<td>').append(
-                    $('<button>')
-                      .text('Delete')
-                      .addClass('delete-button')
-                      .on('click', function () {
+                  $("<td>").append(
+                    $("<button>")
+                      .text("Delete")
+                      .addClass("delete-button")
+                      .on("click", function () {
                         deleteJob(job.id);
                       })
                   )
@@ -181,14 +181,22 @@
 
       function deleteJob(job_id) {
         $.ajax({
-          url: baseurl + '/job/' + job_id,
-          type: 'DELETE',
+          url: baseurl + "/job/" + job_id,
+          type: "DELETE",
           error: function (error) {
-            console.error('Error fetching job data: ', error);
-            showErrorNotification('Error deleting job');
+            console.error("Error fetching job data: ", error);
+            showErrorNotification("Error deleting job");
           },
         });
       }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const jobLinks = document.querySelectorAll("a[data-job-id]");
+        jobLinks.forEach((link) => {
+          const jobId = link.getAttribute("data-job-id");
+          link.href = `${baseurl}/job/${jobId}`;
+        });
+      });
 
       if (autoRefreshEnabled) {
         setInterval(updateJobsData, 5000);
@@ -255,9 +263,7 @@
           "failed", "deferred", "finished"] %} {% for job in queue[state] %}
           <tr>
             <td>
-              <a href="{{ url_for('get_job_data', job_id=job.id) }}"
-                >{{ job.id }}</a
-              >
+              <a href="#" data-job-id="{{ job.id }}">{{ job.id }}</a>
             </td>
             <td>{{ state }}</td>
             <td>{{ job.name }}</td>
