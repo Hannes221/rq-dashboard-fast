@@ -6,19 +6,26 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from starlette.staticfiles import StaticFiles
 
+from io import StringIO, BytesIO
+import pandas
+import asyncio
+
 from rq_dashboard_fast.utils.jobs import (
     JobDataDetailed,
     QueueJobRegistryStats,
     delete_job_id,
     get_job,
     get_jobs,
+    convert_queue_job_registry_stats_to_json,
+    get_job_registrys
 )
 from rq_dashboard_fast.utils.queues import (
     QueueRegistryStats,
     delete_jobs_for_queue,
     get_job_registry_amount,
+    convert_queue_data_to_json
 )
-from rq_dashboard_fast.utils.workers import WorkerData, get_workers
+from rq_dashboard_fast.utils.workers import WorkerData, get_workers, convert_worker_data_to_json
 
 
 class RedisQueueDashboard(FastAPI):
@@ -227,8 +234,8 @@ class RedisQueueDashboard(FastAPI):
             except Exception as e:
                 logger.exception("An error occurred while deleting a job:", e)
                 raise HTTPException("An error occurred while deleting a job:", e)
-                @self.get("/export")
-        def export():
+        @self.get("/export/queues")
+        def export_queues():
             try:
                 queue_data = asyncio.run(read_queues())
                 json_str = convert_queue_data_to_json(queue_data)
@@ -237,6 +244,34 @@ class RedisQueueDashboard(FastAPI):
                 df.to_csv(output, index=False)
                 output.seek(0)
                 headers = {"Content-Disposition": "attachment; filename=queue_data.csv"}
+                return StreamingResponse(output, headers=headers, media_type="application/octet-stream")
+            except Exception as e:
+                    logger.exception("An error occurred while exporting:", e)
+                    raise HTTPException("An error occurred while exporting:", e)
+        @self.get("/export/workers")
+        def export_workers():
+            try:
+                worker_data = asyncio.run(read_workers())
+                json_str = convert_worker_data_to_json(worker_data)
+                df = pandas.read_json(StringIO(json_str))
+                output = BytesIO()
+                df.to_csv(output, index=False)
+                output.seek(0)
+                headers = {"Content-Disposition": "attachment; filename=worker_data.csv"}
+                return StreamingResponse(output, headers=headers, media_type="application/octet-stream")
+            except Exception as e:
+                    logger.exception("An error occurred while exporting:", e)
+                    raise HTTPException("An error occurred while exporting:", e)
+        @self.get("/export/jobs")
+        def export_jobs():
+            try:
+                jobs_data = asyncio.run(read_jobs("all","all", 1))
+                json_str = convert_queue_job_registry_stats_to_json(jobs_data)
+                df = pandas.read_json(StringIO(json_str))
+                output = BytesIO()
+                df.to_csv(output, index=False)
+                output.seek(0)
+                headers = {"Content-Disposition": "attachment; filename=jobs_data.csv"}
                 return StreamingResponse(output, headers=headers, media_type="application/octet-stream")
             except Exception as e:
                     logger.exception("An error occurred while exporting:", e)

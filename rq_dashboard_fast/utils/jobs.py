@@ -1,12 +1,12 @@
 import logging
 from datetime import datetime
 from typing import Any, List
-
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from redis import Redis
 from rq.job import Job
 from rq_scheduler import Scheduler
+import json
 
 from .queues import get_queues
 
@@ -229,4 +229,35 @@ def delete_job_id(redis_url: str, job_id: str):
         logger.exception("Error deleting specific job: ", error)
         raise HTTPException(
             status_code=500, detail=str("Error deleting specific job: ", error)
+        )
+
+def convert_queue_job_registry_stats_to_json(queue_data: List[QueueJobRegistryStats]) -> str:
+    try:
+        queue_stats_dict = {}
+        
+        for queue_stats in queue_data:
+            def job_data_to_dict(job_data: JobData):
+                return {
+                    'id': job_data.id,
+                    'name': job_data.name,
+                    'created_at': job_data.created_at.isoformat()
+                }
+
+            stats_dict = {
+                'scheduled': [job_data_to_dict(job) for job in queue_stats.scheduled],
+                'queued': [job_data_to_dict(job) for job in queue_stats.queued],
+                'started': [job_data_to_dict(job) for job in queue_stats.started],
+                'failed': [job_data_to_dict(job) for job in queue_stats.failed],
+                'deferred': [job_data_to_dict(job) for job in queue_stats.deferred],
+                'finished': [job_data_to_dict(job) for job in queue_stats.finished]
+            }
+            queue_stats_dict[queue_stats.queue_name] = stats_dict
+
+        queue_stats_list = [queue_stats_dict]
+        json_str = json.dumps(queue_stats_list, indent=4)
+        return json_str
+    except Exception as error:
+        logger.exception("Error converting queue job registry stats list to JSON: ", error)
+        raise HTTPException(
+            status_code=500, detail=str("Error converting queue job registry stats list to JSON: ", error)
         )
