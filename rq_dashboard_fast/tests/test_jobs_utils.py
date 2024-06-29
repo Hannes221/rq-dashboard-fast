@@ -8,8 +8,11 @@ from ..utils.jobs import (
     get_jobs,
     get_job,
     delete_job_id,
+    convert_queue_job_registry_stats_to_json,
+    JobData,
+    QueueJobRegistryStats
 )
-
+import json
 
 @pytest.fixture
 def setup_redis():
@@ -77,3 +80,74 @@ def test_delete_job_id(setup_redis, setup_queue):
     delete_job_id(redis_url, job.id)
 
     assert not setup_queue.fetch_job(job.id)
+
+def test_convert_queue_job_registry_stats_to_json():
+        job_data_1 = JobData(id='1', name='Job 1', created_at='2020-01-01')
+        job_data_2 = JobData(id='2', name='Job 2', created_at='2020-01-01')
+        
+        queue_stats_1 = QueueJobRegistryStats(queue_name='Queue 1', 
+                                             scheduled=[job_data_1], 
+                                             queued=[job_data_2], 
+                                             started=[], 
+                                             failed=[], 
+                                             deferred=[], 
+                                             finished=[])
+        
+        queue_stats_2 = QueueJobRegistryStats(queue_name='Queue 2', 
+                                             scheduled=[], 
+                                             queued=[], 
+                                             started=[job_data_1, job_data_2], 
+                                             failed=[], 
+                                             deferred=[], 
+                                             finished=[])
+        queue_data = [queue_stats_1, queue_stats_2]
+        result_json = convert_queue_job_registry_stats_to_json(queue_data)
+        expected_json_string = """
+        [
+            {
+                "Queue 1": {
+                    "scheduled": [
+                        {
+                            "id": "1",
+                            "name": "Job 1",
+                            "created_at": "2020-01-01T00:00:00"
+                        }
+                    ],
+                    "queued": [
+                        {
+                            "id": "2",
+                            "name": "Job 2",
+                            "created_at": "2020-01-01T00:00:00"
+                        }
+                    ],
+                    "started": [],
+                    "failed": [],
+                    "deferred": [],
+                    "finished": []
+                },
+                "Queue 2": {
+                    "scheduled": [],
+                    "queued": [],
+                    "started": [
+                        {
+                            "id": "1",
+                            "name": "Job 1",
+                            "created_at": "2020-01-01T00:00:00"
+                        },
+                        {
+                            "id": "2",
+                            "name": "Job 2",
+                            "created_at": "2020-01-01T00:00:00"
+                        }
+                    ],
+                    "failed": [],
+                    "deferred": [],
+                    "finished": []
+                }
+            }
+        ]
+        """
+        expected_result = json.loads(expected_json_string)
+        actual_result = json.loads(result_json)
+
+        assert actual_result == expected_result
