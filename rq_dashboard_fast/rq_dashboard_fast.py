@@ -234,6 +234,26 @@ class RedisQueueDashboard(FastAPI):
             except Exception as e:
                 logger.exception("An error occurred while deleting a job:", e)
                 raise HTTPException("An error occurred while deleting a job:", e)
+            
+        @self.get("/export", response_class=HTMLResponse)
+        async def export(request: Request):
+            try:
+                active_tab = "export"
+                protocol = self.protocol if self.protocol else request.url.scheme
+                return self.templates.TemplateResponse(
+                    "export.html",
+                    {
+                        "request": request,
+                        "active_tab": active_tab,
+                        "prefix": prefix,
+                        "rq_dashboard_version": self.rq_dashboard_version,
+                        "protocol": protocol,
+                    },
+                )
+            except Exception as e:
+                logger.exception("An error occurred reading export data template:", e)
+                raise HTTPException("An error occurred reading export data template:", e)
+        
         @self.get("/export/queues")
         def export_queues():
             try:
