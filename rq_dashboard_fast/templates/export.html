@@ -65,28 +65,44 @@ function showErrorNotification(message) {
 }
   </script>
   <style>
-    .export-button-container {
+  #export {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+
+  #export th,
+  #export td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+
+  #export th {
+    background-color: #f2f2f2;
+  }
+  .export-button-container {
       display: flex;
       margin-top: 10px;
     }
 
-    .export-button {
-      padding: 10px 15px;
-      color: #000000;
-      border: 2px solid #000000;
-      border-radius: 5px;
-      text-decoration: none;
-      background-color: #ccffcc;
-      transition: background-color 0.3s ease, color 0.3s ease,
-        border-color 0.3s ease;
-      cursor: pointer;
-    }
+  .export-button {
+    padding: 10px 15px;
+    color: #000000;
+    border: 2px solid #000000;
+    border-radius: 5px;
+    text-decoration: none;
+    background-color: #ccffcc;
+    transition: background-color 0.3s ease, color 0.3s ease,
+      border-color 0.3s ease;
+    cursor: pointer;
+  }
 
-    .export-button:hover {
-      background-color: #2e4c2d;
-      color: #ccffcc;
-      border-color: #2e4c2d;
-    }
+  .export-button:hover {
+    background-color: #2e4c2d;
+    color: #ccffcc;
+    border-color: #2e4c2d;
+  }
   </style>
 </head>
 
@@ -96,7 +112,7 @@ function showErrorNotification(message) {
 </div>
 
 <div class="section">
-    <table id="queues">
+    <table id="export">
             <tr>
                 <th>Export Queues</th>
                 <th>Export Workers</th>
