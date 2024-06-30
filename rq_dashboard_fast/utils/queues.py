@@ -5,6 +5,8 @@ from pydantic import BaseModel
 from redis import Redis
 from rq import Queue
 
+import pandas
+
 
 class QueueRegistryStats(BaseModel):
     queue_name: str
@@ -76,3 +78,38 @@ def delete_jobs_for_queue(queue_name, redis_url) -> list[str]:
         raise HTTPException(
             status_code=500, detail=str("Error deleting jobs in queue: ", error)
         )
+def convert_queue_data_to_json_dict(queue_data: list[QueueRegistryStats]) -> list[dict]:
+    try:
+        queue_stats_dict = {}
+        for queue_stats in queue_data:
+            stats_dict = {
+                'queued': queue_stats.queued,
+                'started': queue_stats.started,
+                'failed': queue_stats.failed,
+                'deferred': queue_stats.deferred,
+                'finished': queue_stats.finished
+            }
+            queue_stats_dict[queue_stats.queue_name] = stats_dict
+
+        queue_stats_list = [queue_stats_dict]
+        return queue_stats_list
+    except Exception as error:
+        logger.exception("Error converting queue items list to JSON dictionary: ", error)
+        raise Exception(f"Error converting queue items list to JSON dictionary: {str(error)}")
+def convert_queues_dict_to_dataframe(input_data: list[dict]) -> pandas.DataFrame:
+    queue_details = []
+    try:
+        for queue_dict in input_data:
+            for queue_name, queue_data in queue_dict.items():
+                for status, count in queue_data.items():
+                            queue_info = {
+                                "queue_name": queue_name,
+                                "status": status,
+                                "count": count
+                            }
+                            queue_details.append(queue_info)
+        df = pandas.DataFrame(queue_details)
+        return df
+    except Exception as error:
+            logger.exception("Error converting queues dict to DataFrame: ", error)
+            raise Exception(f"Error converting queues dict to DataFrame: {str(error)}")
