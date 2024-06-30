@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 from redis import Redis
 from rq import Worker
-import json
+import pandas
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ def get_workers(redis_url: str) -> list[WorkerData]:
             status_code=500,
             detail=str("Error reading workers for redis connection: ", error),
         )
-def convert_worker_data_to_json(worker_data: list[WorkerData]) -> str:
+def convert_worker_data_to_json_dict(worker_data: list[WorkerData]) -> list[dict]:
     try:
         workers_dict = {}
         for worker in worker_data:
@@ -71,10 +71,29 @@ def convert_worker_data_to_json(worker_data: list[WorkerData]) -> str:
             workers_dict[worker.name] = worker_dict
 
         workers_list = [workers_dict]
-        json_str = json.dumps(workers_list, indent=4)
-        return json_str
+        return workers_list
     except Exception as error:
-        logger.exception("Error converting worker data list to JSON: ", error)
-        raise HTTPException(
-            status_code=500, detail=str("Error converting worker data list to JSON: ", error)
-        )
+        logger.exception("Error converting worker data list to JSON dictionary: ", error)
+        raise Exception(f"Error converting worker data list to JSON dictionary: {str(error)}")
+
+def convert_workers_dict_to_dataframe(input_data: list[dict]) -> pandas.DataFrame:
+    worker_details = []
+    try:
+        for workers_dict in input_data:
+            for worker_name, worker_data in workers_dict.items():
+                worker_info = {
+                    "worker_name": worker_name,
+                    "current_job": worker_data["current_job"],
+                    "current_job_id": worker_data["current_job_id"],
+                    "successful_job_count": worker_data["successful_job_count"],
+                    "failed_job_count": worker_data["failed_job_count"],
+                    "queue_name": worker_data["queues"]
+                }
+                worker_details.append(worker_info)
+        
+        df = pandas.DataFrame(worker_details)
+        return df
+    
+    except Exception as error:
+        logger.exception("Error converting workers dict to DataFrame: ", error)
+        raise Exception(f"Error converting workers dict to DataFrame: {str(error)}")

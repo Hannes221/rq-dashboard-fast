@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from redis import Redis
 from rq.job import Job
 from rq_scheduler import Scheduler
-import json
+import pandas
 
 from .queues import get_queues
 
@@ -231,11 +231,11 @@ def delete_job_id(redis_url: str, job_id: str):
             status_code=500, detail=str("Error deleting specific job: ", error)
         )
 
-def convert_queue_job_registry_stats_to_json(queue_data: List[QueueJobRegistryStats]) -> str:
+def convert_queue_job_registry_stats_to_json_dict(job_data: List[QueueJobRegistryStats]) -> list[dict]:
     try:
-        queue_stats_dict = {}
+        job_stats_dict = {}
         
-        for queue_stats in queue_data:
+        for job_stats in job_data:
             def job_data_to_dict(job_data: JobData):
                 return {
                     'id': job_data.id,
@@ -244,20 +244,38 @@ def convert_queue_job_registry_stats_to_json(queue_data: List[QueueJobRegistrySt
                 }
 
             stats_dict = {
-                'scheduled': [job_data_to_dict(job) for job in queue_stats.scheduled],
-                'queued': [job_data_to_dict(job) for job in queue_stats.queued],
-                'started': [job_data_to_dict(job) for job in queue_stats.started],
-                'failed': [job_data_to_dict(job) for job in queue_stats.failed],
-                'deferred': [job_data_to_dict(job) for job in queue_stats.deferred],
-                'finished': [job_data_to_dict(job) for job in queue_stats.finished]
+                'scheduled': [job_data_to_dict(job) for job in job_stats.scheduled],
+                'queued': [job_data_to_dict(job) for job in job_stats.queued],
+                'started': [job_data_to_dict(job) for job in job_stats.started],
+                'failed': [job_data_to_dict(job) for job in job_stats.failed],
+                'deferred': [job_data_to_dict(job) for job in job_stats.deferred],
+                'finished': [job_data_to_dict(job) for job in job_stats.finished]
             }
-            queue_stats_dict[queue_stats.queue_name] = stats_dict
+            job_stats_dict[job_stats.queue_name] = stats_dict
+            queue_stats_list = [job_stats_dict]
 
-        queue_stats_list = [queue_stats_dict]
-        json_str = json.dumps(queue_stats_list, indent=4)
-        return json_str
+        return queue_stats_list
     except Exception as error:
-        logger.exception("Error converting queue job registry stats list to JSON: ", error)
-        raise HTTPException(
-            status_code=500, detail=str("Error converting queue job registry stats list to JSON: ", error)
-        )
+        logger.exception("Error converting queue job registry stats list to JSON dictionary: ", error)
+        raise Exception(f"Error converting queue job registry stats list to JSON dictionary: {str(error)}")
+def convert_queue_job_registry_dict_to_dataframe(input_data: list[dict]) -> pandas.DataFrame:
+    job_details = []
+    try:
+        for queue_dict in input_data:
+            for queue_name, queue_data in queue_dict.items():
+                for status, jobs in queue_data.items():
+                        for job in jobs:
+                            job_info = {
+                                "id": job['id'],
+                                "queue_name": queue_name,
+                                "status": status,
+                                "job_name": job['name'],
+                                "created_at": job['created_at']
+                            }
+                            job_details.append(job_info)
+
+        df = pandas.DataFrame(job_details)
+        return df
+    except Exception as error:
+        logger.exception("Error converting job registry stats dict to DataFrame: ", error)
+        raise Exception(f"Error converting job registry stats dict to DataFrame: {str(error)}")

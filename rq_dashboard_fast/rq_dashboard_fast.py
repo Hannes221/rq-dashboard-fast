@@ -5,9 +5,7 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from starlette.staticfiles import StaticFiles
-
-from io import StringIO, BytesIO
-import pandas
+from io import BytesIO
 import asyncio
 
 from rq_dashboard_fast.utils.jobs import (
@@ -16,16 +14,22 @@ from rq_dashboard_fast.utils.jobs import (
     delete_job_id,
     get_job,
     get_jobs,
-    convert_queue_job_registry_stats_to_json,
-    get_job_registrys
+    convert_queue_job_registry_stats_to_json_dict,
+    convert_queue_job_registry_dict_to_dataframe
 )
 from rq_dashboard_fast.utils.queues import (
     QueueRegistryStats,
     delete_jobs_for_queue,
     get_job_registry_amount,
-    convert_queue_data_to_json
+    convert_queue_data_to_json_dict,
+    convert_queues_dict_to_dataframe
 )
-from rq_dashboard_fast.utils.workers import WorkerData, get_workers, convert_worker_data_to_json
+from rq_dashboard_fast.utils.workers import (
+    WorkerData,
+    get_workers,
+    convert_worker_data_to_json_dict,
+    convert_workers_dict_to_dataframe
+)
 
 
 class RedisQueueDashboard(FastAPI):
@@ -258,8 +262,8 @@ class RedisQueueDashboard(FastAPI):
         def export_queues():
             try:
                 queue_data = asyncio.run(read_queues())
-                json_str = convert_queue_data_to_json(queue_data)
-                df = pandas.read_json(StringIO(json_str))
+                json_dict = convert_queue_data_to_json_dict(queue_data)
+                df = convert_queues_dict_to_dataframe(json_dict)
                 output = BytesIO()
                 df.to_csv(output, index=False)
                 output.seek(0)
@@ -272,8 +276,8 @@ class RedisQueueDashboard(FastAPI):
         def export_workers():
             try:
                 worker_data = asyncio.run(read_workers())
-                json_str = convert_worker_data_to_json(worker_data)
-                df = pandas.read_json(StringIO(json_str))
+                json_dict = convert_worker_data_to_json_dict(worker_data)
+                df = convert_workers_dict_to_dataframe(json_dict)
                 output = BytesIO()
                 df.to_csv(output, index=False)
                 output.seek(0)
@@ -286,8 +290,8 @@ class RedisQueueDashboard(FastAPI):
         def export_jobs():
             try:
                 jobs_data = asyncio.run(read_jobs("all","all", 1))
-                json_str = convert_queue_job_registry_stats_to_json(jobs_data)
-                df = pandas.read_json(StringIO(json_str))
+                json_dict = convert_queue_job_registry_stats_to_json_dict(jobs_data)
+                df = convert_queue_job_registry_dict_to_dataframe(json_dict)
                 output = BytesIO()
                 df.to_csv(output, index=False)
                 output.seek(0)
