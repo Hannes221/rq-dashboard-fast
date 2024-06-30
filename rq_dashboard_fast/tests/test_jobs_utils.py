@@ -8,8 +8,12 @@ from ..utils.jobs import (
     get_jobs,
     get_job,
     delete_job_id,
+    convert_queue_job_registry_stats_to_json_dict,
+    convert_queue_job_registry_dict_to_dataframe,
+    JobData,
+    QueueJobRegistryStats
 )
-
+import pandas
 
 @pytest.fixture
 def setup_redis():
@@ -77,3 +81,107 @@ def test_delete_job_id(setup_redis, setup_queue):
     delete_job_id(redis_url, job.id)
 
     assert not setup_queue.fetch_job(job.id)
+
+def test_convert_queue_job_registry_stats_to_json_dict():
+        job_data_1 = JobData(id='1', name='Job 1', created_at='2020-01-01')
+        job_data_2 = JobData(id='2', name='Job 2', created_at='2020-01-01')
+        
+        queue_stats_1 = QueueJobRegistryStats(queue_name='Queue 1', 
+                                             scheduled=[job_data_1], 
+                                             queued=[job_data_2], 
+                                             started=[], 
+                                             failed=[], 
+                                             deferred=[], 
+                                             finished=[])
+        
+        queue_stats_2 = QueueJobRegistryStats(queue_name='Queue 2', 
+                                             scheduled=[], 
+                                             queued=[], 
+                                             started=[job_data_1, job_data_2], 
+                                             failed=[], 
+                                             deferred=[], 
+                                             finished=[])
+        queue_data = [queue_stats_1, queue_stats_2]
+        result_json = convert_queue_job_registry_stats_to_json_dict(queue_data)
+        expected_json = [
+            {
+                "Queue 1": {
+                    "scheduled": [
+                        {
+                            "id": "1",
+                            "name": "Job 1",
+                            "created_at": "2020-01-01T00:00:00"
+                        }
+                    ],
+                    "queued": [
+                        {
+                            "id": "2",
+                            "name": "Job 2",
+                            "created_at": "2020-01-01T00:00:00"
+                        }
+                    ],
+                    "started": [],
+                    "failed": [],
+                    "deferred": [],
+                    "finished": []
+                },
+                "Queue 2": {
+                    "scheduled": [],
+                    "queued": [],
+                    "started": [
+                        {
+                            "id": "1",
+                            "name": "Job 1",
+                            "created_at": "2020-01-01T00:00:00"
+                        },
+                        {
+                            "id": "2",
+                            "name": "Job 2",
+                            "created_at": "2020-01-01T00:00:00"
+                        }
+                    ],
+                    "failed": [],
+                    "deferred": [],
+                    "finished": []
+                }
+            }
+        ]
+
+        assert result_json == expected_json
+
+def test_convert_queue_job_registry_dict_to_dataframe():
+    input_data = [
+            {
+                "Queue 1": {
+                    "scheduled": [
+                        {
+                            "id": "1",
+                            "name": "Job 1",
+                            "created_at": "2020-01-01T00:00:00"
+                        }
+                    ],
+                    "queued": [
+                        {
+                            "id": "2",
+                            "name": "Job 2",
+                            "created_at": "2020-01-01T00:00:00"
+                        }
+                    ],
+                    "started": [],
+                    "failed": [],
+                    "deferred": [],
+                    "finished": []
+                }
+            }
+        ]
+        
+    expected_columns = ['id', 'queue_name', 'status', 'job_name', 'created_at']
+    expected_data = pandas.DataFrame([
+            {"id": "1", "queue_name": "Queue 1", "status": "scheduled", "job_name": "Job 1", "created_at": "2020-01-01T00:00:00"},
+            {"id": "2", "queue_name": "Queue 1", "status": "queued", "job_name": "Job 2", "created_at": "2020-01-01T00:00:00"}
+        ])
+
+    result_df = convert_queue_job_registry_dict_to_dataframe(input_data)
+        
+    assert result_df.equals(expected_data)
+    assert list(result_df.columns) == expected_columns

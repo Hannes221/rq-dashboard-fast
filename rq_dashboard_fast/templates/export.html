@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Export</title>
+  <script>
+    let autoRefreshEnabled = true;
+    let autoRefreshInterval;
+    const protocol = "{{ protocol }}";
+    const host = window.location.host;
+    const prefix = "{{ prefix }}";
+    const baseurl = protocol + "://" + host + prefix;
+    function showNotification(message) {
+  const notification = document.createElement("div");
+  notification.className = "notification";
+  notification.textContent = message;
+
+  document.body.appendChild(notification);
+
+  setTimeout(() => {
+    document.body.removeChild(notification);
+  }, 3000);
+}
+
+function showErrorNotification(message) {
+  const errorNotification = document.createElement("div");
+  errorNotification.className = "error-notification";
+  errorNotification.textContent = message;
+
+  document.body.appendChild(errorNotification);
+
+  setTimeout(() => {
+    document.body.removeChild(errorNotification);
+  }, 3000);
+}
+
+    function export_object(object_name) {
+      $.ajax({
+    url: baseurl + "/export/"+object_name,
+    type: "GET",
+    xhrFields: {
+      responseType: 'blob'
+    },
+    success: function (data) {
+            var a = document.createElement('a');
+            var url = window.URL.createObjectURL(data);
+            a.href = url;
+            a.download = object_name+'_data.csv';
+            document.body.append(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        },
+    error: function (error) {
+      console.error("Error fetching "+object_name+" data: ", error);
+      showErrorNotification("Error exporting "+object_name);
+    }
+  });
+}
+  </script>
+  <style>
+  #export {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+
+  #export th,
+  #export td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+
+  #export th {
+    background-color: #f2f2f2;
+  }
+  .export-button-container {
+      display: flex;
+      margin-top: 10px;
+    }
+
+  .export-button {
+    padding: 10px 15px;
+    color: #000000;
+    border: 2px solid #000000;
+    border-radius: 5px;
+    text-decoration: none;
+    background-color: #ccffcc;
+    transition: background-color 0.3s ease, color 0.3s ease,
+      border-color 0.3s ease;
+    cursor: pointer;
+  }
+
+  .export-button:hover {
+    background-color: #2e4c2d;
+    color: #ccffcc;
+    border-color: #2e4c2d;
+  }
+  </style>
+</head>
+
+<body>
+<div class="h2-section">
+    <h2>Export</h2>
+</div>
+
+<div class="section">
+    <table id="export">
+            <tr>
+                <th>Export Queues</th>
+                <th>Export Workers</th>
+                <th>Export Jobs</th>
+            </tr>
+        <tbody>
+            <tr>
+                <td><div class="export-button-container">
+                    <button
+                      class="export-button" id="export-queues" onclick="export_object('queues')">
+                      Export Queues
+                    </button>
+                  </div></td>
+                <td><div class="export-button-container">
+                  <button
+                    class="export-button" id="export-workers" onclick="export_object('workers')">
+                    Export Workers
+                  </button>
+                </div></td>
+                <td><div class="export-button-container">
+                  <button
+                    class="export-button" id="export-jobs"onclick="export_object('jobs')">
+                    Export Jobs
+                  </button>
+                </div></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
+{% endblock %}
