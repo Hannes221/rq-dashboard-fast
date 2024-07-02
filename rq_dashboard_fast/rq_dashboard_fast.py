@@ -1,34 +1,34 @@
+import asyncio
 import logging
+from io import BytesIO
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from starlette.staticfiles import StaticFiles
-from io import BytesIO
-import asyncio
 
 from rq_dashboard_fast.utils.jobs import (
     JobDataDetailed,
     QueueJobRegistryStats,
+    convert_queue_job_registry_dict_to_dataframe,
+    convert_queue_job_registry_stats_to_json_dict,
     delete_job_id,
     get_job,
     get_jobs,
-    convert_queue_job_registry_stats_to_json_dict,
-    convert_queue_job_registry_dict_to_dataframe
 )
 from rq_dashboard_fast.utils.queues import (
     QueueRegistryStats,
+    convert_queue_data_to_json_dict,
+    convert_queues_dict_to_dataframe,
     delete_jobs_for_queue,
     get_job_registry_amount,
-    convert_queue_data_to_json_dict,
-    convert_queues_dict_to_dataframe
 )
 from rq_dashboard_fast.utils.workers import (
     WorkerData,
-    get_workers,
     convert_worker_data_to_json_dict,
-    convert_workers_dict_to_dataframe
+    convert_workers_dict_to_dataframe,
+    get_workers,
 )
 
 
@@ -53,7 +53,7 @@ class RedisQueueDashboard(FastAPI):
         self.redis_url = redis_url
         self.protocol = protocol
 
-        self.rq_dashboard_version = "0.5.0"
+        self.rq_dashboard_version = "0.5.1"
 
         logger = logging.getLogger(__name__)
 
@@ -238,7 +238,7 @@ class RedisQueueDashboard(FastAPI):
             except Exception as e:
                 logger.exception("An error occurred while deleting a job:", e)
                 raise HTTPException("An error occurred while deleting a job:", e)
-            
+
         @self.get("/export", response_class=HTMLResponse)
         async def export(request: Request):
             try:
@@ -256,8 +256,10 @@ class RedisQueueDashboard(FastAPI):
                 )
             except Exception as e:
                 logger.exception("An error occurred reading export data template:", e)
-                raise HTTPException("An error occurred reading export data template:", e)
-        
+                raise HTTPException(
+                    "An error occurred reading export data template:", e
+                )
+
         @self.get("/export/queues")
         def export_queues():
             try:
@@ -268,10 +270,13 @@ class RedisQueueDashboard(FastAPI):
                 df.to_csv(output, index=False)
                 output.seek(0)
                 headers = {"Content-Disposition": "attachment; filename=queue_data.csv"}
-                return StreamingResponse(output, headers=headers, media_type="application/octet-stream")
+                return StreamingResponse(
+                    output, headers=headers, media_type="application/octet-stream"
+                )
             except Exception as e:
-                    logger.exception("An error occurred while exporting:", e)
-                    raise HTTPException("An error occurred while exporting:", e)
+                logger.exception("An error occurred while exporting:", e)
+                raise HTTPException("An error occurred while exporting:", e)
+
         @self.get("/export/workers")
         def export_workers():
             try:
@@ -281,22 +286,29 @@ class RedisQueueDashboard(FastAPI):
                 output = BytesIO()
                 df.to_csv(output, index=False)
                 output.seek(0)
-                headers = {"Content-Disposition": "attachment; filename=worker_data.csv"}
-                return StreamingResponse(output, headers=headers, media_type="application/octet-stream")
+                headers = {
+                    "Content-Disposition": "attachment; filename=worker_data.csv"
+                }
+                return StreamingResponse(
+                    output, headers=headers, media_type="application/octet-stream"
+                )
             except Exception as e:
-                    logger.exception("An error occurred while exporting:", e)
-                    raise HTTPException("An error occurred while exporting:", e)
+                logger.exception("An error occurred while exporting:", e)
+                raise HTTPException("An error occurred while exporting:", e)
+
         @self.get("/export/jobs")
         def export_jobs():
             try:
-                jobs_data = asyncio.run(read_jobs("all","all", 1))
+                jobs_data = asyncio.run(read_jobs("all", "all", 1))
                 json_dict = convert_queue_job_registry_stats_to_json_dict(jobs_data)
                 df = convert_queue_job_registry_dict_to_dataframe(json_dict)
                 output = BytesIO()
                 df.to_csv(output, index=False)
                 output.seek(0)
                 headers = {"Content-Disposition": "attachment; filename=jobs_data.csv"}
-                return StreamingResponse(output, headers=headers, media_type="application/octet-stream")
+                return StreamingResponse(
+                    output, headers=headers, media_type="application/octet-stream"
+                )
             except Exception as e:
-                    logger.exception("An error occurred while exporting:", e)
-                    raise HTTPException("An error occurred while exporting:", e)
+                logger.exception("An error occurred while exporting:", e)
+                raise HTTPException("An error occurred while exporting:", e)
