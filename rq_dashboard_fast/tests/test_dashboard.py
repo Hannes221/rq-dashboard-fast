@@ -127,3 +127,15 @@ def test_get_workers_json(client, setup_worker):
     assert response_read_json.status_code == 200
 
     assert len(response_read_json.json()) == 1
+    
+def test_export_queues(client):
+    response_export_queues = client.get("export/queues")
+    assert response_export_queues.status_code == 200
+
+def test_export_workers(client):
+    response_export_workers = client.get("export/workers")
+    assert response_export_workers.status_code == 200
+
+def test_export_jobs(client):
+    response_export_jobs = client.get("export/jobs")
+    assert response_export_jobs.status_code == 200

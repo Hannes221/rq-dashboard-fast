@@ -40,7 +40,7 @@ function showErrorNotification(message) {
   }, 3000);
 }
 
-    function export_object(object_name) {
+  function export_object_csv(object_name) {
       $.ajax({
     url: baseurl + "/export/"+object_name,
     type: "GET",
@@ -62,6 +62,47 @@ function showErrorNotification(message) {
       showErrorNotification("Error exporting "+object_name);
     }
   });
+}
+function export_object_json(object_name) {
+  $.ajax({
+    url: baseurl + "/"+object_name+"/json",
+    type: "GET",
+    dataType: "json",
+    success: function (data) {
+      var jsonString = JSON.stringify(data, null, 2);
+      var blob = new Blob([jsonString], { type: 'application/json' });
+      var url = window.URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = object_name + '_data.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    },
+    error: function (error) {
+      console.error("Error fetching " + objectName + " data: ", error);
+      showErrorNotification("Error exporting " + objectName);
+    }
+  });
+}
+function handle_format(elementId, type) {
+  if (document.getElementById(elementId).value == 'csv')
+    export_object_csv(type);
+  else
+    export_object_json(type);
+}
+
+function handle_format_queues() {
+  handle_format('export-queues-format', 'queues');
+}
+
+function handle_format_workers() {
+  handle_format('export-workers-format', 'workers');
+}
+
+function handle_format_jobs() {
+  handle_format('export-jobs-format', 'jobs');
 }
   </script>
   <style>
@@ -103,6 +144,9 @@ function showErrorNotification(message) {
     color: #ccffcc;
     border-color: #2e4c2d;
   }
+  .export-select {
+      margin-left: 10px;
+    }
   </style>
 </head>
 
@@ -112,35 +156,56 @@ function showErrorNotification(message) {
 </div>
 
 <div class="section">
-    <table id="export">
-            <tr>
-                <th>Export Queues</th>
-                <th>Export Workers</th>
-                <th>Export Jobs</th>
-            </tr>
-        <tbody>
-            <tr>
-                <td><div class="export-button-container">
-                    <button
-                      class="export-button" id="export-queues" onclick="export_object('queues')">
-                      Export Queues
-                    </button>
-                  </div></td>
-                <td><div class="export-button-container">
-                  <button
-                    class="export-button" id="export-workers" onclick="export_object('workers')">
-                    Export Workers
-                  </button>
-                </div></td>
-                <td><div class="export-button-container">
-                  <button
-                    class="export-button" id="export-jobs"onclick="export_object('jobs')">
-                    Export Jobs
-                  </button>
-                </div></td>
-            </tr>
-        </tbody>
-    </table>
+  <table id="export">
+    <tr>
+      <th>Export Queues</th>
+      <th>Export Workers</th>
+      <th>Export Jobs</th>
+    </tr>
+    <tbody>
+      <tr>
+        <td>
+          <div class="export-button-container">
+            <button class="export-button" id="export-queues" onclick="handle_format_queues()">
+              Export Queues
+            </button>
+            <div class="filter-section">
+            <select class="export-select" id="export-queues-format">
+              <option value="csv">CSV</option>
+              <option value="json">JSON</option>
+            </select>
+          </div>
+          </div>
+        </td>
+        <td>
+          <div class="export-button-container">
+            <button class="export-button" id="export-workers" onclick="handle_format_workers()">
+              Export Workers
+            </button>
+            <div class="filter-section">
+            <select class="export-select" id="export-workers-format">
+              <option value="csv">CSV</option>
+              <option value="json">JSON</option>
+            </select>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="export-button-container">
+            <button class="export-button" id="export-jobs" onclick="handle_format_jobs()">
+              Export Jobs
+            </button>
+            <div class="filter-section">
+            <select class="export-select" id="export-jobs-format">
+              <option value="csv">CSV</option>
+              <option value="json">JSON</option>
+            </select>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 </div>
 </body>
 </html>
