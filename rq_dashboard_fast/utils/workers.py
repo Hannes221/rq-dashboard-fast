@@ -1,10 +1,10 @@
 import logging
 
+import pandas
 from fastapi import HTTPException
 from pydantic import BaseModel
 from redis import Redis
 from rq import Worker
-import pandas
 
 logger = logging.getLogger(__name__)
 
@@ -54,27 +54,32 @@ def get_workers(redis_url: str) -> list[WorkerData]:
         logger.exception("Error reading workers for redis connection: ", error)
         raise HTTPException(
             status_code=500,
-            detail=str("Error reading workers for redis connection: ", error),
+            detail=str("Error reading workers for redis connection"),
         )
+
+
 def convert_worker_data_to_json_dict(worker_data: list[WorkerData]) -> list[dict]:
     try:
         workers_dict = {}
         for worker in worker_data:
             worker_dict = {
-                'name': worker.name,
-                'current_job': worker.current_job,
-                'current_job_id': worker.current_job_id,
-                'successful_job_count': worker.successful_job_count,
-                'failed_job_count': worker.failed_job_count,
-                'queues': worker.queues
+                "name": worker.name,
+                "current_job": worker.current_job,
+                "current_job_id": worker.current_job_id,
+                "successful_job_count": worker.successful_job_count,
+                "failed_job_count": worker.failed_job_count,
+                "queues": worker.queues,
             }
             workers_dict[worker.name] = worker_dict
 
         workers_list = [workers_dict]
         return workers_list
     except Exception as error:
-        logger.exception("Error converting worker data list to JSON dictionary: ", error)
-        raise Exception(f"Error converting worker data list to JSON dictionary: {str(error)}")
+        logger.exception(
+            "Error converting worker data list to JSON dictionary: ", error
+        )
+        raise Exception("Error converting worker data list to JSON dictionary")
+
 
 def convert_workers_dict_to_dataframe(input_data: list[dict]) -> pandas.DataFrame:
     worker_details = []
@@ -87,13 +92,13 @@ def convert_workers_dict_to_dataframe(input_data: list[dict]) -> pandas.DataFram
                     "current_job_id": worker_data["current_job_id"],
                     "successful_job_count": worker_data["successful_job_count"],
                     "failed_job_count": worker_data["failed_job_count"],
-                    "queue_name": worker_data["queues"]
+                    "queue_name": worker_data["queues"],
                 }
                 worker_details.append(worker_info)
-        
+
         df = pandas.DataFrame(worker_details)
         return df
-    
+
     except Exception as error:
         logger.exception("Error converting workers dict to DataFrame: ", error)
-        raise Exception(f"Error converting workers dict to DataFrame: {str(error)}")
+        raise Exception("Error converting workers dict to DataFrame")
