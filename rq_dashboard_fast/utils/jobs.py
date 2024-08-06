@@ -117,6 +117,8 @@ def get_job_registrys(
 
                 jobs = jobs_fetched[start_index:end_index]
                 for job in jobs:
+                    if job is None:
+                        continue
                     status = job.get_status()
                     if status == "started":
                         started_jobs.append(
@@ -260,8 +262,9 @@ def convert_queue_job_registry_stats_to_json_dict(
         logger.exception(
             "Error converting queue job registry stats list to JSON dictionary: ", error
         )
-        raise Exception(
-            f"Error converting queue job registry stats list to JSON dictionary"
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error converting queue job registry stats list to JSON dictionary",
         )
 
 
@@ -289,4 +292,7 @@ def convert_queue_job_registry_dict_to_dataframe(
         logger.exception(
             "Error converting job registry stats dict to DataFrame: ", error
         )
-        raise Exception(f"Error converting job registry stats dict to DataFrame")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error converting job registry stats dict to DataFrame",
+        )

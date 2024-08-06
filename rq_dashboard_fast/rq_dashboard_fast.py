@@ -53,7 +53,7 @@ class RedisQueueDashboard(FastAPI):
         self.redis_url = redis_url
         self.protocol = protocol
 
-        self.rq_dashboard_version = "0.5.4"
+        self.rq_dashboard_version = "0.5.5"
 
         logger = logging.getLogger(__name__)
 
@@ -75,7 +75,10 @@ class RedisQueueDashboard(FastAPI):
                 logger.exception(
                     "An error occurred while loading the base template:", e
                 )
-                raise HTTPException("An error occurred while loading the base template")
+                raise HTTPException(
+                    status_code=500,
+                    detail="An error occurred while loading the base template",
+                )
 
         @self.get("/workers", response_class=HTMLResponse)
         async def read_workers(request: Request):
@@ -99,7 +102,9 @@ class RedisQueueDashboard(FastAPI):
                 )
             except Exception as e:
                 logger.exception("An error occurred while reading workers:", e)
-                raise HTTPException("An error occurred while reading workers")
+                raise HTTPException(
+                    status_code=500, detail="An error occurred while reading workers"
+                )
 
         @self.get("/workers/json", response_model=list[WorkerData])
         async def read_workers():
@@ -112,7 +117,8 @@ class RedisQueueDashboard(FastAPI):
                     "An error occurred while reading worker data in json:", e
                 )
                 raise HTTPException(
-                    "An error occurred while reading worker data in json"
+                    status_code=500,
+                    detail="An error occurred while reading worker data in json",
                 )
 
         @self.delete("/queues/{queue_name}")
@@ -122,7 +128,10 @@ class RedisQueueDashboard(FastAPI):
                 return deleted_ids
             except Exception as e:
                 logger.exception("An error occurred while deleting jobs in queue:", e)
-                raise HTTPException("An error occurred while deleting jobs in queue")
+                raise HTTPException(
+                    status_code=500,
+                    detail="An error occurred while deleting jobs in queue",
+                )
 
         @self.get("/queues", response_class=HTMLResponse)
         async def read_queues(request: Request):
@@ -146,7 +155,10 @@ class RedisQueueDashboard(FastAPI):
                 )
             except Exception as e:
                 logger.exception("An error occurred reading queues data template:", e)
-                raise HTTPException("An error occurred reading queues data template")
+                raise HTTPException(
+                    status_code=500,
+                    detail="An error occurred reading queues data template",
+                )
 
         @self.get("/queues/json", response_model=list[QueueRegistryStats])
         async def read_queues():
@@ -156,7 +168,9 @@ class RedisQueueDashboard(FastAPI):
                 return queue_data
             except Exception as e:
                 logger.exception("An error occurred reading queues data json:", e)
-                raise HTTPException("An error occurred reading queues data json")
+                raise HTTPException(
+                    status_code=500, detail="An error occurred reading queues data json"
+                )
 
         @self.get("/jobs", response_class=HTMLResponse)
         async def read_jobs(
@@ -185,7 +199,10 @@ class RedisQueueDashboard(FastAPI):
                 )
             except Exception as e:
                 logger.exception("An error occurred reading jobs data template:", e)
-                raise HTTPException("An error occurred reading jobs data template")
+                raise HTTPException(
+                    status_code=500,
+                    detail="An error occurred reading jobs data template",
+                )
 
         @self.get("/jobs/json", response_model=list[QueueJobRegistryStats])
         async def read_jobs(
@@ -199,7 +216,9 @@ class RedisQueueDashboard(FastAPI):
                 return job_data
             except Exception as e:
                 logger.exception("An error occurred reading jobs data json:", e)
-                raise HTTPException("An error occurred reading jobs data json")
+                raise HTTPException(
+                    status_code=500, detail="An error occurred reading jobs data json"
+                )
 
         @self.get("/job/{job_id}", response_model=JobDataDetailed)
         async def get_job_data(job_id: str, request: Request):
@@ -223,7 +242,9 @@ class RedisQueueDashboard(FastAPI):
                 )
             except Exception as e:
                 logger.exception("An error occurred fetching a specific job:", e)
-                raise HTTPException("An error occurred fetching a specific job")
+                raise HTTPException(
+                    status_code=500, detail="An error occurred fetching a specific job"
+                )
 
         @self.delete("/job/{job_id}")
         def delete_job(job_id: str):
@@ -231,7 +252,9 @@ class RedisQueueDashboard(FastAPI):
                 delete_job_id(self.redis_url, job_id=job_id)
             except Exception as e:
                 logger.exception("An error occurred while deleting a job:", e)
-                raise HTTPException("An error occurred while deleting a job")
+                raise HTTPException(
+                    status_code=500, detail="An error occurred while deleting a job"
+                )
 
         @self.get("/export", response_class=HTMLResponse)
         async def export(request: Request):
@@ -250,7 +273,10 @@ class RedisQueueDashboard(FastAPI):
                 )
             except Exception as e:
                 logger.exception("An error occurred reading export data template:", e)
-                raise HTTPException("An error occurred reading export data template")
+                raise HTTPException(
+                    status_code=500,
+                    detail="An error occurred reading export data template",
+                )
 
         @self.get("/export/queues")
         def export_queues():
@@ -267,7 +293,9 @@ class RedisQueueDashboard(FastAPI):
                 )
             except Exception as e:
                 logger.exception("An error occurred while exporting:", e)
-                raise HTTPException("An error occurred while exporting")
+                raise HTTPException(
+                    status_code=500, detail="An error occurred while exporting"
+                )
 
         @self.get("/export/workers")
         def export_workers():
@@ -286,7 +314,9 @@ class RedisQueueDashboard(FastAPI):
                 )
             except Exception as e:
                 logger.exception("An error occurred while exporting:", e)
-                raise HTTPException("An error occurred while exporting")
+                raise HTTPException(
+                    status_code=500, detail="An error occurred while exporting"
+                )
 
         @self.get("/export/jobs")
         def export_jobs():
@@ -303,4 +333,6 @@ class RedisQueueDashboard(FastAPI):
                 )
             except Exception as e:
                 logger.exception("An error occurred while exporting:", e)
-                raise HTTPException("An error occurred while exporting")
+                raise HTTPException(
+                    status_code=500, detail="An error occurred while exporting"
+                )

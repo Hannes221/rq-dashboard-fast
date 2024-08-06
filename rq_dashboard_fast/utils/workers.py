@@ -78,7 +78,10 @@ def convert_worker_data_to_json_dict(worker_data: list[WorkerData]) -> list[dict
         logger.exception(
             "Error converting worker data list to JSON dictionary: ", error
         )
-        raise Exception("Error converting worker data list to JSON dictionary")
+        raise Exception(
+            status_code=500,
+            detail="Error converting worker data list to JSON dictionary",
+        )
 
 
 def convert_workers_dict_to_dataframe(input_data: list[dict]) -> pandas.DataFrame:
@@ -101,4 +104,6 @@ def convert_workers_dict_to_dataframe(input_data: list[dict]) -> pandas.DataFram
 
     except Exception as error:
         logger.exception("Error converting workers dict to DataFrame: ", error)
-        raise Exception("Error converting workers dict to DataFrame")
+        raise Exception(
+            status_code=500, detail="Error converting workers dict to DataFrame"
+        )

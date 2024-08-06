@@ -96,7 +96,10 @@ def convert_queue_data_to_json_dict(queue_data: list[QueueRegistryStats]) -> lis
         logger.exception(
             "Error converting queue items list to JSON dictionary: ", error
         )
-        raise Exception("Error converting queue items list to JSON dictionary")
+        raise Exception(
+            status_code=500,
+            detail="Error converting queue items list to JSON dictionary",
+        )
 
 
 def convert_queues_dict_to_dataframe(input_data: list[dict]) -> pandas.DataFrame:
@@ -115,4 +118,6 @@ def convert_queues_dict_to_dataframe(input_data: list[dict]) -> pandas.DataFrame
         return df
     except Exception as error:
         logger.exception("Error converting queues dict to DataFrame: ", error)
-        raise Exception("Error converting queues dict to DataFrame")
+        raise Exception(
+            status_code=500, detail="Error converting queues dict to DataFrame"
+        )
