@@ -6,6 +6,9 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
+from pygments import highlight
+from pygments.formatters import HtmlFormatter
+from pygments.lexers.python import Python2TracebackLexer
 from starlette.staticfiles import StaticFiles
 
 from rq_dashboard_fast.utils.jobs import (
@@ -53,7 +56,7 @@ class RedisQueueDashboard(FastAPI):
         self.redis_url = redis_url
         self.protocol = protocol
 
-        self.rq_dashboard_version = "0.5.5"
+        self.rq_dashboard_version = "0.5.6"
 
         logger = logging.getLogger(__name__)
 
@@ -225,6 +228,15 @@ class RedisQueueDashboard(FastAPI):
             try:
                 job = get_job(self.redis_url, job_id)
 
+                if job.exc_info:
+                    css = HtmlFormatter().get_style_defs()
+                    col_exc_info = highlight(
+                        job.exc_info, Python2TracebackLexer(), HtmlFormatter()
+                    )
+                else:
+                    css = None
+                    col_exc_info = None
+
                 active_tab = "job"
 
                 protocol = self.protocol if self.protocol else request.url.scheme
@@ -235,6 +247,8 @@ class RedisQueueDashboard(FastAPI):
                         "request": request,
                         "job_data": job,
                         "active_tab": active_tab,
+                        "css": css,
+                        "col_exc_info": col_exc_info,
                         "prefix": prefix,
                         "rq_dashboard_version": self.rq_dashboard_version,
                         "protocol": protocol,
