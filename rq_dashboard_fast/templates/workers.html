@@ -9,14 +9,14 @@
     <script>
       let autoRefreshEnabled = true;
       let autoRefreshInterval = null;
-      const protocol = '{{ protocol }}';
+      const protocol = "{{ protocol }}";
       const host = window.location.host;
-      const prefix = '{{ prefix }}';
-      const baseurl = protocol + '://' + host + prefix;
+      const prefix = "{{ prefix }}";
+      const baseurl = protocol + "://" + host + prefix;
 
       function showNotification(message) {
-        const notification = document.createElement('div');
-        notification.className = 'notification';
+        const notification = document.createElement("div");
+        notification.className = "notification";
         notification.textContent = message;
 
         document.body.appendChild(notification);
@@ -27,8 +27,8 @@
       }
 
       function showErrorNotification(message) {
-        const notification = document.createElement('div');
-        notification.className = 'error-notification';
+        const notification = document.createElement("div");
+        notification.className = "error-notification";
         notification.textContent = message;
 
         document.body.appendChild(notification);
@@ -42,19 +42,19 @@
         autoRefreshEnabled = !autoRefreshEnabled;
         if (autoRefreshEnabled) {
           autoRefreshInterval = setInterval(updateData, 5000);
-          showNotification('Autorefresh enabled');
+          showNotification("Autorefresh enabled");
         } else {
           clearInterval(autoRefreshInterval);
-          showNotification('Autorefresh disabled');
+          showNotification("Autorefresh disabled");
         }
       }
 
       $(document).ready(function () {
-        $('#autorefresh-switch').on('change', function () {
+        $("#autorefresh-switch").on("change", function () {
           toggleAutorefresh();
         });
 
-        autoRefreshEnabled = $('#autorefresh-switch').is(':checked');
+        autoRefreshEnabled = $("#autorefresh-switch").is(":checked");
         if (autoRefreshEnabled) {
           autoRefreshInterval = setInterval(updateData, 5000);
         }
@@ -63,46 +63,46 @@
       function updateData() {
         if (autoRefreshEnabled) {
           $.ajax({
-            url: baseurl + '/workers/json',
-            type: 'GET',
-            dataType: 'json',
+            url: baseurl + "/workers/json",
+            type: "GET",
+            dataType: "json",
             success: function (data) {
               updateTable(data);
             },
             error: function (error) {
-              console.error('Error fetching data: ', error);
-              showErrorNotification('Error fetching workers data');
+              console.error("Error fetching data: ", error);
+              showErrorNotification("Error fetching workers data");
             },
           });
         }
       }
 
       function updateTable(data) {
-        var tableBody = $('#workers tbody');
+        var tableBody = $("#workers tbody");
         tableBody.empty();
 
         $.each(data, function (index, worker) {
-          var row = $('<tr>');
-          row.append($('<td>').text(worker.name));
-          if (worker.current_job !== 'Idle') {
-            var jobLink = $('<a>')
-              .attr('href', baseurl + '/jobs/' + worker.current_job_id)
+          var row = $("<tr>");
+          row.append($("<td>").text(worker.name));
+          if (worker.current_job !== "Idle") {
+            var jobLink = $("<a>")
+              .attr("href", baseurl + "/jobs/" + worker.current_job_id)
               .text(worker.current_job);
-            row.append($('<td>').append(jobLink));
+            row.append($("<td>").append(jobLink));
           } else {
-            row.append($('<td>').text(worker.current_job));
+            row.append($("<td>").text(worker.current_job));
           }
 
-          var queuesCell = $('<td>');
+          var queuesCell = $("<td>");
           $.each(worker.queues, function (queueIndex, queue) {
             queuesCell.append(queue);
             if (queueIndex < worker.queues.length - 1) {
-              queuesCell.append(', ');
+              queuesCell.append(", ");
             }
           });
           row.append(queuesCell);
-          row.append($('<td>').text(worker.successful_job_count));
-          row.append($('<td>').text(worker.failed_job_count));
+          row.append($("<td>").text(worker.successful_job_count));
+          row.append($("<td>").text(worker.failed_job_count));
 
           tableBody.append(row);
         });
@@ -144,7 +144,7 @@
             <td>{{ worker.name }}</td>
             <td>
               {% if worker.current_job != 'Idle' %}
-              <a href="{{baseurl}}/jobs/{{ worker.current_job_id }}"
+              <a href="{{baseurl}}/job/{{ worker.current_job_id }}"
                 >{{ worker.current_job }}</a
               >
               {% else %} {{ worker.current_job }} {% endif %}
