@@ -61,14 +61,25 @@ class RedisQueueDashboard(FastAPI):
         logger = logging.getLogger(__name__)
 
         @self.get("/", response_class=HTMLResponse)
-        async def get_home(request: Request):
+        async def get_home(
+            request: Request,
+            queue_name: str = Query("all"),
+            state: str = Query("all"),
+            page: int = Query(1),
+        ):
             try:
+                job_data = get_jobs(self.redis_url, queue_name, state, page=page)
+
+                active_tab = "jobs"
+
                 protocol = self.protocol if self.protocol else request.url.scheme
+
                 return self.templates.TemplateResponse(
-                    "base.html",
+                    "jobs.html",
                     {
                         "request": request,
-                        "active_tab": "jobs",
+                        "job_data": job_data,
+                        "active_tab": active_tab,
                         "prefix": prefix,
                         "rq_dashboard_version": self.rq_dashboard_version,
                         "protocol": protocol,

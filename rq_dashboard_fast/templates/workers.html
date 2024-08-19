@@ -153,8 +153,20 @@
               {% for queue_name in worker.queues %} {{ queue_name }} {% if not
               loop.last %}, {% endif %} {% endfor %}
             </td>
-            <td>{{ worker.successful_job_count }}</td>
-            <td>{{ worker.failed_job_count }}</td>
+            {% for queue_name in worker.queues %} {{ queue_name }}
+            <td>
+              <a
+                href="{{baseurl}}/jobs/?state=successful&queue_name={{queue_name}}"
+              >
+                {{ worker.successful_job_count }}
+              </a>
+            </td>
+            <td>
+              <a href="{{baseurl}}/jobs/?state=failed&queue_name={{queue_name}}"
+                >{{ worker.failed_job_count }}</a
+              >
+            </td>
+            {% endfor %}
           </tr>
           {% endfor %}
         </tbody>
