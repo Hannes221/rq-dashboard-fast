@@ -162,16 +162,29 @@
                 row.append($("<td>").text(job.name));
                 var formattedDate = new Date(job.created_at).toLocaleString();
                 row.append($("<td>").text(formattedDate));
-                row.append(
-                  $("<td>").append(
-                    $("<button>")
-                      .text("Delete")
-                      .addClass("delete-button")
-                      .on("click", function () {
-                        deleteJob(job.id);
-                      })
-                  )
+                
+                var optionsCell = $("<td>");
+                optionsCell.append(
+                  $("<button>")
+                    .text("Delete")
+                    .addClass("delete-button")
+                    .on("click", function () {
+                      deleteJob(job.id);
+                    })
                 );
+
+                if (state === "failed") {
+                  optionsCell.append($("<span>").addClass("button-spacer"));
+                  optionsCell.append(
+                    $("<button>")
+                      .text("Requeue")
+                      .addClass("requeue-button")
+                      .on("click", function () {
+                        requeueJob(job.id);
+                      })
+                  );
+                }
+                row.append(optionsCell);
                 tableBody.append(row);
               });
             }
@@ -186,6 +199,17 @@
           error: function (error) {
             console.error("Error fetching job data: ", error);
             showErrorNotification("Error deleting job");
+          },
+        });
+      }
+
+      function requeueJob(job_id) {
+        $.ajax({
+          url: baseurl + "/job/" + job_id + "/requeue",
+          type: "POST",
+          error: function (error) {
+            console.error("Error fetching job data: ", error);
+            showErrorNotification("Error requeueing job");
           },
         });
       }
@@ -269,13 +293,11 @@
             <td>{{ job.name }}</td>
             <td>{{ job.created_at }}</td>
             <td>
-              <div class="delete-button-container">
-                <button
-                  class="delete-button"
-                  onclick="deleteJob('{{ job.id }}')"
-                >
-                  Delete
-                </button>
+              <div class="button-container">
+                <button class="delete-button" onclick="deleteJob('{{ job.id }}')">Delete</button>
+                {% if state == "failed" %}
+                  <button class="requeue-button" onclick="requeueJob('{{ job.id }}')">Requeue</button>
+                {% endif %}
               </div>
             </td>
           </tr>
