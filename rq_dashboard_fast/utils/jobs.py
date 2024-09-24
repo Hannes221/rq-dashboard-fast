@@ -230,6 +230,15 @@ def delete_job_id(redis_url: str, job_id: str):
         logger.exception("Error deleting specific job: ", error)
         raise HTTPException(status_code=500, detail=str("Error deleting specific job"))
 
+def requeue_job_id(redis_url: str, job_id: str):
+    try:
+        redis = Redis.from_url(redis_url)
+        job = Job.fetch(job_id, connection=redis)
+        if job:
+            job.requeue()
+    except Exception as error:
+        logger.exception("Error reloading specific job: ", error)
+        raise HTTPException(status_code=500, detail=str("Error reloading specific job"))
 
 def convert_queue_job_registry_stats_to_json_dict(
     job_data: List[QueueJobRegistryStats],
