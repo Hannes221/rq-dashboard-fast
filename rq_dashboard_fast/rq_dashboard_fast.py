@@ -17,6 +17,7 @@ from rq_dashboard_fast.utils.jobs import (
     convert_queue_job_registry_dict_to_dataframe,
     convert_queue_job_registry_stats_to_json_dict,
     delete_job_id,
+    requeue_job_id,
     get_job,
     get_jobs,
 )
@@ -281,6 +282,16 @@ class RedisQueueDashboard(FastAPI):
                     status_code=500, detail="An error occurred while deleting a job"
                 )
 
+        @self.post("/job/{job_id}/requeue")
+        def requeue_job(job_id: str):
+            try:
+                requeue_job_id(self.redis_url, job_id=job_id)
+            except Exception as e:
+                logger.exception("An error occurred while requeueing a job:", e)
+                raise HTTPException(
+                    status_code=500, detail="An error occurred while requeueing a job"
+                )
+    
         @self.get("/export", response_class=HTMLResponse)
         async def export(request: Request):
             try:
