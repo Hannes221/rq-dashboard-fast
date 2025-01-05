@@ -17,9 +17,9 @@ from rq_dashboard_fast.utils.jobs import (
     convert_queue_job_registry_dict_to_dataframe,
     convert_queue_job_registry_stats_to_json_dict,
     delete_job_id,
-    requeue_job_id,
     get_job,
     get_jobs,
+    requeue_job_id,
 )
 from rq_dashboard_fast.utils.queues import (
     QueueRegistryStats,
@@ -57,7 +57,7 @@ class RedisQueueDashboard(FastAPI):
         self.redis_url = redis_url
         self.protocol = protocol
 
-        self.rq_dashboard_version = "0.5.9"
+        self.rq_dashboard_version = "0.5.10"
 
         logger = logging.getLogger(__name__)
 
@@ -291,7 +291,7 @@ class RedisQueueDashboard(FastAPI):
                 raise HTTPException(
                     status_code=500, detail="An error occurred while requeueing a job"
                 )
-    
+
         @self.get("/export", response_class=HTMLResponse)
         async def export(request: Request):
             try:

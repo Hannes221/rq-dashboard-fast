@@ -53,15 +53,12 @@ def get_job_registrys(
 ) -> List[QueueJobRegistryStats]:
     try:
         redis = Redis.from_url(redis_url)
-        scheduler = Scheduler(connection=redis, queue_name=queue_name)
-
+        scheduler = Scheduler(connection=redis)
         queues = get_queues(redis_url)
         result = []
 
         start_index = (page - 1) * per_page
         end_index = start_index + per_page
-
-        scheduled_jobs = []
 
         for queue in queues:
             if queue_name == "all" or queue_name == queue.name:
@@ -88,17 +85,11 @@ def get_job_registrys(
                     elif state == "deferred":
                         jobs.extend(queue.deferred_job_registry.get_job_ids())
 
-                started_jobs = []
-                failed_jobs = []
-                deferred_jobs = []
-                finished_jobs = []
-                queued_jobs = []
                 scheduled_jobs = []
-
                 scheduled = scheduler.get_jobs()
 
                 for job in scheduled:
-                    if job.id not in scheduled_jobs:
+                    if job.origin == queue.name and job.id not in scheduled_jobs:
                         scheduled_jobs.append(
                             JobData(
                                 id=job.id,
@@ -108,7 +99,6 @@ def get_job_registrys(
                         )
 
                 jobs_fetched = Job.fetch_many(jobs, connection=redis)
-
                 started_jobs = []
                 failed_jobs = []
                 deferred_jobs = []
@@ -154,14 +144,6 @@ def get_job_registrys(
                         )
                     elif status == "queued":
                         queued_jobs.append(
-                            JobData(
-                                id=job.id,
-                                name=job.description,
-                                created_at=job.created_at,
-                            )
-                        )
-                    elif status == "scheduled":
-                        scheduled_jobs.append(
                             JobData(
                                 id=job.id,
                                 name=job.description,
@@ -230,6 +212,7 @@ def delete_job_id(redis_url: str, job_id: str):
         logger.exception("Error deleting specific job: ", error)
         raise HTTPException(status_code=500, detail=str("Error deleting specific job"))
 
+
 def requeue_job_id(redis_url: str, job_id: str):
     try:
         redis = Redis.from_url(redis_url)
@@ -239,6 +222,7 @@ def requeue_job_id(redis_url: str, job_id: str):
     except Exception as error:
         logger.exception("Error reloading specific job: ", error)
         raise HTTPException(status_code=500, detail=str("Error reloading specific job"))
+
 
 def convert_queue_job_registry_stats_to_json_dict(
     job_data: List[QueueJobRegistryStats],
