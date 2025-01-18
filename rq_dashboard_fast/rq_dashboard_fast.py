@@ -57,7 +57,7 @@ class RedisQueueDashboard(FastAPI):
         self.redis_url = redis_url
         self.protocol = protocol
 
-        self.rq_dashboard_version = "0.5.10"
+        self.rq_dashboard_version = "0.5.11"
 
         logger = logging.getLogger(__name__)
 
