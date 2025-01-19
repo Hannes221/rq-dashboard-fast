@@ -1,8 +1,15 @@
 import pytest
 from redis import Redis
 from rq import Queue
-import pandas
-from ..utils.queues import delete_jobs_for_queue, get_job_registry_amount, get_queues, convert_queue_data_to_json_dict, convert_queues_dict_to_dataframe, QueueRegistryStats
+
+from ..utils.queues import (
+    QueueRegistryStats,
+    convert_queue_data_to_json_dict,
+    convert_queues_dict_to_list,
+    delete_jobs_for_queue,
+    get_job_registry_amount,
+    get_queues,
+)
 
 
 @pytest.fixture
@@ -58,23 +65,14 @@ def test_delete_jobs_for_queue(setup_redis):
     assert any(
         stat.queued == 0 and stat.queue_name == queue_name for stat in registry_stats
     )
-    
+
+
 def test_convert_queue_data_to_json_dict():
     queue_stats_1 = QueueRegistryStats(
-        queue_name='Queue 1',
-        queued=10,
-        started=5,
-        failed=2,
-        deferred=3,
-        finished=20
+        queue_name="Queue 1", queued=10, started=5, failed=2, deferred=3, finished=20
     )
     queue_stats_2 = QueueRegistryStats(
-        queue_name='Queue 2',
-        queued=15,
-        started=8,
-        failed=1,
-        deferred=0,
-        finished=25
+        queue_name="Queue 2", queued=15, started=8, failed=1, deferred=0, finished=25
     )
     queue_data = [queue_stats_1, queue_stats_2]
     result_json = convert_queue_data_to_json_dict(queue_data)
@@ -85,55 +83,54 @@ def test_convert_queue_data_to_json_dict():
                 "started": 5,
                 "failed": 2,
                 "deferred": 3,
-                "finished": 20
+                "finished": 20,
             },
             "Queue 2": {
                 "queued": 15,
                 "started": 8,
                 "failed": 1,
                 "deferred": 0,
-                "finished": 25
-            }
+                "finished": 25,
+            },
         }
     ]
-    
+
     assert result_json == expected_json
 
-def test_convert_queues_dict_to_dataframe():
-    input_data =  [
+
+def test_convert_queues_dict_to_list():
+    input_data = [
         {
             "Queue 1": {
                 "queued": 10,
                 "started": 5,
                 "failed": 2,
                 "deferred": 3,
-                "finished": 20
+                "finished": 20,
             },
             "Queue 2": {
                 "queued": 15,
                 "started": 8,
                 "failed": 1,
                 "deferred": 0,
-                "finished": 25
-            }
+                "finished": 25,
+            },
         }
     ]
-        
-    expected_columns = ['queue_name', 'status', 'count']
-    expected_data = pandas.DataFrame([
-    {"queue_name": "Queue 1", "status": "queued", "count": 10},
-    {"queue_name": "Queue 1", "status": "started", "count": 5},
-    {"queue_name": "Queue 1", "status": "failed", "count": 2},
-    {"queue_name": "Queue 1", "status": "deferred", "count": 3},
-    {"queue_name": "Queue 1", "status": "finished", "count": 20},
-    {"queue_name": "Queue 2", "status": "queued", "count": 15},
-    {"queue_name": "Queue 2", "status": "started", "count": 8},
-    {"queue_name": "Queue 2", "status": "failed", "count": 1},
-    {"queue_name": "Queue 2", "status": "deferred", "count": 0},
-    {"queue_name": "Queue 2", "status": "finished", "count": 25}
-])
 
-    result_df = convert_queues_dict_to_dataframe(input_data)
-        
-    assert result_df.equals(expected_data)
-    assert list(result_df.columns) == expected_columns
+    expected_data = [
+        {"queue_name": "Queue 1", "status": "queued", "count": 10},
+        {"queue_name": "Queue 1", "status": "started", "count": 5},
+        {"queue_name": "Queue 1", "status": "failed", "count": 2},
+        {"queue_name": "Queue 1", "status": "deferred", "count": 3},
+        {"queue_name": "Queue 1", "status": "finished", "count": 20},
+        {"queue_name": "Queue 2", "status": "queued", "count": 15},
+        {"queue_name": "Queue 2", "status": "started", "count": 8},
+        {"queue_name": "Queue 2", "status": "failed", "count": 1},
+        {"queue_name": "Queue 2", "status": "deferred", "count": 0},
+        {"queue_name": "Queue 2", "status": "finished", "count": 25},
+    ]
+
+    result_list = convert_queues_dict_to_list(input_data)
+
+    assert result_list == expected_data

@@ -2,7 +2,6 @@ import logging
 from datetime import datetime
 from typing import Any, List
 
-import pandas
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from redis import Redis
@@ -261,9 +260,7 @@ def convert_queue_job_registry_stats_to_json_dict(
         )
 
 
-def convert_queue_job_registry_dict_to_dataframe(
-    input_data: list[dict],
-) -> pandas.DataFrame:
+def convert_queue_job_registry_dict_to_list(input_data: list[dict]) -> list[dict]:
     job_details = []
     try:
         for queue_dict in input_data:
@@ -278,14 +275,10 @@ def convert_queue_job_registry_dict_to_dataframe(
                             "created_at": job["created_at"],
                         }
                         job_details.append(job_info)
-
-        df = pandas.DataFrame(job_details)
-        return df
+        return job_details
     except Exception as error:
-        logger.exception(
-            "Error converting job registry stats dict to DataFrame: ", error
-        )
+        logger.exception("Error converting job registry stats dict to list: ", error)
         raise HTTPException(
             status_code=500,
-            detail=f"Error converting job registry stats dict to DataFrame",
+            detail=f"Error converting job registry stats dict to list",
         )

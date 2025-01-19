@@ -1,6 +1,5 @@
 import logging
 
-import pandas
 from fastapi import HTTPException
 from pydantic import BaseModel
 from redis import Redis
@@ -84,7 +83,7 @@ def convert_worker_data_to_json_dict(worker_data: list[WorkerData]) -> list[dict
         )
 
 
-def convert_workers_dict_to_dataframe(input_data: list[dict]) -> pandas.DataFrame:
+def convert_workers_dict_to_list(input_data: list[dict]) -> list[dict]:
     worker_details = []
     try:
         for workers_dict in input_data:
@@ -99,11 +98,7 @@ def convert_workers_dict_to_dataframe(input_data: list[dict]) -> pandas.DataFram
                 }
                 worker_details.append(worker_info)
 
-        df = pandas.DataFrame(worker_details)
-        return df
-
+        return worker_details
     except Exception as error:
-        logger.exception("Error converting workers dict to DataFrame: ", error)
-        raise Exception(
-            status_code=500, detail="Error converting workers dict to DataFrame"
-        )
+        logger.exception("Error converting workers dict to list: ", error)
+        raise Exception(status_code=500, detail="Error converting workers dict to list")
