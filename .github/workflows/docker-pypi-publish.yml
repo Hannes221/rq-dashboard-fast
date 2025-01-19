@@ -22,7 +22,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          repository: 'Hannes221/rq-dashboard-fast'
+          repository: "Hannes221/rq-dashboard-fast"
+
+      - name: Build Docker image with dev dependencies
+        run: docker compose build --build-arg INSTALL_DEV=true
 
       - name: Wait for services
         run: docker compose up -d
@@ -40,13 +43,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          repository: 'Hannes221/rq-dashboard-fast'
+          repository: "Hannes221/rq-dashboard-fast"
 
       # Install Python and dependencies for building package
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: "3.x"
 
       - name: Install dependencies
         run: |

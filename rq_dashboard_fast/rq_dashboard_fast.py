@@ -1,6 +1,7 @@
 import asyncio
+import csv
 import logging
-from io import BytesIO
+from io import BytesIO, StringIO
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query, Request
@@ -14,7 +15,7 @@ from starlette.staticfiles import StaticFiles
 from rq_dashboard_fast.utils.jobs import (
     JobDataDetailed,
     QueueJobRegistryStats,
-    convert_queue_job_registry_dict_to_dataframe,
+    convert_queue_job_registry_dict_to_list,
     convert_queue_job_registry_stats_to_json_dict,
     delete_job_id,
     get_job,
@@ -24,14 +25,14 @@ from rq_dashboard_fast.utils.jobs import (
 from rq_dashboard_fast.utils.queues import (
     QueueRegistryStats,
     convert_queue_data_to_json_dict,
-    convert_queues_dict_to_dataframe,
+    convert_queues_dict_to_list,
     delete_jobs_for_queue,
     get_job_registry_amount,
 )
 from rq_dashboard_fast.utils.workers import (
     WorkerData,
     convert_worker_data_to_json_dict,
-    convert_workers_dict_to_dataframe,
+    convert_workers_dict_to_list,
     get_workers,
 )
 
@@ -57,7 +58,7 @@ class RedisQueueDashboard(FastAPI):
         self.redis_url = redis_url
         self.protocol = protocol
 
-        self.rq_dashboard_version = "0.5.11"
+        self.rq_dashboard_version = "0.5.12"
 
         logger = logging.getLogger(__name__)
 
@@ -319,10 +320,9 @@ class RedisQueueDashboard(FastAPI):
             try:
                 queue_data = asyncio.run(read_queues())
                 json_dict = convert_queue_data_to_json_dict(queue_data)
-                df = convert_queues_dict_to_dataframe(json_dict)
-                output = BytesIO()
-                df.to_csv(output, index=False)
-                output.seek(0)
+                queue_list = convert_queues_dict_to_list(json_dict)
+                csv_data = export_to_csv(queue_list, "queue_data.csv")
+                output = BytesIO(csv_data.encode())
                 headers = {"Content-Disposition": "attachment; filename=queue_data.csv"}
                 return StreamingResponse(
                     output, headers=headers, media_type="application/octet-stream"
@@ -338,10 +338,12 @@ class RedisQueueDashboard(FastAPI):
             try:
                 worker_data = asyncio.run(read_workers())
                 json_dict = convert_worker_data_to_json_dict(worker_data)
-                df = convert_workers_dict_to_dataframe(json_dict)
-                output = BytesIO()
-                df.to_csv(output, index=False)
-                output.seek(0)
+                df = convert_workers_dict_to_list(json_dict)
+                csv_data = export_to_csv(df, "worker_data.csv")
+                output = BytesIO(csv_data.encode())
+                headers = {
+                    "Content-Disposition": "attachment; filename=worker_data.csv"
+                }
                 headers = {
                     "Content-Disposition": "attachment; filename=worker_data.csv"
                 }
@@ -359,10 +361,9 @@ class RedisQueueDashboard(FastAPI):
             try:
                 jobs_data = asyncio.run(read_jobs("all", "all", 1))
                 json_dict = convert_queue_job_registry_stats_to_json_dict(jobs_data)
-                df = convert_queue_job_registry_dict_to_dataframe(json_dict)
-                output = BytesIO()
-                df.to_csv(output, index=False)
-                output.seek(0)
+                df = convert_queue_job_registry_dict_to_list(json_dict)
+                csv_data = export_to_csv(df, "jobs_data.csv")
+                output = BytesIO(csv_data.encode())
                 headers = {"Content-Disposition": "attachment; filename=jobs_data.csv"}
                 return StreamingResponse(
                     output, headers=headers, media_type="application/octet-stream"
@@ -372,3 +373,13 @@ class RedisQueueDashboard(FastAPI):
                 raise HTTPException(
                     status_code=500, detail="An error occurred while exporting"
                 )
+
+
+def export_to_csv(data: list[dict], filename: str) -> str:
+    if not data:
+        return ""
+    output = StringIO()
+    writer = csv.DictWriter(output, fieldnames=data[0].keys())
+    writer.writeheader()
+    writer.writerows(data)
+    return output.getvalue()

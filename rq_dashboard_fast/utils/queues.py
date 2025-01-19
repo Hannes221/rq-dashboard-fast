@@ -1,6 +1,5 @@
 import logging
 
-import pandas
 from fastapi import HTTPException
 from pydantic import BaseModel
 from redis import Redis
@@ -102,7 +101,7 @@ def convert_queue_data_to_json_dict(queue_data: list[QueueRegistryStats]) -> lis
         )
 
 
-def convert_queues_dict_to_dataframe(input_data: list[dict]) -> pandas.DataFrame:
+def convert_queues_dict_to_list(input_data: list[dict]) -> list[dict]:
     queue_details = []
     try:
         for queue_dict in input_data:
@@ -114,10 +113,7 @@ def convert_queues_dict_to_dataframe(input_data: list[dict]) -> pandas.DataFrame
                         "count": count,
                     }
                     queue_details.append(queue_info)
-        df = pandas.DataFrame(queue_details)
-        return df
+        return queue_details
     except Exception as error:
-        logger.exception("Error converting queues dict to DataFrame: ", error)
-        raise Exception(
-            status_code=500, detail="Error converting queues dict to DataFrame"
-        )
+        logger.exception("Error converting queues dict to list: ", error)
+        raise Exception(status_code=500, detail="Error converting queues dict to list")
