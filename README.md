@@ -22,9 +22,9 @@ from rq_dashboard_fast import RedisQueueDashboard
 import uvicorn
 
 app = FastAPI()
-dashboard = RedisQueueDashboard(“redis://redis:6379/”, "/rq")
+dashboard = RedisQueueDashboard("redis://redis:6379/", "/rq")
 
-app.mount(“/rq”, dashboard)
+app.mount("/rq", dashboard)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
