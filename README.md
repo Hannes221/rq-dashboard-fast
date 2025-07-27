@@ -69,8 +69,7 @@ Replace <your_fastapi_port> with your desired FastAPI and host port.
 
 2. You can use Docker Compose by creating a docker-compose.yml file:
 
-```
-version: '3.11'
+```yml
 services:
   dashboard:
     image: hannes221/rq-dashboard-fast
@@ -94,8 +93,7 @@ http://127.0.0.1:8000/rq
 
 To change the part update the compose file:
 
-```
-version: '3.11'
+```yml
 services:
   dashboard:
     image: hannes221/rq-dashboard-fast
