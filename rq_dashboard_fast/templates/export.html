@@ -1,212 +1,101 @@
 {% extends "base.html" %}
 
+{% block page_title %}Export · RQ Dashboard{% endblock %}
+
 {% block content %}
+  <div class="h2-section">
+    <div>
+      <h2>Export</h2>
+      <p class="text-muted">Download queues, workers, or jobs as CSV or JSON with one click.</p>
+    </div>
+  </div>
 
-<!DOCTYPE html>
-<html lang="en">
+  <section class="section">
+    <div class="table-wrapper">
+      <table id="export">
+        <thead>
+          <tr>
+            <th>Dataset</th>
+            <th>Format</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for resource in ["queues", "workers", "jobs"] %}
+            <tr>
+              <td>{{ resource|capitalize }}</td>
+              <td>
+                <select class="export-select" data-export-select="{{ resource }}">
+                  <option value="csv">CSV</option>
+                  <option value="json">JSON</option>
+                </select>
+              </td>
+              <td>
+                <button class="button export-button" data-export="{{ resource }}">
+                  Export {{ resource|capitalize }}
+                </button>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Export</title>
+{% block page_scripts %}
   <script>
-    let autoRefreshEnabled = true;
-    let autoRefreshInterval;
-    const protocol = "{{ protocol }}";
-    const host = window.location.host;
-    const prefix = "{{ prefix }}";
-    const baseurl = protocol + "://" + host + prefix;
-    function showNotification(message) {
-  const notification = document.createElement("div");
-  notification.className = "notification";
-  notification.textContent = message;
+    document.addEventListener('DOMContentLoaded', () => {
+      const { baseUrl, showMessage, showError } = window.dashboard;
+      const buttons = document.querySelectorAll('[data-export]');
 
-  document.body.appendChild(notification);
+      const downloadBlob = (blob, filename) => {
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+      };
 
-  setTimeout(() => {
-    document.body.removeChild(notification);
-  }, 3000);
-}
+      const exportCsv = (resource) =>
+        fetch(`${baseUrl}/export/${resource}`)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error();
+            }
+            return response.blob();
+          })
+          .then((blob) => downloadBlob(blob, `${resource}_data.csv`));
 
-function showErrorNotification(message) {
-  const errorNotification = document.createElement("div");
-  errorNotification.className = "error-notification";
-  errorNotification.textContent = message;
+      const exportJson = (resource) =>
+        fetch(`${baseUrl}/${resource}/json`)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error();
+            }
+            return response.json();
+          })
+          .then((data) => {
+            const json = JSON.stringify(data, null, 2);
+            downloadBlob(new Blob([json], { type: 'application/json' }), `${resource}_data.json`);
+          });
 
-  document.body.appendChild(errorNotification);
+      buttons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const resource = button.dataset.export;
+          const selector = document.querySelector(`[data-export-select="${resource}"]`);
+          const format = selector ? selector.value : 'csv';
 
-  setTimeout(() => {
-    document.body.removeChild(errorNotification);
-  }, 3000);
-}
+          const action = format === 'csv' ? exportCsv : exportJson;
 
-  function export_object_csv(object_name) {
-      $.ajax({
-    url: baseurl + "/export/"+object_name,
-    type: "GET",
-    xhrFields: {
-      responseType: 'blob'
-    },
-    success: function (data) {
-            var a = document.createElement('a');
-            var url = window.URL.createObjectURL(data);
-            a.href = url;
-            a.download = object_name+'_data.csv';
-            document.body.append(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-        },
-    error: function (error) {
-      console.error("Error fetching "+object_name+" data: ", error);
-      showErrorNotification("Error exporting "+object_name);
-    }
-  });
-}
-function export_object_json(object_name) {
-  $.ajax({
-    url: baseurl + "/"+object_name+"/json",
-    type: "GET",
-    dataType: "json",
-    success: function (data) {
-      var jsonString = JSON.stringify(data, null, 2);
-      var blob = new Blob([jsonString], { type: 'application/json' });
-      var url = window.URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = object_name + '_data.json';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    },
-    error: function (error) {
-      console.error("Error fetching " + objectName + " data: ", error);
-      showErrorNotification("Error exporting " + objectName);
-    }
-  });
-}
-function handle_format(elementId, type) {
-  if (document.getElementById(elementId).value == 'csv')
-    export_object_csv(type);
-  else
-    export_object_json(type);
-}
-
-function handle_format_queues() {
-  handle_format('export-queues-format', 'queues');
-}
-
-function handle_format_workers() {
-  handle_format('export-workers-format', 'workers');
-}
-
-function handle_format_jobs() {
-  handle_format('export-jobs-format', 'jobs');
-}
+          action(resource)
+            .then(() => showMessage(`Exported ${resource}`))
+            .catch(() => showError(`Unable to export ${resource}`));
+        });
+      });
+    });
   </script>
-  <style>
-  #export {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-  }
-
-  #export th,
-  #export td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-  }
-
-  #export th {
-    background-color: #f2f2f2;
-  }
-  .export-button-container {
-      display: flex;
-      margin-top: 10px;
-    }
-
-  .export-button {
-    padding: 10px 15px;
-    color: #000000;
-    border: 2px solid #000000;
-    border-radius: 5px;
-    text-decoration: none;
-    background-color: #ccffcc;
-    transition: background-color 0.3s ease, color 0.3s ease,
-      border-color 0.3s ease;
-    cursor: pointer;
-  }
-
-  .export-button:hover {
-    background-color: #2e4c2d;
-    color: #ccffcc;
-    border-color: #2e4c2d;
-  }
-  .export-select {
-      margin-left: 10px;
-    }
-  </style>
-</head>
-
-<body>
-<div class="h2-section">
-    <h2>Export</h2>
-</div>
-
-<div class="section">
-  <table id="export">
-    <tr>
-      <th>Export Queues</th>
-      <th>Export Workers</th>
-      <th>Export Jobs</th>
-    </tr>
-    <tbody>
-      <tr>
-        <td>
-          <div class="export-button-container">
-            <button class="export-button" id="export-queues" onclick="handle_format_queues()">
-              Export Queues
-            </button>
-            <div class="filter-section">
-            <select class="export-select" id="export-queues-format">
-              <option value="csv">CSV</option>
-              <option value="json">JSON</option>
-            </select>
-          </div>
-          </div>
-        </td>
-        <td>
-          <div class="export-button-container">
-            <button class="export-button" id="export-workers" onclick="handle_format_workers()">
-              Export Workers
-            </button>
-            <div class="filter-section">
-            <select class="export-select" id="export-workers-format">
-              <option value="csv">CSV</option>
-              <option value="json">JSON</option>
-            </select>
-            </div>
-          </div>
-        </td>
-        <td>
-          <div class="export-button-container">
-            <button class="export-button" id="export-jobs" onclick="handle_format_jobs()">
-              Export Jobs
-            </button>
-            <div class="filter-section">
-            <select class="export-select" id="export-jobs-format">
-              <option value="csv">CSV</option>
-              <option value="json">JSON</option>
-            </select>
-            </div>
-          </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-</body>
-</html>
 {% endblock %}

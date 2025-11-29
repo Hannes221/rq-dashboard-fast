@@ -1,16 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="initial-scale=1.0" />
+    <title>{% block page_title %}RQ Dashboard FastAPI{% endblock %}</title>
     <link rel="stylesheet" href="{{ prefix }}/static/css/main.css" />
+    {% block page_styles %}{% endblock %}
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <title>RQ dashboard FastAPI</title>
   </head>
 
-  <body>
-    {% include "header.html"%} {%if depreciation_options_usage%} {% endif %}
-    <div>{% block content %}{% endblock %}</div>
-    {% include "footer.html"%}
+  <body data-prefix="{{ prefix }}">
+    {% include "header.html" %}
+    <main class="page-content">
+      {% block content %}{% endblock %}
+    </main>
+    {% include "footer.html" %}
+    <script src="{{ prefix }}/static/js/dashboard.js"></script>
+    {% block page_scripts %}{% endblock %}
   </body>
 </html>
