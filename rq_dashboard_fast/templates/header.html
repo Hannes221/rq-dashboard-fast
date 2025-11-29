@@ -1,40 +1,25 @@
-<div id="header-dashboard" class="header-expand-lg header-light">
-  <div class="header-brand-container">
-    <h1 class="header-brand">RQ-Dashboard FastAPI</h1>
-  </div>
-  <ul class="header-nav">
-    <li class="header-item">
-      <a href="{{prefix}}/jobs" class="header-link">Jobs</a>
-    </li>
-    <li class="header-item">
-      <a href="{{prefix}}/queues" class="header-link">Queues</a>
-    </li>
-    <li class="header-item">
-      <a href="{{prefix}}/workers" class="header-link">Workers</a>
-    </li>
-    <li class="header-item">
-      <a href="{{prefix}}/export" class="header-link">Export Data</a>
-    </li>
-  </ul>
-</div>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    var currentPath = window.location.pathname;
-
-    var navLinks = document.querySelectorAll('.header-link');
-    navLinks.forEach(function (link) {
-      var href = link.getAttribute('href');
-      if (href === currentPath || prefix + href === currentPath) {
-        link.parentNode.classList.add('selected');
-      }
-    });
-  });
-</script>
-
-<style>
-  .selected {
-    font-size: large;
-    font-weight: bold;
-  }
-</style>
+<header id="header-dashboard" data-nav-root>
+  <div class="header-brand">RQ-Dashboard FastAPI</div>
+  <nav aria-label="Primary">
+    <ul class="header-nav">
+      <li class="header-item">
+        <a href="{{ prefix }}/jobs" class="header-link" data-nav-path="/jobs">Jobs</a>
+      </li>
+      <li class="header-item">
+        <a href="{{ prefix }}/queues" class="header-link" data-nav-path="/queues"
+          >Queues</a
+        >
+      </li>
+      <li class="header-item">
+        <a href="{{ prefix }}/workers" class="header-link" data-nav-path="/workers"
+          >Workers</a
+        >
+      </li>
+      <li class="header-item">
+        <a href="{{ prefix }}/export" class="header-link" data-nav-path="/export"
+          >Export Data</a
+        >
+      </li>
+    </ul>
+  </nav>
+</header>

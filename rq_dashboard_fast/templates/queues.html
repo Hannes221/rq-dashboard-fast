@@ -1,266 +1,158 @@
-{% extends "base.html" %}{% block content %}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Queues Dashboard</title>
-    <script>
-      let autoRefreshEnabled = true;
-      let autoRefreshInterval;
-      const protocol = '{{ protocol }}';
-      const host = window.location.host;
-      const prefix = '{{ prefix }}';
-      const baseurl = protocol + '://' + host + prefix;
+{% extends "base.html" %}
 
-      function showNotification(message) {
-        const notification = document.createElement('div');
-        notification.className = 'notification';
-        notification.textContent = message;
+{% block title %}Queues · RQ Dashboard{% endblock %}
 
-        document.body.appendChild(notification);
+{% block content %}
+<section class="page-header">
+  <h2>Queues</h2>
+  <label class="autorefresh-toggle">
+    <input
+      type="checkbox"
+      class="custom-control-input"
+      id="autorefresh-switch"
+      checked
+    />
+    Autorefresh
+  </label>
+</section>
 
-        setTimeout(() => {
-          document.body.removeChild(notification);
-        }, 3000);
+<section class="section">
+  <table id="queues" class="table">
+    <thead>
+      <tr>
+        <th>Queue</th>
+        <th>Queued</th>
+        <th>Started</th>
+        <th>Failed</th>
+        <th>Deferred</th>
+        <th>Finished</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for queue_stats in queue_data %}
+      <tr>
+        <td>{{ queue_stats.queue_name }}</td>
+        <td>
+          <a href="{{ prefix }}/jobs?state=queued&queue_name={{ queue_stats.queue_name }}">
+            {{ queue_stats.queued }}
+          </a>
+        </td>
+        <td>
+          <a href="{{ prefix }}/jobs?state=started&queue_name={{ queue_stats.queue_name }}">
+            {{ queue_stats.started }}
+          </a>
+        </td>
+        <td>
+          <a href="{{ prefix }}/jobs?state=failed&queue_name={{ queue_stats.queue_name }}">
+            {{ queue_stats.failed }}
+          </a>
+        </td>
+        <td>
+          <a href="{{ prefix }}/jobs?state=deferred&queue_name={{ queue_stats.queue_name }}">
+            {{ queue_stats.deferred }}
+          </a>
+        </td>
+        <td>
+          <a href="{{ prefix }}/jobs?state=finished&queue_name={{ queue_stats.queue_name }}">
+            {{ queue_stats.finished }}
+          </a>
+        </td>
+        <td>
+          <button class="btn btn--danger btn--small" data-queue="{{ queue_stats.queue_name }}">
+            Delete jobs
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const baseUrl = DashboardUI.getBaseUrl();
+    const tableBody = document.querySelector('#queues tbody');
+
+    const createCell = (content) => {
+      const cell = document.createElement('td');
+      if (content instanceof Node) {
+        cell.appendChild(content);
+      } else {
+        cell.textContent = content;
       }
+      return cell;
+    };
 
-      function showErrorNotification(message) {
-        const notification = documenr.createElement('div');
-        notification.className = 'error-notification';
-        notification.textContent = message;
+    const createJobsLink = (queueName, state, value) => {
+      const link = document.createElement('a');
+      link.href = `${baseUrl}/jobs?state=${state}&queue_name=${queueName}`;
+      link.textContent = value;
+      return link;
+    };
 
-        document.body.appendChild(notification);
+    const renderQueues = (queues) => {
+      tableBody.textContent = '';
+      queues.forEach((queue) => {
+        const row = document.createElement('tr');
+        row.appendChild(createCell(queue.queue_name));
+        row.appendChild(createCell(createJobsLink(queue.queue_name, 'queued', queue.queued)));
+        row.appendChild(createCell(createJobsLink(queue.queue_name, 'started', queue.started)));
+        row.appendChild(createCell(createJobsLink(queue.queue_name, 'failed', queue.failed)));
+        row.appendChild(createCell(createJobsLink(queue.queue_name, 'deferred', queue.deferred)));
+        row.appendChild(createCell(createJobsLink(queue.queue_name, 'finished', queue.finished)));
 
-        setTimeout(() => {
-          document.body.removeChild(notification);
-        }, 3000);
-      }
+        const actionButton = document.createElement('button');
+        actionButton.className = 'btn btn--danger btn--small';
+        actionButton.dataset.queue = queue.queue_name;
+        actionButton.type = 'button';
+        actionButton.textContent = 'Delete jobs';
+        row.appendChild(createCell(actionButton));
 
-      function toggleAutorefresh() {
-        autoRefreshEnabled = !autoRefreshEnabled;
-        if (autoRefreshEnabled) {
-          autoRefreshInterval = setInterval(updateQueuesData, 5000);
-          showNotification('Autorefresh enabled');
-        } else {
-          clearInterval(autoRefreshInterval);
-          showNotification('Autorefresh disabled');
-        }
-      }
-
-      $(document).ready(function () {
-        $('#autorefresh-switch').on('change', function () {
-          toggleAutorefresh();
-        });
-
-        autoRefreshEnabled = $('#autorefresh-switch').is(':checked');
-        if (autoRefreshEnabled) {
-          autoRefreshInterval = setInterval(updateQueuesData, 5000);
-        }
+        tableBody.appendChild(row);
       });
+    };
 
-      function updateQueuesData() {
-        if (autoRefreshEnabled) {
-          $.ajax({
-            url: baseurl + '/queues/json',
-            type: 'GET',
-            dataType: 'json',
-            success: function (data) {
-              updateQueuesTable(data);
-            },
-            error: function (error) {
-              console.error('Error fetching queues data: ', error);
-              showErrorNotification('Error fetching queues data');
-            },
-          });
-        }
+    const fetchQueues = async () => {
+      try {
+        const data = await DashboardUI.requestJson(`${baseUrl}/queues/json`);
+        renderQueues(data);
+      } catch (error) {
+        console.error(error);
+        DashboardUI.showError('Unable to refresh queues.');
+      }
+    };
+
+    tableBody.addEventListener('click', async (event) => {
+      const button = event.target.closest('button[data-queue]');
+      if (!button) {
+        return;
       }
 
-      function deleteJobsInQueue(queue_name) {
-        $.ajax({
-          url: baseurl + '/queues/' + queue_name,
-          type: 'DELETE',
-          error: function (error) {
-            console.error('Error deleting jobs in queue: ', error);
-            showErrorNotification('Error deleting job');
-          },
+      const queueName = button.dataset.queue;
+      try {
+        const response = await fetch(`${baseUrl}/queues/${queueName}`, {
+          method: 'DELETE',
         });
-      }
-
-      function updateQueuesTable(data) {
-        var tableBody = $('#queues tbody');
-
-        if (tableBody.children().length > 0) {
-          tableBody.empty();
+        if (!response.ok) {
+          throw new Error('Request failed');
         }
-
-        $.each(data, function (index, queue_stats) {
-          var row = $('<tr>');
-          row.append($('<td>').text(queue_stats.queue_name));
-          row.append(
-            $('<td>').append(
-              $('<a>')
-                .attr(
-                  'href',
-                  baseurl +
-                    '/jobs' +
-                    '?state=queued&queue_name=' +
-                    queue_stats.queue_name
-                )
-                .text(queue_stats.queued)
-            )
-          );
-          row.append(
-            $('<td>').append(
-              $('<a>')
-                .attr(
-                  'href',
-                  baseurl +
-                    '/jobs' +
-                    '?state=started&queue_name=' +
-                    queue_stats.queue_name
-                )
-                .text(queue_stats.started)
-            )
-          );
-          row.append(
-            $('<td>').append(
-              $('<a>')
-                .attr(
-                  'href',
-                  baseurl +
-                    '/jobs' +
-                    '?state=failed&queue_name=' +
-                    queue_stats.queue_name
-                )
-                .text(queue_stats.failed)
-            )
-          );
-          row.append(
-            $('<td>').append(
-              $('<a>')
-                .attr(
-                  'href',
-                  baseurl +
-                    '/jobs' +
-                    '?state=deferred&queue_name=' +
-                    queue_stats.queue_name
-                )
-                .text(queue_stats.deferred)
-            )
-          );
-          row.append(
-            $('<td>').append(
-              $('<a>')
-                .attr(
-                  'href',
-                  baseurl +
-                    '/jobs' +
-                    '?state=finished&queue_name=' +
-                    queue_stats.queue_name
-                )
-                .text(queue_stats.finished)
-            )
-          );
-          row.append(
-            $('<td>').append(
-              $('<button>')
-                .text('Delete')
-                .addClass('delete-button')
-                .on('click', function () {
-                  deleteJobsInQueue(queue_stats.queue_name);
-                })
-            )
-          );
-          tableBody.append(row);
-        });
+        DashboardUI.showNotification(`Cleared jobs in ${queueName}`);
+        fetchQueues();
+      } catch (error) {
+        console.error(error);
+        DashboardUI.showError('Unable to delete jobs for this queue.');
       }
+    });
 
-      $(document).ready(function () {
-        updateQueuesData();
-      });
+    DashboardUI.setupAutoRefresh({
+      checkboxSelector: '#autorefresh-switch',
+      onRefresh: fetchQueues,
+    });
 
-      if (autoRefreshEnabled) {
-        setInterval(updateQueuesData, 5000);
-      }
-    </script>
-  </head>
-
-  <body>
-    <div class="h2-section">
-      <h2>Queues</h2>
-      <div class="custom-switch">
-        <input
-          type="checkbox"
-          class="custom-control-input"
-          id="autorefresh-switch"
-          checked
-        />
-        <label class="custom-control-label"> Autorefresh </label>
-      </div>
-    </div>
-    <div class="section">
-      <table id="queues">
-        <thead>
-          <tr>
-            <th>Queue Name</th>
-            <th>Queued</th>
-            <th>Started</th>
-            <th>Failed</th>
-            <th>Deferred</th>
-            <th>Finished</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for queue_stats in queue_data %}
-          <tr>
-            <td>
-              <a href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}">
-                {{ queue_stats.queue_name }}
-              </a>
-            </td>
-            <td>
-              <a
-                href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=started"
-              >
-                {{ queue_stats.started }}
-              </a>
-            </td>
-            <td>
-              <a
-                href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=failed"
-              >
-                {{ queue_stats.failed }}
-              </a>
-            </td>
-            <td>
-              <a
-                href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=deferred"
-              >
-                {{ queue_stats.deferred }}
-              </a>
-            </td>
-            <td>
-              <a
-                href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=finished"
-              >
-                {{ queue_stats.finished }}
-              </a>
-            </td>
-            <td>
-              <button
-                class="delete-button"
-                onclick="deleteJobsInQueue('{{ queue_stats.queue_name }}')"
-              >
-                Delete Jobs
-              </button>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% endblock %}
-  </body>
-</html>
+    fetchQueues();
+  });
+</script>
+{% endblock %}

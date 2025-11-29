@@ -1,16 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}RQ Dashboard · FastAPI{% endblock %}</title>
     <link rel="stylesheet" href="{{ prefix }}/static/css/main.css" />
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <title>RQ dashboard FastAPI</title>
+    {% block head %}{% endblock %}
   </head>
 
   <body>
-    {% include "header.html"%} {%if depreciation_options_usage%} {% endif %}
-    <div>{% block content %}{% endblock %}</div>
-    {% include "footer.html"%}
+    {% include "header.html" %}
+    <main>{% block content %}{% endblock %}</main>
+    {% include "footer.html" %}
+
+    <script>
+      window.dashboardConfig = {
+        protocol: '{{ protocol }}',
+        prefix: '{{ prefix }}',
+      };
+    </script>
+    <script defer src="{{ prefix }}/static/js/dashboard.js"></script>
+    {% block page_scripts %}{% endblock %}
   </body>
 </html>
