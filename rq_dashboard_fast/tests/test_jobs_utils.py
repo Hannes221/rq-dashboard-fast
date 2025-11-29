@@ -10,7 +10,7 @@ from ..utils.jobs import (
     convert_queue_job_registry_stats_to_json_dict,
     delete_job_id,
     get_job,
-    get_job_registrys,
+    get_job_registries,
     get_jobs,
 )
 
@@ -37,17 +37,17 @@ def example_task():
     return "Hello World"
 
 
-def test_get_job_registrys(setup_redis, setup_scheduler, setup_queue):
+def test_get_job_registries(setup_redis, setup_scheduler, setup_queue):
     redis_url = "redis://redis:6379"
     job_name = "test_job"
     job = setup_queue.enqueue(example_task, description=job_name)
 
-    job_registrys = get_job_registrys(redis_url)
+    job_registries = get_job_registries(redis_url)
 
     assert any(
         queue_job.queue_name == setup_queue.name
         and any(job_data.name == job_name for job_data in queue_job.queued)
-        for queue_job in job_registrys
+        for queue_job in job_registries
     )
 
 
