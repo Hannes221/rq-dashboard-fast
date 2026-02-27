@@ -44,6 +44,31 @@ PyPi: [rq-dashboard-fast](https://pypi.org/project/rq-dashboard-fast/)
 $ pip install rq-dashboard-fast
 ```
 
+## Running Standalone
+
+After installing, you can run the dashboard directly from the terminal:
+
+```
+$ rq-dashboard-fast
+```
+
+This starts the dashboard at `http://localhost:8000/rq` using Redis at `redis://localhost:6379`.
+
+Available options:
+
+```
+$ rq-dashboard-fast --help
+$ rq-dashboard-fast --redis-url redis://my-redis:6379 --port 9000
+$ rq-dashboard-fast --host 127.0.0.1 --prefix /dashboard
+```
+
+| Flag | Default | Environment Variable |
+|------|---------|---------------------|
+| `--redis-url` | `redis://localhost:6379` | `REDIS_URL` |
+| `--host` | `0.0.0.0` | `FASTAPI_HOST` |
+| `--port` | `8000` | `FASTAPI_PORT` |
+| `--prefix` | `/rq` | — |
+
 ## Running in Docker
 
 1. You can run the RQ Dashboard FastAPI as a Docker container with custom Redis URL:
@@ -124,7 +149,7 @@ $ pip install rq-dashboard-fast
 - [x] Add pagination to jobs page
 - [x] Data Export
 - [ ] Statistics Tab
-- [ ] Run Standalone (Terminal)
+- [x] Run Standalone (Terminal)
 
 ## Contributing
 
