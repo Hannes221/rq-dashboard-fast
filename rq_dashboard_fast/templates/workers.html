@@ -1,177 +1,115 @@
-{% extends "base.html" %} {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Workers Dashboard</title>
+{% extends "base.html" %}{% block content %}
+<script>
+  let autoRefreshInterval = null;
+  const protocol = "{{ protocol }}";
+  const host = window.location.host;
+  const prefix = "{{ prefix }}";
+  const baseurl = protocol + "://" + host + prefix;
 
-    <script>
-      let autoRefreshEnabled = true;
-      let autoRefreshInterval = null;
-      const protocol = "{{ protocol }}";
-      const host = window.location.host;
-      const prefix = "{{ prefix }}";
-      const baseurl = protocol + "://" + host + prefix;
+  function showNotification(message) {
+    var notification = document.createElement("div");
+    notification.className = "notification";
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(function () { document.body.removeChild(notification); }, 3000);
+  }
 
-      function showNotification(message) {
-        const notification = document.createElement("div");
-        notification.className = "notification";
-        notification.textContent = message;
+  function showErrorNotification(message) {
+    var notification = document.createElement("div");
+    notification.className = "error-notification";
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(function () { document.body.removeChild(notification); }, 3000);
+  }
 
-        document.body.appendChild(notification);
+  function startAutorefresh() {
+    clearInterval(autoRefreshInterval);
+    autoRefreshInterval = setInterval(function () { if (window.autoRefreshEnabled) updateData(); }, 5000);
+  }
 
-        setTimeout(() => {
-          document.body.removeChild(notification);
-        }, 3000);
-      }
+  function stopAutorefresh() {
+    clearInterval(autoRefreshInterval);
+  }
 
-      function showErrorNotification(message) {
-        const notification = document.createElement("div");
-        notification.className = "error-notification";
-        notification.textContent = message;
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.autoRefreshEnabled) { startAutorefresh(); }
+  });
 
-        document.body.appendChild(notification);
+  document.addEventListener("autorefresh-changed", function (e) {
+    if (e.detail.enabled) {
+      startAutorefresh();
+      showNotification("Autorefresh enabled");
+    } else {
+      stopAutorefresh();
+      showNotification("Autorefresh disabled");
+    }
+  });
 
-        setTimeout(() => {
-          document.body.removeChild(notification);
-        }, 3000);
-      }
-
-      function toggleAutorefresh() {
-        autoRefreshEnabled = !autoRefreshEnabled;
-        if (autoRefreshEnabled) {
-          autoRefreshInterval = setInterval(updateData, 5000);
-          showNotification("Autorefresh enabled");
-        } else {
-          clearInterval(autoRefreshInterval);
-          showNotification("Autorefresh disabled");
-        }
-      }
-
-      $(document).ready(function () {
-        $("#autorefresh-switch").on("change", function () {
-          toggleAutorefresh();
-        });
-
-        autoRefreshEnabled = $("#autorefresh-switch").is(":checked");
-        if (autoRefreshEnabled) {
-          autoRefreshInterval = setInterval(updateData, 5000);
-        }
+  function updateData() {
+    fetch(baseurl + "/workers/json")
+      .then(function (r) { return r.json(); })
+      .then(function (data) { updateTable(data); })
+      .catch(function (error) {
+        console.error("Error fetching data: ", error);
+        showErrorNotification("Error fetching workers data");
       });
+  }
 
-      function updateData() {
-        if (autoRefreshEnabled) {
-          $.ajax({
-            url: baseurl + "/workers/json",
-            type: "GET",
-            dataType: "json",
-            success: function (data) {
-              updateTable(data);
-            },
-            error: function (error) {
-              console.error("Error fetching data: ", error);
-              showErrorNotification("Error fetching workers data");
-            },
-          });
-        }
+  function updateTable(data) {
+    var tableBody = document.querySelector("#workers tbody");
+    tableBody.innerHTML = "";
+
+    data.forEach(function (worker, index) {
+      var currentJobCell;
+      if (worker.current_job !== "Idle") {
+        currentJobCell = '<a class="text-blue-700 dark:text-blue-400" href="' + baseurl + '/job/' + worker.current_job_id + '">' + worker.current_job + '</a>';
+      } else {
+        currentJobCell = worker.current_job;
       }
 
-      function updateTable(data) {
-        var tableBody = $("#workers tbody");
-        tableBody.empty();
+      var queuesText = worker.queues.join(", ");
+      tableBody.innerHTML +=
+        '<tr class="tr-stripe">' +
+        '<td class="td-cell max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">' + worker.name + '</td>' +
+        '<td class="td-cell max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">' + currentJobCell + '</td>' +
+        '<td class="td-cell max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">' + queuesText + '</td>' +
+        '<td class="td-cell">' + worker.successful_job_count + '</td>' +
+        '<td class="td-cell">' + worker.failed_job_count + '</td>' +
+        '</tr>';
+    });
+  }
+</script>
 
-        $.each(data, function (index, worker) {
-          var row = $("<tr>");
-          row.append($("<td>").text(worker.name));
-          if (worker.current_job !== "Idle") {
-            var jobLink = $("<a>")
-              .attr("href", baseurl + "/jobs/" + worker.current_job_id)
-              .text(worker.current_job);
-            row.append($("<td>").append(jobLink));
-          } else {
-            row.append($("<td>").text(worker.current_job));
-          }
-
-          var queuesCell = $("<td>");
-          $.each(worker.queues, function (queueIndex, queue) {
-            queuesCell.append(queue);
-            if (queueIndex < worker.queues.length - 1) {
-              queuesCell.append(", ");
-            }
-          });
-          row.append(queuesCell);
-          row.append($("<td>").text(worker.successful_job_count));
-          row.append($("<td>").text(worker.failed_job_count));
-
-          tableBody.append(row);
-        });
-      }
-
-      if (autoRefreshEnabled) {
-        setInterval(updateData, 5000);
-      }
-    </script>
-  </head>
-
-  <body>
-    <div class="h2-section">
-      <h2>Workers</h2>
-      <div class="custom-switch">
-        <input
-          type="checkbox"
-          class="custom-control-input"
-          id="autorefresh-switch"
-          checked
-        />
-        <label class="custom-control-label"> Autorefresh </label>
-      </div>
-    </div>
-    <div class="section">
-      <table id="workers">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Current Job</th>
-            <th>Queues</th>
-            <th>Successful jobs</th>
-            <th>Failed jobs</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for worker in worker_data %}
-          <tr>
-            <td>{{ worker.name }}</td>
-            <td>
-              {% if worker.current_job != 'Idle' %}
-              <a href="{{baseurl}}/job/{{ worker.current_job_id }}"
-                >{{ worker.current_job }}</a
-              >
-              {% else %} {{ worker.current_job }} {% endif %}
-            </td>
-            <td>
-              {% for queue_name in worker.queues %} {{ queue_name }} {% if not
-              loop.last %}, {% endif %} {% endfor %}
-            </td>
-            {% for queue_name in worker.queues %} {{ queue_name }}
-            <td>
-              <a
-                href="{{baseurl}}/jobs/?state=successful&queue_name={{queue_name}}"
-              >
-                {{ worker.successful_job_count }}
-              </a>
-            </td>
-            <td>
-              <a href="{{baseurl}}/jobs/?state=failed&queue_name={{queue_name}}"
-                >{{ worker.failed_job_count }}</a
-              >
-            </td>
-            {% endfor %}
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </body>
-</html>
+<div class="max-w-[90%] mx-auto mt-6 px-4">
+  <table id="workers" class="data-table">
+    <thead>
+      <tr>
+        <th class="th-cell">Name</th>
+        <th class="th-cell">Current Job</th>
+        <th class="th-cell">Queues</th>
+        <th class="th-cell">Successful jobs</th>
+        <th class="th-cell">Failed jobs</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for worker in worker_data %}
+      <tr class="tr-stripe">
+        <td class="td-cell max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">{{ worker.name }}</td>
+        <td class="td-cell max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">
+          {% if worker.current_job != 'Idle' %}
+          <a class="text-blue-700 dark:text-blue-400" href="{{baseurl}}/job/{{ worker.current_job_id }}">{{ worker.current_job }}</a>
+          {% else %}
+          {{ worker.current_job }}
+          {% endif %}
+        </td>
+        <td class="td-cell max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">
+          {% for queue_name in worker.queues %}{{ queue_name }}{% if not loop.last %}, {% endif %}{% endfor %}
+        </td>
+        <td class="td-cell">{{ worker.successful_job_count }}</td>
+        <td class="td-cell">{{ worker.failed_job_count }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

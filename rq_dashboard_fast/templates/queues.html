@@ -1,266 +1,159 @@
 {% extends "base.html" %}{% block content %}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Queues Dashboard</title>
-    <script>
-      let autoRefreshEnabled = true;
-      let autoRefreshInterval;
-      const protocol = '{{ protocol }}';
-      const host = window.location.host;
-      const prefix = '{{ prefix }}';
-      const baseurl = protocol + '://' + host + prefix;
+<script>
+  let autoRefreshInterval;
+  const protocol = '{{ protocol }}';
+  const host = window.location.host;
+  const prefix = '{{ prefix }}';
+  const baseurl = protocol + '://' + host + prefix;
 
-      function showNotification(message) {
-        const notification = document.createElement('div');
-        notification.className = 'notification';
-        notification.textContent = message;
+  function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(function () { document.body.removeChild(notification); }, 3000);
+  }
 
-        document.body.appendChild(notification);
+  function showErrorNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'error-notification';
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(function () { document.body.removeChild(notification); }, 3000);
+  }
 
-        setTimeout(() => {
-          document.body.removeChild(notification);
-        }, 3000);
-      }
+  function startAutorefresh() {
+    clearInterval(autoRefreshInterval);
+    autoRefreshInterval = setInterval(function () { if (window.autoRefreshEnabled) updateQueuesData(); }, 5000);
+  }
 
-      function showErrorNotification(message) {
-        const notification = documenr.createElement('div');
-        notification.className = 'error-notification';
-        notification.textContent = message;
+  function stopAutorefresh() {
+    clearInterval(autoRefreshInterval);
+  }
 
-        document.body.appendChild(notification);
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.autoRefreshEnabled) { startAutorefresh(); }
+    updateQueuesData();
+  });
 
-        setTimeout(() => {
-          document.body.removeChild(notification);
-        }, 3000);
-      }
+  document.addEventListener('autorefresh-changed', function (e) {
+    if (e.detail.enabled) {
+      startAutorefresh();
+      showNotification('Autorefresh enabled');
+    } else {
+      stopAutorefresh();
+      showNotification('Autorefresh disabled');
+    }
+  });
 
-      function toggleAutorefresh() {
-        autoRefreshEnabled = !autoRefreshEnabled;
-        if (autoRefreshEnabled) {
-          autoRefreshInterval = setInterval(updateQueuesData, 5000);
-          showNotification('Autorefresh enabled');
-        } else {
-          clearInterval(autoRefreshInterval);
-          showNotification('Autorefresh disabled');
-        }
-      }
-
-      $(document).ready(function () {
-        $('#autorefresh-switch').on('change', function () {
-          toggleAutorefresh();
-        });
-
-        autoRefreshEnabled = $('#autorefresh-switch').is(':checked');
-        if (autoRefreshEnabled) {
-          autoRefreshInterval = setInterval(updateQueuesData, 5000);
-        }
+  function updateQueuesData() {
+    fetch(baseurl + '/queues/json')
+      .then(function (r) { return r.json(); })
+      .then(function (data) { updateQueuesTable(data); })
+      .catch(function (error) {
+        console.error('Error fetching queues data: ', error);
+        showErrorNotification('Error fetching queues data');
       });
+  }
 
-      function updateQueuesData() {
-        if (autoRefreshEnabled) {
-          $.ajax({
-            url: baseurl + '/queues/json',
-            type: 'GET',
-            dataType: 'json',
-            success: function (data) {
-              updateQueuesTable(data);
-            },
-            error: function (error) {
-              console.error('Error fetching queues data: ', error);
-              showErrorNotification('Error fetching queues data');
-            },
-          });
-        }
-      }
-
-      function deleteJobsInQueue(queue_name) {
-        $.ajax({
-          url: baseurl + '/queues/' + queue_name,
-          type: 'DELETE',
-          error: function (error) {
-            console.error('Error deleting jobs in queue: ', error);
-            showErrorNotification('Error deleting job');
-          },
-        });
-      }
-
-      function updateQueuesTable(data) {
-        var tableBody = $('#queues tbody');
-
-        if (tableBody.children().length > 0) {
-          tableBody.empty();
-        }
-
-        $.each(data, function (index, queue_stats) {
-          var row = $('<tr>');
-          row.append($('<td>').text(queue_stats.queue_name));
-          row.append(
-            $('<td>').append(
-              $('<a>')
-                .attr(
-                  'href',
-                  baseurl +
-                    '/jobs' +
-                    '?state=queued&queue_name=' +
-                    queue_stats.queue_name
-                )
-                .text(queue_stats.queued)
-            )
-          );
-          row.append(
-            $('<td>').append(
-              $('<a>')
-                .attr(
-                  'href',
-                  baseurl +
-                    '/jobs' +
-                    '?state=started&queue_name=' +
-                    queue_stats.queue_name
-                )
-                .text(queue_stats.started)
-            )
-          );
-          row.append(
-            $('<td>').append(
-              $('<a>')
-                .attr(
-                  'href',
-                  baseurl +
-                    '/jobs' +
-                    '?state=failed&queue_name=' +
-                    queue_stats.queue_name
-                )
-                .text(queue_stats.failed)
-            )
-          );
-          row.append(
-            $('<td>').append(
-              $('<a>')
-                .attr(
-                  'href',
-                  baseurl +
-                    '/jobs' +
-                    '?state=deferred&queue_name=' +
-                    queue_stats.queue_name
-                )
-                .text(queue_stats.deferred)
-            )
-          );
-          row.append(
-            $('<td>').append(
-              $('<a>')
-                .attr(
-                  'href',
-                  baseurl +
-                    '/jobs' +
-                    '?state=finished&queue_name=' +
-                    queue_stats.queue_name
-                )
-                .text(queue_stats.finished)
-            )
-          );
-          row.append(
-            $('<td>').append(
-              $('<button>')
-                .text('Delete')
-                .addClass('delete-button')
-                .on('click', function () {
-                  deleteJobsInQueue(queue_stats.queue_name);
-                })
-            )
-          );
-          tableBody.append(row);
-        });
-      }
-
-      $(document).ready(function () {
-        updateQueuesData();
+  function deleteJobsInQueue(queue_name) {
+    fetch(baseurl + '/queues/' + queue_name, { method: 'DELETE' })
+      .catch(function (error) {
+        console.error('Error deleting jobs in queue: ', error);
+        showErrorNotification('Error deleting job');
       });
+  }
 
-      if (autoRefreshEnabled) {
-        setInterval(updateQueuesData, 5000);
-      }
-    </script>
-  </head>
+  function updateQueuesTable(data) {
+    var tableBody = document.querySelector('#queues tbody');
+    tableBody.innerHTML = '';
 
-  <body>
-    <div class="h2-section">
-      <h2>Queues</h2>
-      <div class="custom-switch">
-        <input
-          type="checkbox"
-          class="custom-control-input"
-          id="autorefresh-switch"
-          checked
-        />
-        <label class="custom-control-label"> Autorefresh </label>
-      </div>
-    </div>
-    <div class="section">
-      <table id="queues">
-        <thead>
-          <tr>
-            <th>Queue Name</th>
-            <th>Queued</th>
-            <th>Started</th>
-            <th>Failed</th>
-            <th>Deferred</th>
-            <th>Finished</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for queue_stats in queue_data %}
-          <tr>
-            <td>
-              <a href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}">
-                {{ queue_stats.queue_name }}
-              </a>
-            </td>
-            <td>
-              <a
-                href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=started"
-              >
-                {{ queue_stats.started }}
-              </a>
-            </td>
-            <td>
-              <a
-                href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=failed"
-              >
-                {{ queue_stats.failed }}
-              </a>
-            </td>
-            <td>
-              <a
-                href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=deferred"
-              >
-                {{ queue_stats.deferred }}
-              </a>
-            </td>
-            <td>
-              <a
-                href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=finished"
-              >
-                {{ queue_stats.finished }}
-              </a>
-            </td>
-            <td>
-              <button
-                class="delete-button"
-                onclick="deleteJobsInQueue('{{ queue_stats.queue_name }}')"
-              >
-                Delete Jobs
-              </button>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% endblock %}
-  </body>
-</html>
+    data.forEach(function (queue_stats) {
+      var states = ['queued', 'started', 'failed', 'deferred', 'finished'];
+      var cells = states.map(function (state) {
+        return '<td class="td-cell"><a class="text-blue-700 dark:text-blue-400" href="' + baseurl + '/jobs?state=' + state + '&queue_name=' + queue_stats.queue_name + '">' + queue_stats[state] + '</a></td>';
+      }).join('');
+
+      tableBody.innerHTML +=
+        '<tr class="tr-stripe">' +
+        '<td class="td-cell">' + queue_stats.queue_name + '</td>' +
+        cells +
+        '<td class="td-cell"><button class="btn-delete" data-queue="' + queue_stats.queue_name + '" title="Delete jobs"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg></button></td>' +
+        '</tr>';
+    });
+
+    tableBody.querySelectorAll('[data-queue]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        deleteJobsInQueue(this.getAttribute('data-queue'));
+      });
+    });
+  }
+</script>
+
+<div class="max-w-[90%] mx-auto mt-6 px-4">
+  <table id="queues" class="data-table">
+    <thead>
+      <tr>
+        <th class="th-cell">Queue Name</th>
+        <th class="th-cell">Queued</th>
+        <th class="th-cell">Started</th>
+        <th class="th-cell">Failed</th>
+        <th class="th-cell">Deferred</th>
+        <th class="th-cell">Finished</th>
+        <th class="th-cell">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for queue_stats in queue_data %}
+      <tr class="tr-stripe">
+        <td class="td-cell">
+          <a class="text-blue-700 dark:text-blue-400" href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}">
+            {{ queue_stats.queue_name }}
+          </a>
+        </td>
+        <td class="td-cell">
+          <a class="text-blue-700 dark:text-blue-400" href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=queued">
+            {{ queue_stats.queued }}
+          </a>
+        </td>
+        <td class="td-cell">
+          <a class="text-blue-700 dark:text-blue-400" href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=started">
+            {{ queue_stats.started }}
+          </a>
+        </td>
+        <td class="td-cell">
+          <a class="text-blue-700 dark:text-blue-400" href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=failed">
+            {{ queue_stats.failed }}
+          </a>
+        </td>
+        <td class="td-cell">
+          <a class="text-blue-700 dark:text-blue-400" href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=deferred">
+            {{ queue_stats.deferred }}
+          </a>
+        </td>
+        <td class="td-cell">
+          <a class="text-blue-700 dark:text-blue-400" href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=finished">
+            {{ queue_stats.finished }}
+          </a>
+        </td>
+        <td class="td-cell">
+          <button class="btn-delete" data-queue-ssr="{{ queue_stats.queue_name }}" title="Delete jobs">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg>
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-queue-ssr]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        deleteJobsInQueue(this.getAttribute('data-queue-ssr'));
+      });
+    });
+  });
+</script>
+{% endblock %}

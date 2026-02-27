@@ -1,40 +1,84 @@
-<div id="header-dashboard" class="header-expand-lg header-light">
-  <div class="header-brand-container">
-    <h1 class="header-brand">RQ-Dashboard FastAPI</h1>
-  </div>
-  <ul class="header-nav">
-    <li class="header-item">
-      <a href="{{prefix}}/jobs" class="header-link">Jobs</a>
-    </li>
-    <li class="header-item">
-      <a href="{{prefix}}/queues" class="header-link">Queues</a>
-    </li>
-    <li class="header-item">
-      <a href="{{prefix}}/workers" class="header-link">Workers</a>
-    </li>
-    <li class="header-item">
-      <a href="{{prefix}}/export" class="header-link">Export Data</a>
-    </li>
-  </ul>
-</div>
+<header class="sticky top-0 z-50 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-700">
+  <nav class="max-w-[90%] mx-auto flex justify-between items-center h-14 px-4">
+    <a href="{{prefix}}/jobs" class="no-underline text-gray-900 dark:text-gray-200">
+      <span class="text-lg font-semibold tracking-tight">RQ-Dashboard for FastAPI</span>
+    </a>
+    <div class="flex items-center gap-6">
+      <a href="{{prefix}}/jobs" class="header-link no-underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Jobs</a>
+      <a href="{{prefix}}/queues" class="header-link no-underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Queues</a>
+      <a href="{{prefix}}/workers" class="header-link no-underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Workers</a>
+      <a href="{{prefix}}/export" class="header-link no-underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Export</a>
+      <div class="w-px h-5 bg-gray-300 dark:bg-gray-600"></div>
+      <button id="autorefresh-toggle" class="p-1.5 rounded-md border-none cursor-pointer transition-colors" aria-label="Toggle autorefresh" title="Autorefresh">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      </button>
+      <button id="theme-toggle" class="p-1.5 rounded-md bg-transparent border-none cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label="Toggle dark mode">
+        <svg class="block dark:hidden w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0112.478 3.34a9.72 9.72 0 109.274 11.662z" />
+        </svg>
+        <svg class="hidden dark:block w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.95l-.71.71M21 12h-1M4 12H3m16.95 7.95l-.71-.71M4.05 4.05l-.71-.71M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      </button>
+    </div>
+  </nav>
+</header>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    var currentPath = window.location.pathname;
+  // Autorefresh global state — pages read window.autoRefreshEnabled and
+  // listen for 'autorefresh-changed' events on document.
+  (function () {
+    var stored = localStorage.getItem('autorefresh');
+    window.autoRefreshEnabled = stored !== 'false'; // default true
+  })();
 
+  document.addEventListener('DOMContentLoaded', function () {
+    // Active nav link
+    var currentPath = window.location.pathname;
     var navLinks = document.querySelectorAll('.header-link');
+    var bestMatch = null;
+    var bestLen = 0;
     navLinks.forEach(function (link) {
       var href = link.getAttribute('href');
-      if (href === currentPath || prefix + href === currentPath) {
-        link.parentNode.classList.add('selected');
+      if (currentPath.startsWith(href) && href.length > bestLen) {
+        bestMatch = link;
+        bestLen = href.length;
       }
+    });
+    if (bestMatch) {
+      bestMatch.classList.remove('text-sm', 'text-gray-600', 'dark:text-gray-400');
+      bestMatch.classList.add('text-base', 'text-gray-900', 'dark:text-white', 'font-semibold', 'border-b-2', 'border-gray-900', 'dark:border-white', 'pb-0.5');
+    }
+
+    // Theme toggle
+    document.getElementById('theme-toggle').addEventListener('click', function () {
+      var html = document.documentElement;
+      html.classList.toggle('dark');
+      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    // Autorefresh toggle
+    var arBtn = document.getElementById('autorefresh-toggle');
+
+    function updateAutorefreshButton() {
+      if (window.autoRefreshEnabled) {
+        arBtn.className = 'p-1.5 rounded-md border-none cursor-pointer transition-colors text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50';
+        arBtn.title = 'Autorefresh: ON';
+      } else {
+        arBtn.className = 'p-1.5 rounded-md border-none cursor-pointer transition-colors text-gray-400 dark:text-gray-500 bg-transparent hover:text-gray-600 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800';
+        arBtn.title = 'Autorefresh: OFF';
+      }
+    }
+
+    updateAutorefreshButton();
+
+    arBtn.addEventListener('click', function () {
+      window.autoRefreshEnabled = !window.autoRefreshEnabled;
+      localStorage.setItem('autorefresh', window.autoRefreshEnabled ? 'true' : 'false');
+      updateAutorefreshButton();
+      document.dispatchEvent(new CustomEvent('autorefresh-changed', { detail: { enabled: window.autoRefreshEnabled } }));
     });
   });
 </script>
-
-<style>
-  .selected {
-    font-size: large;
-    font-weight: bold;
-  }
-</style>
