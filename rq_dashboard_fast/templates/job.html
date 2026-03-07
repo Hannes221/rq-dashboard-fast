@@ -1,5 +1,5 @@
 {% extends "base.html" %}{% block content %}
-<style>{{ css|safe }}</style>
+{% if css %}<style>{{ css|safe }}</style>{% endif %}
 
 <div class="max-w-[90%] mx-auto mt-6 px-4">
   <table id="jobs" class="data-table">

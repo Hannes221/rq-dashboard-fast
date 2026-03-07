@@ -6,6 +6,11 @@
   const prefix = '{{ prefix }}';
   const baseurl = protocol + '://' + host + prefix;
 
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
   function showNotification(message) {
     const notification = document.createElement('div');
     notification.className = 'notification';
@@ -58,9 +63,12 @@
 
   function deleteJobsInQueue(queue_name) {
     fetch(baseurl + '/queues/' + queue_name, { method: 'DELETE' })
+      .then(function (r) {
+        if (!r.ok) { showErrorNotification('Error deleting jobs in queue'); }
+      })
       .catch(function (error) {
         console.error('Error deleting jobs in queue: ', error);
-        showErrorNotification('Error deleting job');
+        showErrorNotification('Error deleting jobs in queue');
       });
   }
 
@@ -69,16 +77,18 @@
     tableBody.innerHTML = '';
 
     data.forEach(function (queue_stats) {
+      var safeQueueName = escapeHtml(queue_stats.queue_name);
+      var encodedQueueName = encodeURIComponent(queue_stats.queue_name);
       var states = ['queued', 'started', 'failed', 'deferred', 'finished'];
       var cells = states.map(function (state) {
-        return '<td class="td-cell"><a class="text-blue-700 dark:text-blue-400" href="' + baseurl + '/jobs?state=' + state + '&queue_name=' + queue_stats.queue_name + '">' + queue_stats[state] + '</a></td>';
+        return '<td class="td-cell"><a class="text-blue-700 dark:text-blue-400" href="' + baseurl + '/jobs?state=' + state + '&queue_name=' + encodedQueueName + '">' + queue_stats[state] + '</a></td>';
       }).join('');
 
       tableBody.innerHTML +=
         '<tr class="tr-stripe">' +
-        '<td class="td-cell">' + queue_stats.queue_name + '</td>' +
+        '<td class="td-cell">' + safeQueueName + '</td>' +
         cells +
-        '<td class="td-cell"><button class="btn-delete" data-queue="' + queue_stats.queue_name + '" title="Delete jobs"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg></button></td>' +
+        '<td class="td-cell"><button class="btn-delete" data-queue="' + safeQueueName + '" title="Delete jobs"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg></button></td>' +
         '</tr>';
     });
 

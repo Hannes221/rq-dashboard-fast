@@ -6,6 +6,11 @@
   const prefix = "{{ prefix }}";
   const baseurl = protocol + "://" + host + prefix;
 
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
   function showNotification(message) {
     var notification = document.createElement("div");
     notification.className = "notification";
@@ -76,13 +81,15 @@
           var requeueBtn = state === "failed"
             ? '<button class="btn-requeue" data-requeue-id="' + job.id + '" title="Requeue"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M1 4v6h6M23 20v-6h-6"/><path stroke-linecap="round" stroke-linejoin="round" d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg></button>'
             : '';
+          var safeId = escapeHtml(job.id);
+          var safeName = escapeHtml(job.name);
           tableBody.innerHTML +=
             '<tr class="tr-stripe">' +
-            '<td class="td-cell"><a class="text-blue-700 dark:text-blue-400" href="' + baseurl + '/job/' + job.id + '">' + job.id + '</a></td>' +
+            '<td class="td-cell"><a class="text-blue-700 dark:text-blue-400" href="' + baseurl + '/job/' + encodeURIComponent(job.id) + '">' + safeId + '</a></td>' +
             '<td class="td-cell"><span class="badge-' + state + '">' + state + '</span></td>' +
-            '<td class="td-cell max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">' + job.name + '</td>' +
+            '<td class="td-cell max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">' + safeName + '</td>' +
             '<td class="td-cell">' + formattedDate + '</td>' +
-            '<td class="td-cell"><div class="flex items-center gap-1"><button class="btn-delete" data-delete-id="' + job.id + '" title="Delete"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg></button>' + requeueBtn + '</div></td>' +
+            '<td class="td-cell"><div class="flex items-center gap-1"><button class="btn-delete" data-delete-id="' + safeId + '" title="Delete"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg></button>' + requeueBtn + '</div></td>' +
             '</tr>';
         });
       });
@@ -98,6 +105,9 @@
 
   function deleteJob(job_id) {
     fetch(baseurl + "/job/" + job_id, { method: "DELETE" })
+      .then(function (r) {
+        if (!r.ok) { showErrorNotification("Error deleting job"); }
+      })
       .catch(function (error) {
         console.error("Error deleting job: ", error);
         showErrorNotification("Error deleting job");
@@ -106,6 +116,9 @@
 
   function requeueJob(job_id) {
     fetch(baseurl + "/job/" + job_id + "/requeue", { method: "POST" })
+      .then(function (r) {
+        if (!r.ok) { showErrorNotification("Error requeueing job"); }
+      })
       .catch(function (error) {
         console.error("Error requeueing job: ", error);
         showErrorNotification("Error requeueing job");
@@ -188,7 +201,7 @@
     </thead>
     <tbody>
       {% for queue in job_data %} {% for state in ["queued", "started",
-      "failed", "deferred", "finished"] %} {% for job in queue[state] %}
+      "failed", "deferred", "scheduled", "finished"] %} {% for job in queue[state] %}
       <tr class="tr-stripe">
         <td class="td-cell">
           <a class="text-blue-700 dark:text-blue-400" href="#" data-job-id="{{ job.id }}">{{ job.id }}</a>

@@ -6,6 +6,11 @@
   const prefix = "{{ prefix }}";
   const baseurl = protocol + "://" + host + prefix;
 
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
   function showNotification(message) {
     var notification = document.createElement("div");
     notification.className = "notification";
@@ -60,17 +65,19 @@
     tableBody.innerHTML = "";
 
     data.forEach(function (worker, index) {
+      var safeName = escapeHtml(worker.name);
+      var safeCurrentJob = escapeHtml(worker.current_job);
       var currentJobCell;
       if (worker.current_job !== "Idle") {
-        currentJobCell = '<a class="text-blue-700 dark:text-blue-400" href="' + baseurl + '/job/' + worker.current_job_id + '">' + worker.current_job + '</a>';
+        currentJobCell = '<a class="text-blue-700 dark:text-blue-400" href="' + baseurl + '/job/' + encodeURIComponent(worker.current_job_id) + '">' + safeCurrentJob + '</a>';
       } else {
-        currentJobCell = worker.current_job;
+        currentJobCell = safeCurrentJob;
       }
 
-      var queuesText = worker.queues.join(", ");
+      var queuesText = escapeHtml(worker.queues.join(", "));
       tableBody.innerHTML +=
         '<tr class="tr-stripe">' +
-        '<td class="td-cell max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">' + worker.name + '</td>' +
+        '<td class="td-cell max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">' + safeName + '</td>' +
         '<td class="td-cell max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">' + currentJobCell + '</td>' +
         '<td class="td-cell max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">' + queuesText + '</td>' +
         '<td class="td-cell">' + worker.successful_job_count + '</td>' +
