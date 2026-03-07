@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "scripts": {
+    "dev:css": "unocss \"rq_dashboard_fast/templates/**/*.html\" -o rq_dashboard_fast/static/css/uno.css --watch",
+    "build:css": "unocss \"rq_dashboard_fast/templates/**/*.html\" -o rq_dashboard_fast/static/css/uno.css"
+  },
+  "devDependencies": {
+    "@unocss/cli": "^66.6.2",
+    "@unocss/preset-wind": "^66.6.2",
+    "unocss": "^66.6.2"
+  },
+  "dependencies": {
+    "@unocss/preset-web-fonts": "^66.6.2"
+  }
+}

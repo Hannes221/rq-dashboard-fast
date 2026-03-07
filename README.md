@@ -151,6 +151,30 @@ $ pip install rq-dashboard-fast
 - [ ] Statistics Tab
 - [x] Run Standalone (Terminal)
 
+## Development
+
+### Frontend CSS (UnoCSS)
+
+The dashboard uses [UnoCSS](https://unocss.dev/) with utility classes applied directly in Jinja2 templates. The generated CSS file (`rq_dashboard_fast/static/css/uno.css`) is committed to the repo, so **no Node.js is needed** to run the dashboard — only to modify styles.
+
+```bash
+npm install                # Install UnoCSS CLI (first time only)
+npm run dev:css            # Watch mode — rebuilds on template changes
+npm run build:css          # One-off build
+```
+
+UnoCSS scans all `rq_dashboard_fast/templates/**/*.html` files and outputs to `rq_dashboard_fast/static/css/uno.css`. Configuration lives in `uno.config.ts` and includes:
+
+- **Shortcuts** — reusable class groups for buttons (`btn-delete`, `btn-requeue`, etc.), table cells (`th-cell`, `td-cell`), and status badges (`badge-failed`, `badge-started`, etc.)
+- **Safelist** — badge classes that are constructed dynamically in JS (`'badge-' + state`) and wouldn't be detected by static scanning
+- **Dark mode** — class-based (`darkMode: 'class'`), toggled on `<html>` via a button in the header
+
+After modifying templates or `uno.config.ts`, run `npm run build:css` and commit the updated `uno.css`.
+
+### Additional CSS
+
+`rq_dashboard_fast/static/css/custom.css` contains styles that can't be expressed as utilities: notification toasts (dynamically created by JS) and Pygments dark mode overrides.
+
 ## Contributing
 
 If you want to contribute, reach out or create a PR directly.
