@@ -1,0 +1,45 @@
+.notification {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  padding: 10px;
+  background-color: grey;
+  color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  font-family: inherit;
+  z-index: 9999;
+}
+
+.error-notification {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  padding: 10px;
+  background-color: #dc2626;
+  color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  font-family: inherit;
+  z-index: 9999;
+}
+
+
+.dark .notification {
+  background-color: #4b5563;
+}
+
+.dark .error-notification {
+  background-color: #991b1b;
+}
+
+/* Pygments dark mode overrides */
+.dark .highlight {
+  background-color: #1f2937 !important;
+  color: #e5e7eb !important;
+}
+
+.dark .highlight pre {
+  background-color: #1f2937 !important;
+  color: #e5e7eb !important;
+}
