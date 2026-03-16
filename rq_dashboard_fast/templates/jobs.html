@@ -174,18 +174,23 @@
         if (!queue[state]) return;
         queue[state].forEach(function (job) {
           var formattedDate = new Date(job.created_at).toLocaleString();
-          var requeueBtn = state === "failed"
+          var isAdmin = "{{ access }}" === "admin";
+          var requeueBtn = (isAdmin && state === "failed")
             ? '<button class="btn-requeue" data-requeue-id="' + job.id + '" title="Requeue"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M1 4v6h6M23 20v-6h-6"/><path stroke-linecap="round" stroke-linejoin="round" d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg></button>'
+            : '';
+          var deleteBtn = isAdmin
+            ? '<button class="btn-delete" data-delete-id="' + escapeHtml(job.id) + '" title="Delete"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg></button>'
             : '';
           var safeId = escapeHtml(job.id);
           var safeName = escapeHtml(job.name);
+          var optionsCell = (isAdmin) ? '<td class="td-cell"><div class="flex items-center gap-1">' + deleteBtn + requeueBtn + '</div></td>' : '';
           tableBody.innerHTML +=
             '<tr class="tr-stripe">' +
             '<td class="td-cell"><a class="text-blue-700 dark:text-blue-400" href="' + baseurl + '/job/' + encodeURIComponent(job.id) + '">' + safeId + '</a></td>' +
             '<td class="td-cell"><span class="badge-' + state + '">' + state + '</span></td>' +
             '<td class="td-cell max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">' + safeName + '</td>' +
             '<td class="td-cell">' + formattedDate + '</td>' +
-            '<td class="td-cell"><div class="flex items-center gap-1"><button class="btn-delete" data-delete-id="' + safeId + '" title="Delete"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg></button>' + requeueBtn + '</div></td>' +
+            optionsCell +
             '</tr>';
         });
       });
@@ -212,9 +217,14 @@
     btn.innerHTML = btn.dataset.originalHtml;
   }
 
+  function getCsrfToken() {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
+  }
+
   function deleteJob(job_id, btn) {
     setBtnLoading(btn);
-    fetch(baseurl + "/job/" + job_id, { method: "DELETE" })
+    fetch(baseurl + "/job/" + job_id, { method: "DELETE", headers: {"X-CSRF-Token": getCsrfToken()} })
       .then(function (r) {
         if (!r.ok) { showErrorNotification("Error deleting job"); resetBtn(btn); }
         else { updateJobsData(); }
@@ -228,7 +238,7 @@
 
   function requeueJob(job_id, btn) {
     setBtnLoading(btn);
-    fetch(baseurl + "/job/" + job_id + "/requeue", { method: "POST" })
+    fetch(baseurl + "/job/" + job_id + "/requeue", { method: "POST", headers: {"X-CSRF-Token": getCsrfToken()} })
       .then(function (r) {
         if (!r.ok) { showErrorNotification("Error requeueing job"); resetBtn(btn); }
         else { updateJobsData(); }
@@ -309,7 +319,7 @@
           </div>
         </th>
         <th class="th-cell">Created At</th>
-        <th class="th-cell">Options</th>
+        {% if access == "admin" %}<th class="th-cell">Options</th>{% endif %}
       </tr>
     </thead>
     <tbody>
@@ -322,6 +332,7 @@
         <td class="td-cell"><span class="badge-{{ state }}">{{ state }}</span></td>
         <td class="td-cell max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">{{ job.name }}</td>
         <td class="td-cell">{{ job.created_at }}</td>
+        {% if access == "admin" %}
         <td class="td-cell">
           <div class="flex items-center gap-1">
             <button class="btn-delete" data-delete-ssr="{{ job.id }}" title="Delete">
@@ -334,6 +345,7 @@
             {% endif %}
           </div>
         </td>
+        {% endif %}
       </tr>
       {% endfor %} {% endfor %} {% endfor %}
     </tbody>

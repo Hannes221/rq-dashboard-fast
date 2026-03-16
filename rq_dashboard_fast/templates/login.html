@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{{ prefix }}/static/css/uno.css" />
+    <link rel="stylesheet" href="{{ prefix }}/static/css/custom.css" />
+    <title>RQ Dashboard — Login</title>
+    <script>
+      (function() {
+        var stored = localStorage.getItem('theme');
+        if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+  </head>
+  <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-200 font-sans min-h-screen flex flex-col items-center justify-center">
+    <div class="w-full max-w-sm mx-auto px-4">
+      <h1 class="text-2xl font-semibold text-center mb-6">RQ Dashboard</h1>
+      {% if error %}
+      <div class="mb-4 p-3 rounded-md bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm">
+        {{ error }}
+      </div>
+      {% endif %}
+      <form method="GET" action="{{ prefix }}/" class="space-y-4">
+        <div>
+          <label for="token" class="block text-sm font-medium mb-1">Access Token</label>
+          <input
+            type="text"
+            id="token"
+            name="token"
+            required
+            autofocus
+            autocomplete="off"
+            class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter your access token"
+          />
+        </div>
+        <button
+          type="submit"
+          class="w-full px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors border-none cursor-pointer"
+        >
+          Sign In
+        </button>
+      </form>
+    </div>
+  </body>
+</html>

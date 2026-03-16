@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Any, List
+from typing import Any, List, Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -8,6 +8,7 @@ from redis import Redis
 from rq.job import Job
 from rq_scheduler import Scheduler
 
+from .auth import queue_allowed
 from .queues import get_queues
 
 router = APIRouter()
@@ -28,6 +29,7 @@ class JobDataDetailed(BaseModel):
     result: Any
     exc_info: str | None
     meta: dict
+    origin: str | None = None
 
 
 class QueueJobRegistryStats(BaseModel):
@@ -57,6 +59,7 @@ def get_job_registrys(
     state: str = "all",
     page: int = 1,
     per_page: int = 10,
+    allowed_queues: Optional[list[str]] = None,
 ) -> PaginatedJobResponse:
     try:
         redis = Redis.from_url(redis_url)
@@ -69,6 +72,8 @@ def get_job_registrys(
         end_index = start_index + per_page
 
         for queue in queues:
+            if allowed_queues and not queue_allowed(queue.name, allowed_queues):
+                continue
             if queue_name == "all" or queue_name == queue.name:
                 job_ids = []
 
@@ -88,9 +93,7 @@ def get_job_registrys(
                     )
                 elif state == "queued":
                     total += queue.count
-                    job_ids = queue.get_job_ids(
-                        offset=start_index, length=per_page
-                    )
+                    job_ids = queue.get_job_ids(offset=start_index, length=per_page)
                 elif state == "finished":
                     total += queue.finished_job_registry.count
                     job_ids = queue.finished_job_registry.get_job_ids(
@@ -211,9 +214,17 @@ def get_jobs(
     state: str = "all",
     page: int = 1,
     per_page: int = 10,
+    allowed_queues: Optional[list[str]] = None,
 ) -> PaginatedJobResponse:
     try:
-        return get_job_registrys(redis_url, queue_name, state, page, per_page)
+        return get_job_registrys(
+            redis_url,
+            queue_name,
+            state,
+            page,
+            per_page,
+            allowed_queues=allowed_queues,
+        )
     except Exception as error:
         logger.exception("Error fetching job data: ", error)
         raise HTTPException(status_code=500, detail=str("Error fetching job data"))
@@ -233,6 +244,7 @@ def get_job(redis_url: str, job_id: str) -> JobDataDetailed:
             result=job.result,
             exc_info=job.exc_info,
             meta=job.meta,
+            origin=job.origin,
         )
     except Exception as error:
         logger.exception("Error fetching job: ", error)

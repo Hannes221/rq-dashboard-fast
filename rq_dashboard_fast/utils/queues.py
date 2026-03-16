@@ -1,9 +1,12 @@
 import logging
+from typing import Optional
 
 from fastapi import HTTPException
 from pydantic import BaseModel
 from redis import Redis
 from rq import Queue
+
+from rq_dashboard_fast.utils.auth import queue_allowed
 
 
 class QueueRegistryStats(BaseModel):
@@ -33,11 +36,15 @@ def get_queues(redis_url: str) -> list[Queue]:
         )
 
 
-def get_job_registry_amount(redis_url: str) -> list[QueueRegistryStats]:
+def get_job_registry_amount(
+    redis_url: str, allowed_queues: Optional[list[str]] = None
+) -> list[QueueRegistryStats]:
     try:
         queues = get_queues(redis_url)
         result = []
         for queue in queues:
+            if allowed_queues and not queue_allowed(queue.name, allowed_queues):
+                continue
             finished_jobs = len(queue.finished_job_registry.get_job_ids())
             started_jobs = len(queue.started_job_registry.get_job_ids())
             failed_jobs = len(queue.failed_job_registry.get_job_ids())
