@@ -61,14 +61,30 @@
       });
   }
 
-  function deleteJobsInQueue(queue_name) {
+  function setBtnLoading(btn) {
+    btn.disabled = true;
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+    btn.dataset.originalHtml = btn.innerHTML;
+    btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>';
+  }
+
+  function resetBtn(btn) {
+    btn.disabled = false;
+    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    btn.innerHTML = btn.dataset.originalHtml;
+  }
+
+  function deleteJobsInQueue(queue_name, btn) {
+    setBtnLoading(btn);
     fetch(baseurl + '/queues/' + queue_name, { method: 'DELETE' })
       .then(function (r) {
-        if (!r.ok) { showErrorNotification('Error deleting jobs in queue'); }
+        if (!r.ok) { showErrorNotification('Error deleting jobs in queue'); resetBtn(btn); }
+        else { updateQueuesData(); }
       })
       .catch(function (error) {
         console.error('Error deleting jobs in queue: ', error);
         showErrorNotification('Error deleting jobs in queue');
+        resetBtn(btn);
       });
   }
 
@@ -94,7 +110,7 @@
 
     tableBody.querySelectorAll('[data-queue]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        deleteJobsInQueue(this.getAttribute('data-queue'));
+        deleteJobsInQueue(this.getAttribute('data-queue'), this);
       });
     });
   }
@@ -161,7 +177,7 @@
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[data-queue-ssr]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        deleteJobsInQueue(this.getAttribute('data-queue-ssr'));
+        deleteJobsInQueue(this.getAttribute('data-queue-ssr'), this);
       });
     });
   });

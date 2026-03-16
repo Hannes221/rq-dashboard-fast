@@ -37,35 +37,131 @@
   }
 
   let page = 1;
+  let perPage = {{ per_page if per_page is defined else 10 }};
+  let totalPages = {{ total_pages }};
+  let totalJobs = {{ total }};
 
-  function nextPage() {
-    page += 1;
-    updatePageNumber();
+  function goToPage(p) {
+    if (p < 1 || p > totalPages) return;
+    page = p;
     updateJobsData();
   }
 
-  function previousPage() {
-    if (page > 1) {
-      page -= 1;
-      updatePageNumber();
-      updateJobsData();
-    }
-  }
-
-  function updatePageNumber() {
-    document.getElementById("page-number").textContent = page;
+  function changePerPage(newPerPage) {
+    perPage = newPerPage;
+    page = 1;
+    updateJobsData();
   }
 
   function updateJobsData() {
     var selectedState = document.getElementById("state-filter").value;
     var selectedQueue = document.getElementById("queue-name-filter").value;
-    fetch(baseurl + "/jobs/json?state=" + selectedState + "&queue_name=" + selectedQueue + "&page=" + page)
+    fetch(baseurl + "/jobs/json?state=" + selectedState + "&queue_name=" + selectedQueue + "&page=" + page + "&per_page=" + perPage)
       .then(function (r) { return r.json(); })
-      .then(function (data) { updateJobsTable(data); })
+      .then(function (response) {
+        totalPages = response.total_pages;
+        totalJobs = response.total;
+        page = response.page;
+        perPage = response.per_page;
+        updateJobsTable(response.data);
+        renderPagination();
+      })
       .catch(function (error) {
         console.error("Error fetching jobs data: ", error);
         showErrorNotification("Error fetching jobs data");
       });
+  }
+
+  function renderPagination() {
+    var container = document.getElementById("pagination");
+    container.innerHTML = "";
+
+    // Page navigation (only when more than 1 page)
+    if (totalPages > 1) {
+      // Previous button
+      var prevBtn = document.createElement("button");
+      prevBtn.className = "btn-pagination" + (page <= 1 ? " opacity-40 cursor-not-allowed" : "");
+      prevBtn.disabled = page <= 1;
+      prevBtn.title = "Previous page";
+      prevBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>';
+      prevBtn.addEventListener("click", function () { goToPage(page - 1); });
+      container.appendChild(prevBtn);
+
+      // Page numbers
+      var pages = getPageNumbers(page, totalPages);
+      pages.forEach(function (p) {
+        if (p === "...") {
+          var ellipsis = document.createElement("span");
+          ellipsis.className = "text-sm text-gray-400 dark:text-gray-500 px-0.5 select-none";
+          ellipsis.textContent = "...";
+          container.appendChild(ellipsis);
+        } else {
+          var btn = document.createElement("button");
+          btn.textContent = p;
+          if (p === page) {
+            btn.className = "inline-flex items-center justify-center min-w-9 h-9 px-2 rounded-md text-sm font-medium bg-blue-600 text-white dark:bg-blue-500 cursor-default";
+          } else {
+            btn.className = "inline-flex items-center justify-center min-w-9 h-9 px-2 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 cursor-pointer border-none transition-colors duration-150";
+            btn.addEventListener("click", (function (pageNum) {
+              return function () { goToPage(pageNum); };
+            })(p));
+          }
+          container.appendChild(btn);
+        }
+      });
+
+      // Next button
+      var nextBtn = document.createElement("button");
+      nextBtn.className = "btn-pagination" + (page >= totalPages ? " opacity-40 cursor-not-allowed" : "");
+      nextBtn.disabled = page >= totalPages;
+      nextBtn.title = "Next page";
+      nextBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>';
+      nextBtn.addEventListener("click", function () { goToPage(page + 1); });
+      container.appendChild(nextBtn);
+    }
+
+    // Per-page selector (always visible)
+    var perPageWrapper = document.createElement("span");
+    perPageWrapper.className = (totalPages > 1 ? "ml-6 " : "") + "flex items-center gap-2";
+    var perPageLabel = document.createElement("span");
+    perPageLabel.className = "text-xs text-gray-500 dark:text-gray-400";
+    perPageLabel.textContent = "Show";
+    perPageWrapper.appendChild(perPageLabel);
+    var perPageSelect = document.createElement("select");
+    perPageSelect.className = "text-xs px-2.5 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 cursor-pointer";
+    [10, 50, 100].forEach(function (val) {
+      var opt = document.createElement("option");
+      opt.value = val;
+      opt.textContent = val;
+      if (val === perPage) opt.selected = true;
+      perPageSelect.appendChild(opt);
+    });
+    perPageSelect.addEventListener("change", function () { changePerPage(Number(this.value)); });
+    perPageWrapper.appendChild(perPageSelect);
+    container.appendChild(perPageWrapper);
+
+    // Total count (always visible)
+    var info = document.createElement("span");
+    info.className = "text-xs text-gray-500 dark:text-gray-400 ml-4";
+    info.textContent = totalJobs + " job" + (totalJobs !== 1 ? "s" : "");
+    container.appendChild(info);
+  }
+
+  function getPageNumbers(current, total) {
+    if (total <= 7) {
+      var arr = [];
+      for (var i = 1; i <= total; i++) arr.push(i);
+      return arr;
+    }
+    var pages = [];
+    pages.push(1);
+    if (current > 3) pages.push("...");
+    var start = Math.max(2, current - 1);
+    var end = Math.min(total - 1, current + 1);
+    for (var i = start; i <= end; i++) pages.push(i);
+    if (current < total - 2) pages.push("...");
+    pages.push(total);
+    return pages;
   }
 
   function updateJobsTable(data) {
@@ -96,32 +192,51 @@
     });
 
     tableBody.querySelectorAll('[data-delete-id]').forEach(function (btn) {
-      btn.addEventListener('click', function () { deleteJob(this.getAttribute('data-delete-id')); });
+      btn.addEventListener('click', function () { deleteJob(this.getAttribute('data-delete-id'), this); });
     });
     tableBody.querySelectorAll('[data-requeue-id]').forEach(function (btn) {
-      btn.addEventListener('click', function () { requeueJob(this.getAttribute('data-requeue-id')); });
+      btn.addEventListener('click', function () { requeueJob(this.getAttribute('data-requeue-id'), this); });
     });
   }
 
-  function deleteJob(job_id) {
+  function setBtnLoading(btn) {
+    btn.disabled = true;
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+    btn.dataset.originalHtml = btn.innerHTML;
+    btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>';
+  }
+
+  function resetBtn(btn) {
+    btn.disabled = false;
+    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    btn.innerHTML = btn.dataset.originalHtml;
+  }
+
+  function deleteJob(job_id, btn) {
+    setBtnLoading(btn);
     fetch(baseurl + "/job/" + job_id, { method: "DELETE" })
       .then(function (r) {
-        if (!r.ok) { showErrorNotification("Error deleting job"); }
+        if (!r.ok) { showErrorNotification("Error deleting job"); resetBtn(btn); }
+        else { updateJobsData(); }
       })
       .catch(function (error) {
         console.error("Error deleting job: ", error);
         showErrorNotification("Error deleting job");
+        resetBtn(btn);
       });
   }
 
-  function requeueJob(job_id) {
+  function requeueJob(job_id, btn) {
+    setBtnLoading(btn);
     fetch(baseurl + "/job/" + job_id + "/requeue", { method: "POST" })
       .then(function (r) {
-        if (!r.ok) { showErrorNotification("Error requeueing job"); }
+        if (!r.ok) { showErrorNotification("Error requeueing job"); resetBtn(btn); }
+        else { updateJobsData(); }
       })
       .catch(function (error) {
         console.error("Error requeueing job: ", error);
         showErrorNotification("Error requeueing job");
+        resetBtn(btn);
       });
   }
 
@@ -134,10 +249,8 @@
     var defaultQueue = urlParams.get("queue_name") || "all";
     document.getElementById("queue-name-filter").value = defaultQueue;
 
-    document.getElementById("state-filter").addEventListener("change", function () { updateJobsData(); });
-    document.getElementById("queue-name-filter").addEventListener("change", function () { updateJobsData(); });
-    document.getElementById("btn-prev").addEventListener("click", previousPage);
-    document.getElementById("btn-next").addEventListener("click", nextPage);
+    document.getElementById("state-filter").addEventListener("change", function () { page = 1; updateJobsData(); });
+    document.getElementById("queue-name-filter").addEventListener("change", function () { page = 1; updateJobsData(); });
 
     var jobLinks = document.querySelectorAll("a[data-job-id]");
     jobLinks.forEach(function (link) {
@@ -145,7 +258,7 @@
       link.href = baseurl + "/job/" + jobId;
     });
 
-    updatePageNumber();
+    renderPagination();
     updateJobsData();
   });
 
@@ -225,24 +338,16 @@
       {% endfor %} {% endfor %} {% endfor %}
     </tbody>
   </table>
-  <div class="flex justify-center mt-2.5 gap-2 items-center">
-    <button id="btn-prev" class="btn-pagination" title="Previous page">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-    </button>
-    <span class="text-sm text-gray-500 dark:text-gray-400"><span id="page-number">{{ page }}</span></span>
-    <button id="btn-next" class="btn-pagination" title="Next page">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-    </button>
-  </div>
+  <div id="pagination" class="flex justify-center mt-6 mb-4 gap-2 items-center py-3"></div>
 </div>
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll("[data-delete-ssr]").forEach(function (btn) {
-      btn.addEventListener("click", function () { deleteJob(this.getAttribute("data-delete-ssr")); });
+      btn.addEventListener("click", function () { deleteJob(this.getAttribute("data-delete-ssr"), this); });
     });
     document.querySelectorAll("[data-requeue-ssr]").forEach(function (btn) {
-      btn.addEventListener("click", function () { requeueJob(this.getAttribute("data-requeue-ssr")); });
+      btn.addEventListener("click", function () { requeueJob(this.getAttribute("data-requeue-ssr"), this); });
     });
   });
 </script>

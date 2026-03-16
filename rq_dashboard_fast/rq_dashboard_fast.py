@@ -14,6 +14,7 @@ from starlette.staticfiles import StaticFiles
 
 from rq_dashboard_fast.utils.jobs import (
     JobDataDetailed,
+    PaginatedJobResponse,
     QueueJobRegistryStats,
     convert_queue_job_registry_dict_to_list,
     convert_queue_job_registry_stats_to_json_dict,
@@ -68,9 +69,10 @@ class RedisQueueDashboard(FastAPI):
             queue_name: str = Query("all"),
             state: str = Query("all"),
             page: int = Query(1),
+            per_page: int = Query(10),
         ):
             try:
-                job_data = get_jobs(self.redis_url, queue_name, state, page=page)
+                paginated = get_jobs(self.redis_url, queue_name, state, page=page, per_page=per_page)
 
                 active_tab = "jobs"
 
@@ -80,7 +82,11 @@ class RedisQueueDashboard(FastAPI):
                     "jobs.html",
                     {
                         "request": request,
-                        "job_data": job_data,
+                        "job_data": paginated.data,
+                        "page": paginated.page,
+                        "per_page": paginated.per_page,
+                        "total_pages": paginated.total_pages,
+                        "total": paginated.total,
                         "active_tab": active_tab,
                         "prefix": prefix,
                         "rq_dashboard_version": self.rq_dashboard_version,
@@ -194,9 +200,10 @@ class RedisQueueDashboard(FastAPI):
             queue_name: str = Query("all"),
             state: str = Query("all"),
             page: int = Query(1),
+            per_page: int = Query(10),
         ):
             try:
-                job_data = get_jobs(self.redis_url, queue_name, state, page=page)
+                paginated = get_jobs(self.redis_url, queue_name, state, page=page, per_page=per_page)
 
                 active_tab = "jobs"
 
@@ -206,7 +213,11 @@ class RedisQueueDashboard(FastAPI):
                     "jobs.html",
                     {
                         "request": request,
-                        "job_data": job_data,
+                        "job_data": paginated.data,
+                        "page": paginated.page,
+                        "per_page": paginated.per_page,
+                        "total_pages": paginated.total_pages,
+                        "total": paginated.total,
                         "active_tab": active_tab,
                         "prefix": prefix,
                         "rq_dashboard_version": self.rq_dashboard_version,
@@ -220,16 +231,15 @@ class RedisQueueDashboard(FastAPI):
                     detail="An error occurred reading jobs data template",
                 )
 
-        @self.get("/jobs/json", response_model=list[QueueJobRegistryStats])
+        @self.get("/jobs/json", response_model=PaginatedJobResponse)
         async def read_jobs(
             queue_name: str = Query("all"),
             state: str = Query("all"),
             page: int = Query(1),
+            per_page: int = Query(10),
         ):
             try:
-                job_data = get_jobs(self.redis_url, queue_name, state, page=page)
-
-                return job_data
+                return get_jobs(self.redis_url, queue_name, state, page=page, per_page=per_page)
             except Exception as e:
                 logger.exception("An error occurred reading jobs data json:", e)
                 raise HTTPException(
@@ -359,8 +369,8 @@ class RedisQueueDashboard(FastAPI):
         @self.get("/export/jobs")
         def export_jobs():
             try:
-                jobs_data = asyncio.run(read_jobs("all", "all", 1))
-                json_dict = convert_queue_job_registry_stats_to_json_dict(jobs_data)
+                paginated = asyncio.run(read_jobs("all", "all", 1))
+                json_dict = convert_queue_job_registry_stats_to_json_dict(paginated.data)
                 df = convert_queue_job_registry_dict_to_list(json_dict)
                 csv_data = export_to_csv(df, "jobs_data.csv")
                 output = BytesIO(csv_data.encode())

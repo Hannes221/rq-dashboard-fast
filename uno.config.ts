@@ -21,6 +21,12 @@ export default defineConfig({
   safelist: [
     'badge-failed', 'badge-started', 'badge-queued',
     'badge-finished', 'badge-deferred', 'badge-scheduled',
+    // Pagination (dynamically generated in JS)
+    'opacity-40', 'cursor-not-allowed', 'min-w-9', 'h-9',
+    'bg-blue-600', 'dark:bg-blue-500', 'cursor-default',
+    'select-none',
+    // Button loading states (dynamically toggled in JS)
+    'opacity-50', 'opacity-25', 'opacity-75', 'animate-spin',
   ],
   shortcuts: {
     'btn': 'px-3 py-1.5 rounded-md cursor-pointer border-none text-sm font-medium transition-colors duration-150',
