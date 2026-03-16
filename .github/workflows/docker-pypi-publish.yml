@@ -22,7 +22,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          repository: "Hannes221/rq-dashboard-fast"
+          ref: main
 
       - name: Build Docker image with dev dependencies
         run: docker compose build --build-arg INSTALL_DEV=true
@@ -43,7 +43,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          repository: "Hannes221/rq-dashboard-fast"
+          ref: main
 
       # Install Python and dependencies for building package
       - name: Set up Python

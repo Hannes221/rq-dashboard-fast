@@ -202,7 +202,7 @@ def get_job_registrys(
             total_pages=total_pages,
         )
     except Exception as error:
-        logger.exception("Error fetching job registries: ", error)
+        logger.exception("Error fetching job registries: %s", error)
         raise HTTPException(
             status_code=500, detail=str("Error fetching job registries")
         )
@@ -226,7 +226,7 @@ def get_jobs(
             allowed_queues=allowed_queues,
         )
     except Exception as error:
-        logger.exception("Error fetching job data: ", error)
+        logger.exception("Error fetching job data: %s", error)
         raise HTTPException(status_code=500, detail=str("Error fetching job data"))
 
 
@@ -247,7 +247,7 @@ def get_job(redis_url: str, job_id: str) -> JobDataDetailed:
             origin=job.origin,
         )
     except Exception as error:
-        logger.exception("Error fetching job: ", error)
+        logger.exception("Error fetching job: %s", error)
         raise HTTPException(status_code=500, detail=str("Error fetching job"))
 
 
@@ -258,7 +258,7 @@ def delete_job_id(redis_url: str, job_id: str):
         if job:
             job.delete()
     except Exception as error:
-        logger.exception("Error deleting specific job: ", error)
+        logger.exception("Error deleting specific job: %s", error)
         raise HTTPException(status_code=500, detail=str("Error deleting specific job"))
 
 
@@ -269,7 +269,7 @@ def requeue_job_id(redis_url: str, job_id: str):
         if job:
             job.requeue()
     except Exception as error:
-        logger.exception("Error reloading specific job: ", error)
+        logger.exception("Error reloading specific job: %s", error)
         raise HTTPException(status_code=500, detail=str("Error reloading specific job"))
 
 
@@ -302,7 +302,8 @@ def convert_queue_job_registry_stats_to_json_dict(
         return queue_stats_list
     except Exception as error:
         logger.exception(
-            "Error converting queue job registry stats list to JSON dictionary: ", error
+            "Error converting queue job registry stats list to JSON dictionary: %s",
+            error,
         )
         raise HTTPException(
             status_code=500,
@@ -327,7 +328,7 @@ def convert_queue_job_registry_dict_to_list(input_data: list[dict]) -> list[dict
                         job_details.append(job_info)
         return job_details
     except Exception as error:
-        logger.exception("Error converting job registry stats dict to list: ", error)
+        logger.exception("Error converting job registry stats dict to list: %s", error)
         raise HTTPException(
             status_code=500,
             detail=f"Error converting job registry stats dict to list",
