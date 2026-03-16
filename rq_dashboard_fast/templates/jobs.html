@@ -192,32 +192,51 @@
     });
 
     tableBody.querySelectorAll('[data-delete-id]').forEach(function (btn) {
-      btn.addEventListener('click', function () { deleteJob(this.getAttribute('data-delete-id')); });
+      btn.addEventListener('click', function () { deleteJob(this.getAttribute('data-delete-id'), this); });
     });
     tableBody.querySelectorAll('[data-requeue-id]').forEach(function (btn) {
-      btn.addEventListener('click', function () { requeueJob(this.getAttribute('data-requeue-id')); });
+      btn.addEventListener('click', function () { requeueJob(this.getAttribute('data-requeue-id'), this); });
     });
   }
 
-  function deleteJob(job_id) {
+  function setBtnLoading(btn) {
+    btn.disabled = true;
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+    btn.dataset.originalHtml = btn.innerHTML;
+    btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>';
+  }
+
+  function resetBtn(btn) {
+    btn.disabled = false;
+    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    btn.innerHTML = btn.dataset.originalHtml;
+  }
+
+  function deleteJob(job_id, btn) {
+    setBtnLoading(btn);
     fetch(baseurl + "/job/" + job_id, { method: "DELETE" })
       .then(function (r) {
-        if (!r.ok) { showErrorNotification("Error deleting job"); }
+        if (!r.ok) { showErrorNotification("Error deleting job"); resetBtn(btn); }
+        else { updateJobsData(); }
       })
       .catch(function (error) {
         console.error("Error deleting job: ", error);
         showErrorNotification("Error deleting job");
+        resetBtn(btn);
       });
   }
 
-  function requeueJob(job_id) {
+  function requeueJob(job_id, btn) {
+    setBtnLoading(btn);
     fetch(baseurl + "/job/" + job_id + "/requeue", { method: "POST" })
       .then(function (r) {
-        if (!r.ok) { showErrorNotification("Error requeueing job"); }
+        if (!r.ok) { showErrorNotification("Error requeueing job"); resetBtn(btn); }
+        else { updateJobsData(); }
       })
       .catch(function (error) {
         console.error("Error requeueing job: ", error);
         showErrorNotification("Error requeueing job");
+        resetBtn(btn);
       });
   }
 
@@ -325,10 +344,10 @@
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll("[data-delete-ssr]").forEach(function (btn) {
-      btn.addEventListener("click", function () { deleteJob(this.getAttribute("data-delete-ssr")); });
+      btn.addEventListener("click", function () { deleteJob(this.getAttribute("data-delete-ssr"), this); });
     });
     document.querySelectorAll("[data-requeue-ssr]").forEach(function (btn) {
-      btn.addEventListener("click", function () { requeueJob(this.getAttribute("data-requeue-ssr")); });
+      btn.addEventListener("click", function () { requeueJob(this.getAttribute("data-requeue-ssr"), this); });
     });
   });
 </script>
