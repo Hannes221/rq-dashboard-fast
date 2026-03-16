@@ -40,6 +40,14 @@ class QueueJobRegistryStats(BaseModel):
     finished: List[JobData]
 
 
+class PaginatedJobResponse(BaseModel):
+    data: List[QueueJobRegistryStats]
+    total: int
+    page: int
+    per_page: int
+    total_pages: int
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -49,40 +57,60 @@ def get_job_registrys(
     state: str = "all",
     page: int = 1,
     per_page: int = 10,
-) -> List[QueueJobRegistryStats]:
+) -> PaginatedJobResponse:
     try:
         redis = Redis.from_url(redis_url)
         scheduler = Scheduler(connection=redis)
         queues = get_queues(redis_url)
         result = []
+        total = 0
 
         start_index = (page - 1) * per_page
         end_index = start_index + per_page
 
         for queue in queues:
             if queue_name == "all" or queue_name == queue.name:
-                jobs = []
+                job_ids = []
 
                 if state == "all":
-                    jobs.extend(queue.get_job_ids())
-                    jobs.extend(queue.finished_job_registry.get_job_ids())
-                    jobs.extend(queue.failed_job_registry.get_job_ids())
-                    jobs.extend(queue.started_job_registry.get_job_ids())
-                    jobs.extend(queue.deferred_job_registry.get_job_ids())
-                    jobs.extend(queue.scheduled_job_registry.get_job_ids())
-                else:
-                    if state == "scheduled":
-                        jobs.extend(queue.scheduled_job_registry.get_job_ids())
-                    elif state == "queued":
-                        jobs.extend(queue.get_job_ids())
-                    elif state == "finished":
-                        jobs.extend(queue.finished_job_registry.get_job_ids())
-                    elif state == "failed":
-                        jobs.extend(queue.failed_job_registry.get_job_ids())
-                    elif state == "started":
-                        jobs.extend(queue.started_job_registry.get_job_ids())
-                    elif state == "deferred":
-                        jobs.extend(queue.deferred_job_registry.get_job_ids())
+                    job_ids.extend(queue.get_job_ids())
+                    job_ids.extend(queue.finished_job_registry.get_job_ids())
+                    job_ids.extend(queue.failed_job_registry.get_job_ids())
+                    job_ids.extend(queue.started_job_registry.get_job_ids())
+                    job_ids.extend(queue.deferred_job_registry.get_job_ids())
+                    job_ids.extend(queue.scheduled_job_registry.get_job_ids())
+                    total += len(job_ids)
+                    job_ids = job_ids[start_index:end_index]
+                elif state == "scheduled":
+                    total += queue.scheduled_job_registry.count
+                    job_ids = queue.scheduled_job_registry.get_job_ids(
+                        start=start_index, end=end_index - 1
+                    )
+                elif state == "queued":
+                    total += queue.count
+                    job_ids = queue.get_job_ids(
+                        offset=start_index, length=per_page
+                    )
+                elif state == "finished":
+                    total += queue.finished_job_registry.count
+                    job_ids = queue.finished_job_registry.get_job_ids(
+                        start=start_index, end=end_index - 1
+                    )
+                elif state == "failed":
+                    total += queue.failed_job_registry.count
+                    job_ids = queue.failed_job_registry.get_job_ids(
+                        start=start_index, end=end_index - 1
+                    )
+                elif state == "started":
+                    total += queue.started_job_registry.count
+                    job_ids = queue.started_job_registry.get_job_ids(
+                        start=start_index, end=end_index - 1
+                    )
+                elif state == "deferred":
+                    total += queue.deferred_job_registry.count
+                    job_ids = queue.deferred_job_registry.get_job_ids(
+                        start=start_index, end=end_index - 1
+                    )
 
                 scheduled_jobs = []
                 scheduled = scheduler.get_jobs()
@@ -97,14 +125,14 @@ def get_job_registrys(
                             )
                         )
 
-                jobs_fetched = Job.fetch_many(jobs, connection=redis)
+                jobs_fetched = Job.fetch_many(job_ids, connection=redis)
                 started_jobs = []
                 failed_jobs = []
                 deferred_jobs = []
                 finished_jobs = []
                 queued_jobs = []
 
-                jobs = jobs_fetched[start_index:end_index]
+                jobs = jobs_fetched
                 for job in jobs:
                     if job is None:
                         continue
@@ -162,7 +190,14 @@ def get_job_registrys(
                     )
                 )
 
-        return result
+        total_pages = max(1, (total + per_page - 1) // per_page)
+        return PaginatedJobResponse(
+            data=result,
+            total=total,
+            page=page,
+            per_page=per_page,
+            total_pages=total_pages,
+        )
     except Exception as error:
         logger.exception("Error fetching job registries: ", error)
         raise HTTPException(
@@ -171,11 +206,14 @@ def get_job_registrys(
 
 
 def get_jobs(
-    redis_url: str, queue_name: str = "all", state: str = "all", page: int = 1
-) -> list[QueueJobRegistryStats]:
+    redis_url: str,
+    queue_name: str = "all",
+    state: str = "all",
+    page: int = 1,
+    per_page: int = 10,
+) -> PaginatedJobResponse:
     try:
-        job_stats = get_job_registrys(redis_url, queue_name, state, page)
-        return job_stats
+        return get_job_registrys(redis_url, queue_name, state, page, per_page)
     except Exception as error:
         logger.exception("Error fetching job data: ", error)
         raise HTTPException(status_code=500, detail=str("Error fetching job data"))
