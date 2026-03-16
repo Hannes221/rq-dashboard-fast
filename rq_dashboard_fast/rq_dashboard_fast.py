@@ -72,7 +72,9 @@ class RedisQueueDashboard(FastAPI):
             per_page: int = Query(10),
         ):
             try:
-                paginated = get_jobs(self.redis_url, queue_name, state, page=page, per_page=per_page)
+                paginated = get_jobs(
+                    self.redis_url, queue_name, state, page=page, per_page=per_page
+                )
 
                 active_tab = "jobs"
 
@@ -95,7 +97,7 @@ class RedisQueueDashboard(FastAPI):
                 )
             except Exception as e:
                 logger.exception(
-                    "An error occurred while loading the base template:", e
+                    "An error occurred while loading the base template: %s", e
                 )
                 raise HTTPException(
                     status_code=500,
@@ -123,7 +125,7 @@ class RedisQueueDashboard(FastAPI):
                     },
                 )
             except Exception as e:
-                logger.exception("An error occurred while reading workers:", e)
+                logger.exception("An error occurred while reading workers: %s", e)
                 raise HTTPException(
                     status_code=500, detail="An error occurred while reading workers"
                 )
@@ -149,7 +151,9 @@ class RedisQueueDashboard(FastAPI):
                 deleted_ids = delete_jobs_for_queue(queue_name, self.redis_url)
                 return deleted_ids
             except Exception as e:
-                logger.exception("An error occurred while deleting jobs in queue:", e)
+                logger.exception(
+                    "An error occurred while deleting jobs in queue: %s", e
+                )
                 raise HTTPException(
                     status_code=500,
                     detail="An error occurred while deleting jobs in queue",
@@ -176,7 +180,9 @@ class RedisQueueDashboard(FastAPI):
                     },
                 )
             except Exception as e:
-                logger.exception("An error occurred reading queues data template:", e)
+                logger.exception(
+                    "An error occurred reading queues data template: %s", e
+                )
                 raise HTTPException(
                     status_code=500,
                     detail="An error occurred reading queues data template",
@@ -189,7 +195,7 @@ class RedisQueueDashboard(FastAPI):
 
                 return queue_data
             except Exception as e:
-                logger.exception("An error occurred reading queues data json:", e)
+                logger.exception("An error occurred reading queues data json: %s", e)
                 raise HTTPException(
                     status_code=500, detail="An error occurred reading queues data json"
                 )
@@ -203,7 +209,9 @@ class RedisQueueDashboard(FastAPI):
             per_page: int = Query(10),
         ):
             try:
-                paginated = get_jobs(self.redis_url, queue_name, state, page=page, per_page=per_page)
+                paginated = get_jobs(
+                    self.redis_url, queue_name, state, page=page, per_page=per_page
+                )
 
                 active_tab = "jobs"
 
@@ -225,7 +233,7 @@ class RedisQueueDashboard(FastAPI):
                     },
                 )
             except Exception as e:
-                logger.exception("An error occurred reading jobs data template:", e)
+                logger.exception("An error occurred reading jobs data template: %s", e)
                 raise HTTPException(
                     status_code=500,
                     detail="An error occurred reading jobs data template",
@@ -239,9 +247,11 @@ class RedisQueueDashboard(FastAPI):
             per_page: int = Query(10),
         ):
             try:
-                return get_jobs(self.redis_url, queue_name, state, page=page, per_page=per_page)
+                return get_jobs(
+                    self.redis_url, queue_name, state, page=page, per_page=per_page
+                )
             except Exception as e:
-                logger.exception("An error occurred reading jobs data json:", e)
+                logger.exception("An error occurred reading jobs data json: %s", e)
                 raise HTTPException(
                     status_code=500, detail="An error occurred reading jobs data json"
                 )
@@ -278,7 +288,7 @@ class RedisQueueDashboard(FastAPI):
                     },
                 )
             except Exception as e:
-                logger.exception("An error occurred fetching a specific job:", e)
+                logger.exception("An error occurred fetching a specific job: %s", e)
                 raise HTTPException(
                     status_code=500, detail="An error occurred fetching a specific job"
                 )
@@ -288,7 +298,7 @@ class RedisQueueDashboard(FastAPI):
             try:
                 delete_job_id(self.redis_url, job_id=job_id)
             except Exception as e:
-                logger.exception("An error occurred while deleting a job:", e)
+                logger.exception("An error occurred while deleting a job: %s", e)
                 raise HTTPException(
                     status_code=500, detail="An error occurred while deleting a job"
                 )
@@ -298,7 +308,7 @@ class RedisQueueDashboard(FastAPI):
             try:
                 requeue_job_id(self.redis_url, job_id=job_id)
             except Exception as e:
-                logger.exception("An error occurred while requeueing a job:", e)
+                logger.exception("An error occurred while requeueing a job: %s", e)
                 raise HTTPException(
                     status_code=500, detail="An error occurred while requeueing a job"
                 )
@@ -319,7 +329,9 @@ class RedisQueueDashboard(FastAPI):
                     },
                 )
             except Exception as e:
-                logger.exception("An error occurred reading export data template:", e)
+                logger.exception(
+                    "An error occurred reading export data template: %s", e
+                )
                 raise HTTPException(
                     status_code=500,
                     detail="An error occurred reading export data template",
@@ -338,7 +350,7 @@ class RedisQueueDashboard(FastAPI):
                     output, headers=headers, media_type="application/octet-stream"
                 )
             except Exception as e:
-                logger.exception("An error occurred while exporting:", e)
+                logger.exception("An error occurred while exporting: %s", e)
                 raise HTTPException(
                     status_code=500, detail="An error occurred while exporting"
                 )
@@ -361,7 +373,7 @@ class RedisQueueDashboard(FastAPI):
                     output, headers=headers, media_type="application/octet-stream"
                 )
             except Exception as e:
-                logger.exception("An error occurred while exporting:", e)
+                logger.exception("An error occurred while exporting: %s", e)
                 raise HTTPException(
                     status_code=500, detail="An error occurred while exporting"
                 )
@@ -369,8 +381,10 @@ class RedisQueueDashboard(FastAPI):
         @self.get("/export/jobs")
         def export_jobs():
             try:
-                paginated = asyncio.run(read_jobs("all", "all", 1))
-                json_dict = convert_queue_job_registry_stats_to_json_dict(paginated.data)
+                paginated = get_jobs(self.redis_url, "all", "all", 1)
+                json_dict = convert_queue_job_registry_stats_to_json_dict(
+                    paginated.data
+                )
                 df = convert_queue_job_registry_dict_to_list(json_dict)
                 csv_data = export_to_csv(df, "jobs_data.csv")
                 output = BytesIO(csv_data.encode())
@@ -379,7 +393,7 @@ class RedisQueueDashboard(FastAPI):
                     output, headers=headers, media_type="application/octet-stream"
                 )
             except Exception as e:
-                logger.exception("An error occurred while exporting:", e)
+                logger.exception("An error occurred while exporting: %s", e)
                 raise HTTPException(
                     status_code=500, detail="An error occurred while exporting"
                 )

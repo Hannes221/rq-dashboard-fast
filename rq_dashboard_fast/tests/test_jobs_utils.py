@@ -47,7 +47,7 @@ def test_get_job_registrys(setup_redis, setup_scheduler, setup_queue):
     assert any(
         queue_job.queue_name == setup_queue.name
         and any(job_data.name == job_name for job_data in queue_job.queued)
-        for queue_job in job_registrys
+        for queue_job in job_registrys.data
     )
 
 
@@ -59,7 +59,9 @@ def test_get_jobs(setup_redis, setup_scheduler, setup_queue):
     jobs = get_jobs(redis_url)
 
     assert any(
-        job_data.name == job_name for queue_job in jobs for job_data in queue_job.queued
+        job_data.name == job_name
+        for queue_job in jobs.data
+        for job_data in queue_job.queued
     )
 
 
