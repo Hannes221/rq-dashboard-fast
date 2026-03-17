@@ -1,7 +1,7 @@
 <header class="sticky top-0 z-50 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-700">
   <nav class="max-w-[90%] mx-auto flex justify-between items-center h-14 px-4">
     <a href="{{prefix}}/jobs" class="no-underline text-gray-900 dark:text-gray-200">
-      <span class="text-lg font-semibold tracking-tight">RQ-Dashboard for FastAPI</span>
+      <span class="text-lg font-semibold tracking-tight">{{ custom_title if custom_title else "RQ-Dashboard for FastAPI" }}</span>
     </a>
     <div class="flex items-center gap-6">
       <a href="{{prefix}}/jobs" class="header-link no-underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Jobs</a>

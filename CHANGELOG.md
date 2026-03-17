@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.2] - 2026-03-16
+
+### Added
+- Token-based authentication with per-queue access control (opt-in via YAML config)
+- CLI command `rq-dashboard-fast generate-token` to create token/hash pairs
+- `--auth-config` flag and `RQ_DASH_AUTH_CONFIG` environment variable
+- Per-token custom page title (shown in header and browser tab)
+- Read-only and admin access levels with scoped queue visibility
+- CSRF protection on all mutation requests (delete, requeue, clear queue)
+- Login page shown when auth is enabled and no valid token is present
+- Token-to-cookie flow that strips tokens from URLs to prevent leaking
+- Authentication documentation in docs/authentication.md
+
+## [0.7.1] - 2026-03-09
+
+### Added
+- Dynamic pagination with page size selector (10, 50, 100) on jobs page
+- Total job count display in pagination controls
+- Loading spinner on action buttons (delete, requeue, clear queue)
+
 ## [0.7.0] - 2026-02-27
 
 ### Added

@@ -68,6 +68,18 @@ $ rq-dashboard-fast --host 127.0.0.1 --prefix /dashboard
 | `--host` | `0.0.0.0` | `FASTAPI_HOST` |
 | `--port` | `8000` | `FASTAPI_PORT` |
 | `--prefix` | `/rq` | — |
+| `--auth-config` | — | `RQ_DASH_AUTH_CONFIG` |
+
+## Authentication
+
+The dashboard supports opt-in token-based authentication with per-queue access control. Generate a token, create a YAML config file with hashed tokens and queue scopes, and pass it via `--auth-config` or `RQ_DASH_AUTH_CONFIG`. When no config is provided, the dashboard runs with open access as before.
+
+```bash
+rq-dashboard-fast generate-token          # generate a token + hash pair
+rq-dashboard-fast --auth-config auth.yaml # start with auth enabled
+```
+
+See the full documentation in [docs/authentication.md](docs/authentication.md).
 
 ## Running in Docker
 
@@ -150,6 +162,7 @@ $ pip install rq-dashboard-fast
 - [x] Data Export
 - [ ] Statistics Tab
 - [x] Run Standalone (Terminal)
+- [x] Token-based Authentication with Per-Queue Access Control
 
 ## Development
 
