@@ -16,8 +16,8 @@ CSRF_COOKIE_NAME = "rq_dash_csrf"
 
 class TokenPermissions(BaseModel):
     authenticated: bool = False
-    queues: list[str] = ["*"]
-    access: str = "admin"
+    queues: list[str] = []
+    access: str = "read"
     title: Optional[str] = None
     csrf_token: Optional[str] = None
 
@@ -51,12 +51,18 @@ class AuthConfig:
             return
 
         for entry in data["tokens"]:
-            h = entry.get("hash", "")
+            h = entry.get("hash", "").strip()
+            if not h:
+                continue
             self._tokens[h] = {
                 "queues": entry.get("queues", ["*"]),
                 "access": entry.get("access", "read"),
                 "title": entry.get("title"),
             }
+
+        if not self._tokens:
+            logger.warning("Auth config has no valid tokens — auth disabled")
+            return
 
         self.enabled = True
         logger.info("Auth enabled with %d token(s)", len(self._tokens))

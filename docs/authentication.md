@@ -90,7 +90,7 @@ tokens:
 
 ## How Authentication Works
 
-1. **Token in URL** — User visits `/rq?token=<uuid>`. The middleware hashes the token with SHA-256, looks it up in the config, sets an `HttpOnly` session cookie (`SameSite=Lax`), and redirects to the same page without the `?token=` parameter. This keeps the raw token out of browser history, server logs, and referrer headers.
+1. **Token in URL** — User visits `/rq?token=<uuid>`. The middleware hashes the token with SHA-256, looks it up in the config, sets an `HttpOnly` session cookie (`SameSite=Lax`), and redirects to the same page without the `?token=` parameter. This reduces token exposure in browser history and referrer headers. Note: the initial `?token=` request may still appear in server/reverse-proxy access logs.
 
 2. **Session cookie** — Subsequent requests authenticate via the cookie. No token in the URL is needed after the initial visit.
 
@@ -155,13 +155,15 @@ The admin token sees all queues with full delete/requeue/clear capabilities.
 
 ### TV/kiosk dashboard via bookmark
 
-Bookmark or iframe the URL with the token:
+Bookmark the URL with the token:
 
 ```
 http://dashboard.internal:8000/rq?token=aaaa-bbbb-cccc-dddd
 ```
 
 On first load, the token is exchanged for a cookie and stripped from the URL. The dashboard continues to work via the cookie for the session lifetime.
+
+> **Note on iframes:** Session cookies use `SameSite=Lax`, which means they won't be sent in cross-site iframes. Embedding works when the iframe is on the same site as the dashboard. For cross-origin embedding, you would need to adjust the cookie settings.
 
 ## Docker
 

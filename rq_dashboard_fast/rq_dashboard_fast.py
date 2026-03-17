@@ -3,6 +3,7 @@ import csv
 import logging
 from io import BytesIO, StringIO
 from pathlib import Path
+from urllib.parse import urlencode
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import (
@@ -114,22 +115,23 @@ class RedisQueueDashboard(FastAPI):
                 entry = self.auth.resolve_hash(token_hash)
                 if entry:
                     # Build redirect URL without the token param
-                    params = dict(request.query_params)
-                    params.pop("token", None)
+                    params = {
+                        k: v for k, v in request.query_params.items() if k != "token"
+                    }
                     redirect_path = str(request.url.path)
                     if params:
-                        qs = "&".join(f"{k}={v}" for k, v in params.items())
-                        redirect_path = f"{redirect_path}?{qs}"
+                        redirect_path = f"{redirect_path}?{urlencode(params)}"
                     response = RedirectResponse(url=redirect_path, status_code=302)
                     csrf = generate_csrf_token()
                     is_https = request.url.scheme == "https"
+                    cookie_path = request.scope.get("root_path", "/") or "/"
                     response.set_cookie(
                         COOKIE_NAME,
                         token_hash,
                         httponly=True,
                         samesite="lax",
                         secure=is_https,
-                        path="/",
+                        path=cookie_path,
                     )
                     response.set_cookie(
                         CSRF_COOKIE_NAME,
@@ -137,7 +139,7 @@ class RedisQueueDashboard(FastAPI):
                         httponly=True,
                         samesite="lax",
                         secure=is_https,
-                        path="/",
+                        path=cookie_path,
                     )
                     return response
                 # Invalid token — fall through to login page
@@ -216,10 +218,6 @@ class RedisQueueDashboard(FastAPI):
                     per_page=per_page,
                     allowed_queues=perms.queues,
                 )
-
-                active_tab = "jobs"
-
-                protocol = self.protocol if self.protocol else request.url.scheme
 
                 return self.templates.TemplateResponse(
                     "jobs.html",
@@ -361,10 +359,6 @@ class RedisQueueDashboard(FastAPI):
                     allowed_queues=perms.queues,
                 )
 
-                active_tab = "jobs"
-
-                protocol = self.protocol if self.protocol else request.url.scheme
-
                 return self.templates.TemplateResponse(
                     "jobs.html",
                     _ctx(
@@ -417,8 +411,8 @@ class RedisQueueDashboard(FastAPI):
                 job = get_job(self.redis_url, job_id)
 
                 # Check queue access for the job
-                if self.auth.enabled and job.origin:
-                    if not queue_allowed(job.origin, perms.queues):
+                if self.auth.enabled:
+                    if not job.origin or not queue_allowed(job.origin, perms.queues):
                         raise HTTPException(
                             status_code=403, detail="Access denied for this job's queue"
                         )
