@@ -74,9 +74,14 @@
     btn.innerHTML = btn.dataset.originalHtml;
   }
 
+  function getCsrfToken() {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
+  }
+
   function deleteJobsInQueue(queue_name, btn) {
     setBtnLoading(btn);
-    fetch(baseurl + '/queues/' + queue_name, { method: 'DELETE' })
+    fetch(baseurl + '/queues/' + queue_name, { method: 'DELETE', headers: {"X-CSRF-Token": getCsrfToken()} })
       .then(function (r) {
         if (!r.ok) { showErrorNotification('Error deleting jobs in queue'); resetBtn(btn); }
         else { updateQueuesData(); }
@@ -100,11 +105,15 @@
         return '<td class="td-cell"><a class="text-blue-700 dark:text-blue-400" href="' + baseurl + '/jobs?state=' + state + '&queue_name=' + encodedQueueName + '">' + queue_stats[state] + '</a></td>';
       }).join('');
 
+      var isAdmin = "{{ access }}" === "admin";
+      var actionCell = isAdmin
+        ? '<td class="td-cell"><button class="btn-delete" data-queue="' + encodedQueueName + '" title="Delete jobs"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg></button></td>'
+        : '';
       tableBody.innerHTML +=
         '<tr class="tr-stripe">' +
         '<td class="td-cell">' + safeQueueName + '</td>' +
         cells +
-        '<td class="td-cell"><button class="btn-delete" data-queue="' + safeQueueName + '" title="Delete jobs"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg></button></td>' +
+        actionCell +
         '</tr>';
     });
 
@@ -126,7 +135,7 @@
         <th class="th-cell">Failed</th>
         <th class="th-cell">Deferred</th>
         <th class="th-cell">Finished</th>
-        <th class="th-cell">Actions</th>
+        {% if access == "admin" %}<th class="th-cell">Actions</th>{% endif %}
       </tr>
     </thead>
     <tbody>
@@ -162,11 +171,13 @@
             {{ queue_stats.finished }}
           </a>
         </td>
+        {% if access == "admin" %}
         <td class="td-cell">
           <button class="btn-delete" data-queue-ssr="{{ queue_stats.queue_name }}" title="Delete jobs">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg>
           </button>
         </td>
+        {% endif %}
       </tr>
       {% endfor %}
     </tbody>

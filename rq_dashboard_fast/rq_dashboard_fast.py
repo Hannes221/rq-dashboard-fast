@@ -3,15 +3,30 @@ import csv
 import logging
 from io import BytesIO, StringIO
 from pathlib import Path
+from urllib.parse import urlencode
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import (
+    HTMLResponse,
+    JSONResponse,
+    RedirectResponse,
+    StreamingResponse,
+)
 from fastapi.templating import Jinja2Templates
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers.python import Python2TracebackLexer
 from starlette.staticfiles import StaticFiles
 
+from rq_dashboard_fast.utils.auth import (
+    COOKIE_NAME,
+    CSRF_COOKIE_NAME,
+    AuthConfig,
+    TokenPermissions,
+    generate_csrf_token,
+    hash_token,
+    queue_allowed,
+)
 from rq_dashboard_fast.utils.jobs import (
     JobDataDetailed,
     PaginatedJobResponse,
@@ -37,6 +52,19 @@ from rq_dashboard_fast.utils.workers import (
     get_workers,
 )
 
+_MUTATION_METHODS = {"DELETE", "POST", "PUT", "PATCH"}
+
+
+def _get_permissions(request: Request) -> TokenPermissions:
+    return getattr(request.state, "permissions", TokenPermissions())
+
+
+def _require_admin(permissions: TokenPermissions, queue_name: str):
+    if permissions.access != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    if not queue_allowed(queue_name, permissions.queues):
+        raise HTTPException(status_code=403, detail="Access denied for this queue")
+
 
 class RedisQueueDashboard(FastAPI):
     def __init__(
@@ -44,8 +72,9 @@ class RedisQueueDashboard(FastAPI):
         redis_url: str = "redis://localhost:6379",
         prefix: str = "/rq",
         protocol: str | None = None,
+        auth_config: str | None = None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(root_path=prefix, *args, **kwargs)
 
@@ -58,10 +87,118 @@ class RedisQueueDashboard(FastAPI):
         self.templates = Jinja2Templates(directory=templates_directory)
         self.redis_url = redis_url
         self.protocol = protocol
+        self.auth = AuthConfig(auth_config)
 
         self.rq_dashboard_version = "0.7.2"
 
         logger = logging.getLogger(__name__)
+
+        # --- Auth middleware ---
+        @self.middleware("http")
+        async def auth_middleware(request: Request, call_next):
+            # Static assets always pass through
+            if request.url.path.startswith(
+                f"{request.scope.get('root_path', '')}/static"
+            ):
+                return await call_next(request)
+
+            if not self.auth.enabled:
+                request.state.permissions = TokenPermissions(
+                    authenticated=True, queues=["*"], access="admin"
+                )
+                return await call_next(request)
+
+            # Check for ?token= query param → set cookie and redirect
+            token_param = request.query_params.get("token")
+            if token_param:
+                token_hash = hash_token(token_param)
+                entry = self.auth.resolve_hash(token_hash)
+                if entry:
+                    # Build redirect URL without the token param
+                    params = {
+                        k: v for k, v in request.query_params.items() if k != "token"
+                    }
+                    redirect_path = str(request.url.path)
+                    if params:
+                        redirect_path = f"{redirect_path}?{urlencode(params)}"
+                    response = RedirectResponse(url=redirect_path, status_code=302)
+                    csrf = generate_csrf_token()
+                    is_https = request.url.scheme == "https"
+                    cookie_path = request.scope.get("root_path", "/") or "/"
+                    response.set_cookie(
+                        COOKIE_NAME,
+                        token_hash,
+                        httponly=True,
+                        samesite="lax",
+                        secure=is_https,
+                        path=cookie_path,
+                    )
+                    response.set_cookie(
+                        CSRF_COOKIE_NAME,
+                        csrf,
+                        httponly=True,
+                        samesite="lax",
+                        secure=is_https,
+                        path=cookie_path,
+                    )
+                    return response
+                # Invalid token — fall through to login page
+
+            # Check cookie
+            cookie_hash = request.cookies.get(COOKIE_NAME)
+            if cookie_hash:
+                entry = self.auth.resolve_hash(cookie_hash)
+                if entry:
+                    csrf = request.cookies.get(CSRF_COOKIE_NAME, "")
+
+                    # CSRF check on mutation requests
+                    if request.method in _MUTATION_METHODS:
+                        csrf_header = request.headers.get("x-csrf-token", "")
+                        if not csrf or csrf_header != csrf:
+                            return JSONResponse(
+                                {"detail": "CSRF token missing or invalid"},
+                                status_code=403,
+                            )
+
+                    request.state.permissions = TokenPermissions(
+                        authenticated=True,
+                        queues=entry["queues"],
+                        access=entry["access"],
+                        title=entry.get("title"),
+                        csrf_token=csrf,
+                    )
+                    return await call_next(request)
+
+            # No valid auth — show login page
+            login_path = request.scope.get("root_path", prefix) + "/login"
+            if not request.url.path.endswith("/login"):
+                return RedirectResponse(url=login_path, status_code=302)
+            return await call_next(request)
+
+        # --- Login page ---
+        @self.get("/login", response_class=HTMLResponse)
+        async def login_page(request: Request, error: str = Query(None)):
+            return self.templates.TemplateResponse(
+                "login.html",
+                {"request": request, "prefix": prefix, "error": error},
+            )
+
+        # --- Template context helper ---
+        def _ctx(request: Request, extra: dict) -> dict:
+            perms = _get_permissions(request)
+            protocol_val = self.protocol if self.protocol else request.url.scheme
+            base = {
+                "request": request,
+                "prefix": prefix,
+                "rq_dashboard_version": self.rq_dashboard_version,
+                "protocol": protocol_val,
+                "access": perms.access,
+                "csrf_token": perms.csrf_token or "",
+                "custom_title": perms.title,
+                "auth_enabled": self.auth.enabled,
+            }
+            base.update(extra)
+            return base
 
         @self.get("/", response_class=HTMLResponse)
         async def get_home(
@@ -72,28 +209,29 @@ class RedisQueueDashboard(FastAPI):
             per_page: int = Query(10),
         ):
             try:
+                perms = _get_permissions(request)
                 paginated = get_jobs(
-                    self.redis_url, queue_name, state, page=page, per_page=per_page
+                    self.redis_url,
+                    queue_name,
+                    state,
+                    page=page,
+                    per_page=per_page,
+                    allowed_queues=perms.queues,
                 )
-
-                active_tab = "jobs"
-
-                protocol = self.protocol if self.protocol else request.url.scheme
 
                 return self.templates.TemplateResponse(
                     "jobs.html",
-                    {
-                        "request": request,
-                        "job_data": paginated.data,
-                        "page": paginated.page,
-                        "per_page": paginated.per_page,
-                        "total_pages": paginated.total_pages,
-                        "total": paginated.total,
-                        "active_tab": active_tab,
-                        "prefix": prefix,
-                        "rq_dashboard_version": self.rq_dashboard_version,
-                        "protocol": protocol,
-                    },
+                    _ctx(
+                        request,
+                        {
+                            "job_data": paginated.data,
+                            "page": paginated.page,
+                            "per_page": paginated.per_page,
+                            "total_pages": paginated.total_pages,
+                            "total": paginated.total,
+                            "active_tab": "jobs",
+                        },
+                    ),
                 )
             except Exception as e:
                 logger.exception(
@@ -109,20 +247,15 @@ class RedisQueueDashboard(FastAPI):
             try:
                 worker_data = get_workers(self.redis_url)
 
-                active_tab = "workers"
-
-                protocol = self.protocol if self.protocol else request.url.scheme
-
                 return self.templates.TemplateResponse(
                     "workers.html",
-                    {
-                        "request": request,
-                        "worker_data": worker_data,
-                        "active_tab": active_tab,
-                        "prefix": prefix,
-                        "rq_dashboard_version": self.rq_dashboard_version,
-                        "protocol": protocol,
-                    },
+                    _ctx(
+                        request,
+                        {
+                            "worker_data": worker_data,
+                            "active_tab": "workers",
+                        },
+                    ),
                 )
             except Exception as e:
                 logger.exception("An error occurred while reading workers: %s", e)
@@ -146,10 +279,14 @@ class RedisQueueDashboard(FastAPI):
                 )
 
         @self.delete("/queues/{queue_name}")
-        def delete_jobs_in_queue(queue_name: str):
+        def delete_jobs_in_queue(queue_name: str, request: Request):
             try:
+                perms = _get_permissions(request)
+                _require_admin(perms, queue_name)
                 deleted_ids = delete_jobs_for_queue(queue_name, self.redis_url)
                 return deleted_ids
+            except HTTPException:
+                raise
             except Exception as e:
                 logger.exception(
                     "An error occurred while deleting jobs in queue: %s", e
@@ -162,22 +299,21 @@ class RedisQueueDashboard(FastAPI):
         @self.get("/queues", response_class=HTMLResponse)
         async def read_queues(request: Request):
             try:
-                queue_data = get_job_registry_amount(self.redis_url)
-
-                active_tab = "queues"
-
-                protocol = self.protocol if self.protocol else request.url.scheme
+                perms = _get_permissions(request)
+                queue_data = get_job_registry_amount(
+                    self.redis_url,
+                    allowed_queues=perms.queues,
+                )
 
                 return self.templates.TemplateResponse(
                     "queues.html",
-                    {
-                        "request": request,
-                        "queue_data": queue_data,
-                        "active_tab": active_tab,
-                        "prefix": prefix,
-                        "rq_dashboard_version": self.rq_dashboard_version,
-                        "protocol": protocol,
-                    },
+                    _ctx(
+                        request,
+                        {
+                            "queue_data": queue_data,
+                            "active_tab": "queues",
+                        },
+                    ),
                 )
             except Exception as e:
                 logger.exception(
@@ -189,9 +325,13 @@ class RedisQueueDashboard(FastAPI):
                 )
 
         @self.get("/queues/json", response_model=list[QueueRegistryStats])
-        async def read_queues():
+        async def read_queues(request: Request):
             try:
-                queue_data = get_job_registry_amount(self.redis_url)
+                perms = _get_permissions(request)
+                queue_data = get_job_registry_amount(
+                    self.redis_url,
+                    allowed_queues=perms.queues,
+                )
 
                 return queue_data
             except Exception as e:
@@ -209,28 +349,29 @@ class RedisQueueDashboard(FastAPI):
             per_page: int = Query(10),
         ):
             try:
+                perms = _get_permissions(request)
                 paginated = get_jobs(
-                    self.redis_url, queue_name, state, page=page, per_page=per_page
+                    self.redis_url,
+                    queue_name,
+                    state,
+                    page=page,
+                    per_page=per_page,
+                    allowed_queues=perms.queues,
                 )
-
-                active_tab = "jobs"
-
-                protocol = self.protocol if self.protocol else request.url.scheme
 
                 return self.templates.TemplateResponse(
                     "jobs.html",
-                    {
-                        "request": request,
-                        "job_data": paginated.data,
-                        "page": paginated.page,
-                        "per_page": paginated.per_page,
-                        "total_pages": paginated.total_pages,
-                        "total": paginated.total,
-                        "active_tab": active_tab,
-                        "prefix": prefix,
-                        "rq_dashboard_version": self.rq_dashboard_version,
-                        "protocol": protocol,
-                    },
+                    _ctx(
+                        request,
+                        {
+                            "job_data": paginated.data,
+                            "page": paginated.page,
+                            "per_page": paginated.per_page,
+                            "total_pages": paginated.total_pages,
+                            "total": paginated.total,
+                            "active_tab": "jobs",
+                        },
+                    ),
                 )
             except Exception as e:
                 logger.exception("An error occurred reading jobs data template: %s", e)
@@ -241,14 +382,21 @@ class RedisQueueDashboard(FastAPI):
 
         @self.get("/jobs/json", response_model=PaginatedJobResponse)
         async def read_jobs(
+            request: Request,
             queue_name: str = Query("all"),
             state: str = Query("all"),
             page: int = Query(1),
             per_page: int = Query(10),
         ):
             try:
+                perms = _get_permissions(request)
                 return get_jobs(
-                    self.redis_url, queue_name, state, page=page, per_page=per_page
+                    self.redis_url,
+                    queue_name,
+                    state,
+                    page=page,
+                    per_page=per_page,
+                    allowed_queues=perms.queues,
                 )
             except Exception as e:
                 logger.exception("An error occurred reading jobs data json: %s", e)
@@ -259,7 +407,15 @@ class RedisQueueDashboard(FastAPI):
         @self.get("/job/{job_id}", response_model=JobDataDetailed)
         async def get_job_data(job_id: str, request: Request):
             try:
+                perms = _get_permissions(request)
                 job = get_job(self.redis_url, job_id)
+
+                # Check queue access for the job
+                if self.auth.enabled:
+                    if not job.origin or not queue_allowed(job.origin, perms.queues):
+                        raise HTTPException(
+                            status_code=403, detail="Access denied for this job's queue"
+                        )
 
                 if job.exc_info:
                     css = HtmlFormatter().get_style_defs()
@@ -270,23 +426,20 @@ class RedisQueueDashboard(FastAPI):
                     css = None
                     col_exc_info = None
 
-                active_tab = "job"
-
-                protocol = self.protocol if self.protocol else request.url.scheme
-
                 return self.templates.TemplateResponse(
                     "job.html",
-                    {
-                        "request": request,
-                        "job_data": job,
-                        "active_tab": active_tab,
-                        "css": css,
-                        "col_exc_info": col_exc_info,
-                        "prefix": prefix,
-                        "rq_dashboard_version": self.rq_dashboard_version,
-                        "protocol": protocol,
-                    },
+                    _ctx(
+                        request,
+                        {
+                            "job_data": job,
+                            "active_tab": "job",
+                            "css": css,
+                            "col_exc_info": col_exc_info,
+                        },
+                    ),
                 )
+            except HTTPException:
+                raise
             except Exception as e:
                 logger.exception("An error occurred fetching a specific job: %s", e)
                 raise HTTPException(
@@ -294,9 +447,16 @@ class RedisQueueDashboard(FastAPI):
                 )
 
         @self.delete("/job/{job_id}")
-        def delete_job(job_id: str):
+        def delete_job(job_id: str, request: Request):
             try:
+                perms = _get_permissions(request)
+                # Fetch job to determine its queue
+                job = get_job(self.redis_url, job_id)
+                queue_name = job.origin if hasattr(job, "origin") and job.origin else ""
+                _require_admin(perms, queue_name)
                 delete_job_id(self.redis_url, job_id=job_id)
+            except HTTPException:
+                raise
             except Exception as e:
                 logger.exception("An error occurred while deleting a job: %s", e)
                 raise HTTPException(
@@ -304,9 +464,16 @@ class RedisQueueDashboard(FastAPI):
                 )
 
         @self.post("/job/{job_id}/requeue")
-        def requeue_job(job_id: str):
+        def requeue_job(job_id: str, request: Request):
             try:
+                perms = _get_permissions(request)
+                # Fetch job to determine its queue
+                job = get_job(self.redis_url, job_id)
+                queue_name = job.origin if hasattr(job, "origin") and job.origin else ""
+                _require_admin(perms, queue_name)
                 requeue_job_id(self.redis_url, job_id=job_id)
+            except HTTPException:
+                raise
             except Exception as e:
                 logger.exception("An error occurred while requeueing a job: %s", e)
                 raise HTTPException(
@@ -316,17 +483,9 @@ class RedisQueueDashboard(FastAPI):
         @self.get("/export", response_class=HTMLResponse)
         async def export(request: Request):
             try:
-                active_tab = "export"
-                protocol = self.protocol if self.protocol else request.url.scheme
                 return self.templates.TemplateResponse(
                     "export.html",
-                    {
-                        "request": request,
-                        "active_tab": active_tab,
-                        "prefix": prefix,
-                        "rq_dashboard_version": self.rq_dashboard_version,
-                        "protocol": protocol,
-                    },
+                    _ctx(request, {"active_tab": "export"}),
                 )
             except Exception as e:
                 logger.exception(
@@ -338,9 +497,13 @@ class RedisQueueDashboard(FastAPI):
                 )
 
         @self.get("/export/queues")
-        def export_queues():
+        def export_queues(request: Request):
             try:
-                queue_data = asyncio.run(read_queues())
+                perms = _get_permissions(request)
+                queue_data = get_job_registry_amount(
+                    self.redis_url,
+                    allowed_queues=perms.queues,
+                )
                 json_dict = convert_queue_data_to_json_dict(queue_data)
                 queue_list = convert_queues_dict_to_list(json_dict)
                 csv_data = export_to_csv(queue_list, "queue_data.csv")
@@ -358,14 +521,11 @@ class RedisQueueDashboard(FastAPI):
         @self.get("/export/workers")
         def export_workers():
             try:
-                worker_data = asyncio.run(read_workers())
+                worker_data = get_workers(self.redis_url)
                 json_dict = convert_worker_data_to_json_dict(worker_data)
                 df = convert_workers_dict_to_list(json_dict)
                 csv_data = export_to_csv(df, "worker_data.csv")
                 output = BytesIO(csv_data.encode())
-                headers = {
-                    "Content-Disposition": "attachment; filename=worker_data.csv"
-                }
                 headers = {
                     "Content-Disposition": "attachment; filename=worker_data.csv"
                 }
@@ -379,9 +539,16 @@ class RedisQueueDashboard(FastAPI):
                 )
 
         @self.get("/export/jobs")
-        def export_jobs():
+        def export_jobs(request: Request):
             try:
-                paginated = get_jobs(self.redis_url, "all", "all", 1)
+                perms = _get_permissions(request)
+                paginated = get_jobs(
+                    self.redis_url,
+                    "all",
+                    "all",
+                    page=1,
+                    allowed_queues=perms.queues,
+                )
                 json_dict = convert_queue_job_registry_stats_to_json_dict(
                     paginated.data
                 )
