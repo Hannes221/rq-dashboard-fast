@@ -1,5 +1,6 @@
 import asyncio
 import csv
+import json
 import logging
 from io import BytesIO, StringIO
 from pathlib import Path
@@ -169,6 +170,7 @@ class RedisQueueDashboard(FastAPI):
                         csrf_token=csrf,
                         allow_workers=entry.get("allow_workers", True),
                         allow_export=entry.get("allow_export", True),
+                        hide_meta=entry.get("hide_meta", False),
                     )
                     return await call_next(request)
 
@@ -201,6 +203,7 @@ class RedisQueueDashboard(FastAPI):
                 "auth_enabled": self.auth.enabled,
                 "allow_workers": perms.allow_workers,
                 "allow_export": perms.allow_export,
+                "hide_meta": perms.hide_meta,
             }
             base.update(extra)
             return base
@@ -447,6 +450,16 @@ class RedisQueueDashboard(FastAPI):
                     css = None
                     col_exc_info = None
 
+                # Pretty-print dict/list results as JSON
+                result = job.result
+                if isinstance(result, (dict, list)):
+                    try:
+                        result_display = json.dumps(result, indent=2, default=str)
+                    except Exception:
+                        result_display = str(result)
+                else:
+                    result_display = str(result) if result is not None else None
+
                 return self.templates.TemplateResponse(
                     "job.html",
                     _ctx(
@@ -456,6 +469,7 @@ class RedisQueueDashboard(FastAPI):
                             "active_tab": "job",
                             "css": css,
                             "col_exc_info": col_exc_info,
+                            "result_display": result_display,
                         },
                     ),
                 )

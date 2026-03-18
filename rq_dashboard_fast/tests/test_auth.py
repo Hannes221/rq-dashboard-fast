@@ -437,6 +437,7 @@ class TestAllowWorkersExportConfig:
         entry = config.resolve_hash(token_hash)
         assert entry["allow_workers"] is True
         assert entry["allow_export"] is True
+        assert entry["hide_meta"] is False
 
     def test_explicit_false(self):
         token, token_hash = generate_token_pair()
@@ -448,6 +449,7 @@ class TestAllowWorkersExportConfig:
                     "access": "read",
                     "allow_workers": False,
                     "allow_export": False,
+                    "hide_meta": True,
                 }
             ]
         )
@@ -455,11 +457,13 @@ class TestAllowWorkersExportConfig:
         entry = config.resolve_hash(token_hash)
         assert entry["allow_workers"] is False
         assert entry["allow_export"] is False
+        assert entry["hide_meta"] is True
 
     def test_permissions_model_defaults(self):
         p = TokenPermissions()
         assert p.allow_workers is True
         assert p.allow_export is True
+        assert p.hide_meta is False
 
 
 # ---------------------------------------------------------------------------

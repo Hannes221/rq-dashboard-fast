@@ -86,6 +86,7 @@ tokens:
 | `title` | No | Custom title shown in the header and the browser tab. |
 | `allow_workers` | No | `true` or `false`. When `false`, the Workers page and worker export are disabled (returns 403) and the nav link is hidden. Defaults to `true`. |
 | `allow_export` | No | `true` or `false`. When `false`, the Export page and all export endpoints are disabled (returns 403) and the nav link is hidden. Defaults to `true`. |
+| `hide_meta` | No | `true` or `false`. When `true`, the job metadata section is hidden on the job detail page. Useful for preventing exposure of internal metadata to scoped users. Defaults to `false`. |
 
 ### Access Levels
 

@@ -24,6 +24,7 @@ class JobData(BaseModel):
 class JobDataDetailed(BaseModel):
     id: str
     name: str
+    status: str | None = None
     created_at: datetime
     enqueued_at: datetime | None
     ended_at: datetime | None
@@ -231,6 +232,7 @@ def get_job(redis_url: str, job_id: str) -> JobDataDetailed:
         return JobDataDetailed(
             id=job.id,
             name=job.description,
+            status=job.get_status(),
             created_at=job.created_at,
             enqueued_at=job.enqueued_at,
             ended_at=job.ended_at,

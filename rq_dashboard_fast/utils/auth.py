@@ -22,6 +22,7 @@ class TokenPermissions(BaseModel):
     csrf_token: Optional[str] = None
     allow_workers: bool = True
     allow_export: bool = True
+    hide_meta: bool = False
 
 
 class AuthConfig:
@@ -62,6 +63,7 @@ class AuthConfig:
                 "title": entry.get("title"),
                 "allow_workers": entry.get("allow_workers", True),
                 "allow_export": entry.get("allow_export", True),
+                "hide_meta": entry.get("hide_meta", False),
             }
 
         if not self._tokens:

@@ -1,45 +1,161 @@
 {% extends "base.html" %}{% block content %}
 {% if css %}<style>{{ css|safe }}</style>{% endif %}
 
+<script>
+  const protocol = "{{ protocol }}";
+  const host = window.location.host;
+  const prefix = "{{ prefix }}";
+  const baseurl = protocol + "://" + host + prefix;
+
+  function getCsrfToken() {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
+  }
+
+  function showNotification(message) {
+    var notification = document.createElement("div");
+    notification.className = "notification";
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(function () { document.body.removeChild(notification); }, 3000);
+  }
+
+  function showErrorNotification(message) {
+    var notification = document.createElement("div");
+    notification.className = "error-notification";
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(function () { document.body.removeChild(notification); }, 3000);
+  }
+
+  function deleteJob(jobId) {
+    if (!confirm("Delete job " + jobId.substring(0, 8) + "?")) return;
+    fetch(baseurl + "/job/" + jobId, { method: "DELETE", headers: {"X-CSRF-Token": getCsrfToken()} })
+      .then(function (r) {
+        if (!r.ok) { showErrorNotification("Error deleting job"); }
+        else { showNotification("Job deleted"); setTimeout(function() { history.back(); }, 1000); }
+      })
+      .catch(function () { showErrorNotification("Error deleting job"); });
+  }
+
+  function requeueJob(jobId) {
+    if (!confirm("Requeue job " + jobId.substring(0, 8) + "?")) return;
+    fetch(baseurl + "/job/" + jobId + "/requeue", { method: "POST", headers: {"X-CSRF-Token": getCsrfToken()} })
+      .then(function (r) {
+        if (!r.ok) { showErrorNotification("Error requeueing job"); }
+        else { showNotification("Job requeued"); setTimeout(function() { location.reload(); }, 1000); }
+      })
+      .catch(function () { showErrorNotification("Error requeueing job"); });
+  }
+
+  function timeAgo(dateStr) {
+    var date = new Date(dateStr);
+    var now = new Date();
+    var seconds = Math.floor((now - date) / 1000);
+    if (seconds < 60) return seconds + "s ago";
+    var minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return minutes + "m ago";
+    var hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + "h ago";
+    var days = Math.floor(hours / 24);
+    if (days < 30) return days + "d ago";
+    return date.toLocaleString();
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("[data-timestamp]").forEach(function (el) {
+      var raw = el.getAttribute("data-timestamp");
+      if (raw) {
+        el.textContent = timeAgo(raw);
+        el.title = new Date(raw).toLocaleString();
+      }
+    });
+  });
+</script>
+
 <div class="max-w-[90%] mx-auto mt-6 px-4">
-  <table id="jobs" class="data-table">
-    <tr>
-      <th class="th-cell">ID</th>
-      <td class="td-cell max-w-[600px] overflow-hidden whitespace-normal">{{ job_data.id }}</td>
-    </tr>
-    <tr>
-      <th class="th-cell">Name</th>
-      <td class="td-cell max-w-[600px] overflow-hidden whitespace-normal">{{ job_data.name }}</td>
-    </tr>
-    <tr>
-      <th class="th-cell">Created At</th>
-      <td class="td-cell max-w-[600px] overflow-hidden whitespace-normal">{{ job_data.created_at }}</td>
-    </tr>
-    <tr>
-      <th class="th-cell">Enqueued At</th>
-      <td class="td-cell max-w-[600px] overflow-hidden whitespace-normal">{{ job_data.enqueued_at }}</td>
-    </tr>
-    <tr>
-      <th class="th-cell">Ended At</th>
-      <td class="td-cell max-w-[600px] overflow-hidden whitespace-normal">{{ job_data.ended_at }}</td>
-    </tr>
-    <tr>
-      <th class="th-cell">Result</th>
-      <td class="td-cell max-w-[600px] overflow-hidden whitespace-normal"><pre class="m-0 whitespace-pre-wrap">{{ job_data.result }}</pre></td>
-    </tr>
-    <tr>
-      <th class="th-cell">Exception Info</th>
-      <td class="td-cell max-w-[600px] overflow-hidden whitespace-normal">
-        {% if col_exc_info %}{{ col_exc_info|safe }}{% else %}<pre class="m-0 whitespace-pre-wrap">{{ job_data.exc_info }}</pre>{% endif %}
-      </td>
-    </tr>
-    <tr>
-      <th class="th-cell">Meta</th>
-      <td class="td-cell max-w-[600px] overflow-hidden whitespace-normal">{{ job_data.meta }}</td>
-    </tr>
-  </table>
-  <div class="flex justify-center mt-2.5">
-    <a href="javascript:history.back()" class="btn-back">Back</a>
+
+  <!-- Header -->
+  <div class="flex items-start justify-between mb-6">
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="badge-{{ job_data.status or 'queued' }}">{{ job_data.status or 'unknown' }}</span>
+        {% if job_data.origin %}
+        <span class="text-sm text-gray-500 dark:text-gray-400">{{ job_data.origin }}</span>
+        {% endif %}
+      </div>
+      <h1 class="text-lg font-semibold text-gray-900 dark:text-gray-100 break-all m-0">{{ job_data.name }}</h1>
+      <p class="text-xs text-gray-400 dark:text-gray-500 mt-1 font-mono">{{ job_data.id }}</p>
+    </div>
+    <div class="flex items-center gap-2 ml-4 flex-shrink-0">
+      <a href="javascript:history.back()" class="btn-back inline-flex items-center gap-1.5 uppercase text-xs font-semibold tracking-wider">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        Back
+      </a>
+      {% if access == "admin" and job_data.status == "failed" %}
+      <button class="btn px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-950/40 dark:text-blue-400 dark:hover:bg-blue-900/60 inline-flex items-center gap-1.5 uppercase text-xs font-semibold tracking-wider" onclick="requeueJob('{{ job_data.id }}')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M1 4v6h6M23 20v-6h-6"/><path stroke-linecap="round" stroke-linejoin="round" d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+        Requeue
+      </button>
+      {% endif %}
+      {% if access == "admin" %}
+      <button class="btn px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-900/60 inline-flex items-center gap-1.5 uppercase text-xs font-semibold tracking-wider" onclick="deleteJob('{{ job_data.id }}')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg>
+        Delete
+      </button>
+      {% endif %}
+    </div>
   </div>
+
+  <!-- Timeline -->
+  <div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-900">
+      <div class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Created</div>
+      <div class="text-sm text-gray-900 dark:text-gray-100" data-timestamp="{{ job_data.created_at }}">{{ job_data.created_at }}</div>
+    </div>
+    <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-900">
+      <div class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Enqueued</div>
+      <div class="text-sm text-gray-900 dark:text-gray-100" {% if job_data.enqueued_at %}data-timestamp="{{ job_data.enqueued_at }}"{% endif %}>{{ job_data.enqueued_at or "—" }}</div>
+    </div>
+    <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-900">
+      <div class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">{{ "Failed" if job_data.status == "failed" else "Ended" }}</div>
+      <div class="text-sm text-gray-900 dark:text-gray-100" {% if job_data.ended_at %}data-timestamp="{{ job_data.ended_at }}"{% endif %}>{{ job_data.ended_at or "—" }}</div>
+    </div>
+  </div>
+
+  <!-- Exception Info (shown first if present — most important for failed jobs) -->
+  {% if job_data.exc_info %}
+  <div class="mb-6">
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-red-600 dark:text-red-400 mb-2">Exception</h2>
+    <div class="rounded-lg border border-red-200 dark:border-red-800/50 bg-red-50/50 dark:bg-red-950/20 p-4 overflow-x-auto">
+      {% if col_exc_info %}
+      {{ col_exc_info|safe }}
+      {% else %}
+      <pre class="m-0 whitespace-pre-wrap text-sm text-red-800 dark:text-red-300 font-mono">{{ job_data.exc_info }}</pre>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Result (only shown if not None) -->
+  {% if result_display is not none %}
+  <div class="mb-6">
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Result</h2>
+    <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-4 overflow-x-auto">
+      <pre class="m-0 whitespace-pre-wrap text-sm text-gray-900 dark:text-gray-100 font-mono">{{ result_display }}</pre>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Meta (only shown if non-empty and not hidden) -->
+  {% if job_data.meta and (hide_meta is not defined or not hide_meta) %}
+  <div class="mb-6">
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Metadata</h2>
+    <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-4 overflow-x-auto">
+      <pre class="m-0 whitespace-pre-wrap text-sm text-gray-900 dark:text-gray-100 font-mono">{{ job_data.meta }}</pre>
+    </div>
+  </div>
+  {% endif %}
+
 </div>
 {% endblock %}
