@@ -163,6 +163,8 @@ def test_convert_queue_job_registry_dict_to_list():
                 "failed": [],
                 "deferred": [],
                 "finished": [],
+                "canceled": [],
+                "stopped": [],
             }
         }
     ]
@@ -174,6 +176,7 @@ def test_convert_queue_job_registry_dict_to_list():
             "status": "scheduled",
             "job_name": "Job 1",
             "created_at": "2020-01-01T00:00:00",
+            "ended_at": "",
         },
         {
             "id": "2",
@@ -181,6 +184,7 @@ def test_convert_queue_job_registry_dict_to_list():
             "status": "queued",
             "job_name": "Job 2",
             "created_at": "2020-01-01T00:00:00",
+            "ended_at": "",
         },
     ]
 

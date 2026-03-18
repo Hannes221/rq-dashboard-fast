@@ -124,6 +124,16 @@ def get_job_registrys(
                     job_ids = queue.canceled_job_registry.get_job_ids(
                         start=start_index, end=end_index - 1
                     )
+                elif state == "stopped":
+                    # Stopped jobs live in started_job_registry with status "stopped".
+                    # Filter them from the started registry by checking actual status.
+                    all_started_ids = queue.started_job_registry.get_job_ids()
+                    stopped_ids = []
+                    for jid in Job.fetch_many(all_started_ids, connection=redis):
+                        if jid is not None and jid.get_status() == "stopped":
+                            stopped_ids.append(jid.id)
+                    total += len(stopped_ids)
+                    job_ids = stopped_ids[start_index:end_index]
 
                 scheduled_jobs = []
                 scheduled = scheduler.get_jobs()
@@ -324,6 +334,7 @@ def convert_queue_job_registry_dict_to_list(input_data: list[dict]) -> list[dict
                             "status": status,
                             "job_name": job["name"],
                             "created_at": job["created_at"],
+                            "ended_at": job.get("ended_at", ""),
                         }
                         job_details.append(job_info)
         return job_details

@@ -91,7 +91,7 @@ class RedisQueueDashboard(FastAPI):
         self.protocol = protocol
         self.auth = AuthConfig(auth_config)
 
-        self.rq_dashboard_version = "0.7.2"
+        self.rq_dashboard_version = "0.8.0"
 
         logger = logging.getLogger(__name__)
 
@@ -241,6 +241,8 @@ class RedisQueueDashboard(FastAPI):
                         },
                     ),
                 )
+            except HTTPException:
+                raise
             except Exception as e:
                 logger.exception(
                     "An error occurred while loading the base template: %s", e
@@ -295,7 +297,7 @@ class RedisQueueDashboard(FastAPI):
                 raise
             except Exception as e:
                 logger.exception(
-                    "An error occurred while reading worker data in json:", e
+                    "An error occurred while reading worker data in json: %s", e
                 )
                 raise HTTPException(
                     status_code=500,
@@ -339,6 +341,8 @@ class RedisQueueDashboard(FastAPI):
                         },
                     ),
                 )
+            except HTTPException:
+                raise
             except Exception as e:
                 logger.exception(
                     "An error occurred reading queues data template: %s", e
@@ -358,6 +362,8 @@ class RedisQueueDashboard(FastAPI):
                 )
 
                 return queue_data
+            except HTTPException:
+                raise
             except Exception as e:
                 logger.exception("An error occurred reading queues data json: %s", e)
                 raise HTTPException(
@@ -397,6 +403,8 @@ class RedisQueueDashboard(FastAPI):
                         },
                     ),
                 )
+            except HTTPException:
+                raise
             except Exception as e:
                 logger.exception("An error occurred reading jobs data template: %s", e)
                 raise HTTPException(
@@ -422,6 +430,8 @@ class RedisQueueDashboard(FastAPI):
                     per_page=per_page,
                     allowed_queues=perms.queues,
                 )
+            except HTTPException:
+                raise
             except Exception as e:
                 logger.exception("An error occurred reading jobs data json: %s", e)
                 raise HTTPException(

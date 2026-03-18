@@ -50,7 +50,7 @@ def get_workers(redis_url: str) -> list[WorkerData]:
 
         return result
     except Exception as error:
-        logger.exception("Error reading workers for redis connection: ", error)
+        logger.exception("Error reading workers for redis connection: %s", error)
         raise HTTPException(
             status_code=500,
             detail=str("Error reading workers for redis connection"),
@@ -75,9 +75,9 @@ def convert_worker_data_to_json_dict(worker_data: list[WorkerData]) -> list[dict
         return workers_list
     except Exception as error:
         logger.exception(
-            "Error converting worker data list to JSON dictionary: ", error
+            "Error converting worker data list to JSON dictionary: %s", error
         )
-        raise Exception(
+        raise HTTPException(
             status_code=500,
             detail="Error converting worker data list to JSON dictionary",
         )
@@ -100,5 +100,7 @@ def convert_workers_dict_to_list(input_data: list[dict]) -> list[dict]:
 
         return worker_details
     except Exception as error:
-        logger.exception("Error converting workers dict to list: ", error)
-        raise Exception(status_code=500, detail="Error converting workers dict to list")
+        logger.exception("Error converting workers dict to list: %s", error)
+        raise HTTPException(
+            status_code=500, detail="Error converting workers dict to list"
+        )
