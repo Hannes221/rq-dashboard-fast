@@ -18,6 +18,7 @@ class JobData(BaseModel):
     id: str
     name: str
     created_at: datetime
+    ended_at: datetime | None = None
 
 
 class JobDataDetailed(BaseModel):
@@ -154,6 +155,7 @@ def get_job_registrys(
                         id=job.id,
                         name=job.description,
                         created_at=job.created_at,
+                        ended_at=job.ended_at,
                     )
                     if status == "started":
                         started_jobs.append(job_data_item)
@@ -273,11 +275,14 @@ def convert_queue_job_registry_stats_to_json_dict(
         for job_stats in job_data:
 
             def job_data_to_dict(job_data: JobData):
-                return {
+                d = {
                     "id": job_data.id,
                     "name": job_data.name,
                     "created_at": job_data.created_at.isoformat(),
                 }
+                if job_data.ended_at is not None:
+                    d["ended_at"] = job_data.ended_at.isoformat()
+                return d
 
             stats_dict = {
                 "scheduled": [job_data_to_dict(job) for job in job_stats.scheduled],

@@ -11,6 +11,24 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  function shortId(id) {
+    return id && id.length > 8 ? id.substring(0, 8) : id;
+  }
+
+  function timeAgo(dateStr) {
+    var date = new Date(dateStr);
+    var now = new Date();
+    var seconds = Math.floor((now - date) / 1000);
+    if (seconds < 60) return seconds + "s ago";
+    var minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return minutes + "m ago";
+    var hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + "h ago";
+    var days = Math.floor(hours / 24);
+    if (days < 30) return days + "d ago";
+    return date.toLocaleString();
+  }
+
   function showNotification(message) {
     var notification = document.createElement("div");
     notification.className = "notification";
@@ -164,33 +182,58 @@
     return pages;
   }
 
+  var svgView = '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>';
+  var svgRequeue = '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M1 4v6h6M23 20v-6h-6"/><path stroke-linecap="round" stroke-linejoin="round" d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>';
+  var svgDelete = '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg>';
+
   function updateJobsTable(data) {
     var tableBody = document.querySelector("#jobs tbody");
     tableBody.innerHTML = "";
 
+    var isAdmin = "{{ access }}" === "admin";
     var states = ["scheduled", "queued", "started", "failed", "deferred", "finished", "canceled", "stopped"];
     data.forEach(function (queue) {
+      var queueName = escapeHtml(queue.queue_name);
       states.forEach(function (state) {
         if (!queue[state]) return;
         queue[state].forEach(function (job) {
-          var formattedDate = new Date(job.created_at).toLocaleString();
-          var isAdmin = "{{ access }}" === "admin";
-          var requeueBtn = (isAdmin && state === "failed")
-            ? '<button class="btn-requeue" data-requeue-id="' + job.id + '" title="Requeue"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M1 4v6h6M23 20v-6h-6"/><path stroke-linecap="round" stroke-linejoin="round" d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg></button>'
-            : '';
-          var deleteBtn = isAdmin
-            ? '<button class="btn-delete" data-delete-id="' + escapeHtml(job.id) + '" title="Delete"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg></button>'
-            : '';
           var safeId = escapeHtml(job.id);
           var safeName = escapeHtml(job.name);
-          var optionsCell = (isAdmin) ? '<td class="td-cell"><div class="flex items-center gap-1">' + deleteBtn + requeueBtn + '</div></td>' : '';
+          var fullDate = new Date(job.created_at).toLocaleString();
+          var relDate = timeAgo(job.created_at);
+          var endedHtml = '';
+          if (job.ended_at) {
+            var endedFull = new Date(job.ended_at).toLocaleString();
+            var endedLabel = (state === "failed") ? "Failed" : "Ended";
+            endedHtml = '<div class="text-xs text-gray-400 dark:text-gray-500" title="' + endedFull + '">' + endedLabel + ' ' + timeAgo(job.ended_at) + '</div>';
+          }
+
+          // View button (always active)
+          var viewBtn = '<a class="btn-view" href="' + baseurl + '/job/' + encodeURIComponent(job.id) + '" title="View details">' + svgView + '</a>';
+
+          // Requeue button: active for failed jobs with admin, skeleton otherwise
+          var requeueBtn;
+          if (isAdmin && state === "failed") {
+            requeueBtn = '<button class="btn-requeue" data-requeue-id="' + safeId + '" title="Requeue">' + svgRequeue + '</button>';
+          } else {
+            requeueBtn = '<button class="btn-skeleton" disabled title="Requeue (failed jobs only)">' + svgRequeue + '</button>';
+          }
+
+          // Delete button: active for admin, skeleton otherwise
+          var deleteBtn;
+          if (isAdmin) {
+            deleteBtn = '<button class="btn-delete" data-delete-id="' + safeId + '" title="Delete">' + svgDelete + '</button>';
+          } else {
+            deleteBtn = '<button class="btn-skeleton" disabled title="Delete (admin only)">' + svgDelete + '</button>';
+          }
+
           tableBody.innerHTML +=
             '<tr class="tr-stripe">' +
-            '<td class="td-cell"><a class="text-blue-700 dark:text-blue-400" href="' + baseurl + '/job/' + encodeURIComponent(job.id) + '">' + safeId + '</a></td>' +
+            '<td class="td-cell max-w-[300px] overflow-hidden text-ellipsis whitespace-nowrap"><span title="' + safeId + '">' + safeName + '</span><span class="ml-2 text-xs text-gray-400 dark:text-gray-500" title="' + safeId + '">' + shortId(job.id) + '</span></td>' +
             '<td class="td-cell"><span class="badge-' + state + '">' + state + '</span></td>' +
-            '<td class="td-cell max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">' + safeName + '</td>' +
-            '<td class="td-cell">' + formattedDate + '</td>' +
-            optionsCell +
+            '<td class="td-cell">' + queueName + '</td>' +
+            '<td class="td-cell whitespace-nowrap"><div title="' + fullDate + '">' + relDate + '</div>' + endedHtml + '</td>' +
+            '<td class="td-cell"><div class="flex items-center gap-1">' + viewBtn + requeueBtn + deleteBtn + '</div></td>' +
             '</tr>';
         });
       });
@@ -223,6 +266,7 @@
   }
 
   function deleteJob(job_id, btn) {
+    if (!confirm("Delete job " + shortId(job_id) + "?")) return;
     setBtnLoading(btn);
     fetch(baseurl + "/job/" + job_id, { method: "DELETE", headers: {"X-CSRF-Token": getCsrfToken()} })
       .then(function (r) {
@@ -237,6 +281,7 @@
   }
 
   function requeueJob(job_id, btn) {
+    if (!confirm("Requeue job " + shortId(job_id) + "?")) return;
     setBtnLoading(btn);
     fetch(baseurl + "/job/" + job_id + "/requeue", { method: "POST", headers: {"X-CSRF-Token": getCsrfToken()} })
       .then(function (r) {
@@ -262,12 +307,6 @@
     document.getElementById("state-filter").addEventListener("change", function () { page = 1; updateJobsData(); });
     document.getElementById("queue-name-filter").addEventListener("change", function () { page = 1; updateJobsData(); });
 
-    var jobLinks = document.querySelectorAll("a[data-job-id]");
-    jobLinks.forEach(function (link) {
-      var jobId = link.getAttribute("data-job-id");
-      link.href = baseurl + "/job/" + jobId;
-    });
-
     renderPagination();
     updateJobsData();
   });
@@ -285,14 +324,12 @@
 
 <div class="max-w-[90%] mx-auto mt-6 px-4">
   <p class="text-sm text-gray-600 dark:text-gray-400">
-    This list contains all the jobs that are currently queued. Filter the search
-    by job state and queue name. Each job can be deleted or requeued by clicking
-    the corresponding button.
+    Filter jobs by state and queue. Hover over timestamps for full date, or over job names for the full ID.
   </p>
   <table id="jobs" class="data-table">
     <thead>
       <tr>
-        <th class="th-cell">ID</th>
+        <th class="th-cell">Name</th>
         <th class="th-cell">
           <div class="flex flex-col gap-1">
             <span>Status</span>
@@ -311,7 +348,7 @@
         </th>
         <th class="th-cell">
           <div class="flex flex-col gap-1">
-            <span>Name</span>
+            <span>Queue</span>
             <select id="queue-name-filter" class="text-xs font-normal normal-case tracking-normal px-1.5 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 cursor-pointer">
               <option value="all">All queues</option>
               {% for queue in job_data %}
@@ -320,34 +357,51 @@
             </select>
           </div>
         </th>
-        <th class="th-cell">Created At</th>
-        {% if access == "admin" %}<th class="th-cell">Options</th>{% endif %}
+        <th class="th-cell">Created</th>
+        <th class="th-cell">Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for queue in job_data %} {% for state in ["queued", "started",
       "failed", "deferred", "scheduled", "finished", "canceled", "stopped"] %} {% for job in queue[state] %}
       <tr class="tr-stripe">
-        <td class="td-cell">
-          <a class="text-blue-700 dark:text-blue-400" href="#" data-job-id="{{ job.id }}">{{ job.id }}</a>
+        <td class="td-cell max-w-[300px] overflow-hidden text-ellipsis whitespace-nowrap">
+          <span title="{{ job.id }}">{{ job.name }}</span>
+          <span class="ml-2 text-xs text-gray-400 dark:text-gray-500" title="{{ job.id }}">{{ job.id[:8] }}</span>
         </td>
         <td class="td-cell"><span class="badge-{{ state }}">{{ state }}</span></td>
-        <td class="td-cell max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">{{ job.name }}</td>
-        <td class="td-cell">{{ job.created_at }}</td>
-        {% if access == "admin" %}
+        <td class="td-cell">{{ queue.queue_name }}</td>
+        <td class="td-cell whitespace-nowrap">
+          <div>{{ job.created_at }}</div>
+          {% if job.ended_at %}
+          <div class="text-xs text-gray-400 dark:text-gray-500">{{ "Failed" if state == "failed" else "Ended" }} {{ job.ended_at }}</div>
+          {% endif %}
+        </td>
         <td class="td-cell">
           <div class="flex items-center gap-1">
+            <a class="btn-view" href="#" data-job-id="{{ job.id }}" title="View details">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            </a>
+            {% if access == "admin" and state == "failed" %}
+            <button class="btn-requeue" data-requeue-ssr="{{ job.id }}" title="Requeue">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M1 4v6h6M23 20v-6h-6"/><path stroke-linecap="round" stroke-linejoin="round" d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+            </button>
+            {% else %}
+            <button class="btn-skeleton" disabled title="Requeue (failed jobs only)">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M1 4v6h6M23 20v-6h-6"/><path stroke-linecap="round" stroke-linejoin="round" d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+            </button>
+            {% endif %}
+            {% if access == "admin" %}
             <button class="btn-delete" data-delete-ssr="{{ job.id }}" title="Delete">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg>
             </button>
-            {% if state == "failed" %}
-            <button class="btn-requeue" data-requeue-ssr="{{ job.id }}" title="Requeue">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M1 4v6h6M23 20v-6h-6"/><path stroke-linecap="round" stroke-linejoin="round" d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/></svg>
+            {% else %}
+            <button class="btn-skeleton" disabled title="Delete (admin only)">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg>
             </button>
             {% endif %}
           </div>
         </td>
-        {% endif %}
       </tr>
       {% endfor %} {% endfor %} {% endfor %}
     </tbody>
@@ -357,6 +411,12 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    // Wire up SSR view links
+    document.querySelectorAll("a[data-job-id]").forEach(function (link) {
+      var jobId = link.getAttribute("data-job-id");
+      link.href = baseurl + "/job/" + jobId;
+    });
+    // Wire up SSR action buttons with confirmations
     document.querySelectorAll("[data-delete-ssr]").forEach(function (btn) {
       btn.addEventListener("click", function () { deleteJob(this.getAttribute("data-delete-ssr"), this); });
     });
