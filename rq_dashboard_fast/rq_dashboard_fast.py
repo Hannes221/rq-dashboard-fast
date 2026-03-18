@@ -26,6 +26,7 @@ from rq_dashboard_fast.utils.auth import (
     generate_csrf_token,
     hash_token,
     queue_allowed,
+    worker_visible,
 )
 from rq_dashboard_fast.utils.jobs import (
     JobDataDetailed,
@@ -166,6 +167,8 @@ class RedisQueueDashboard(FastAPI):
                         access=entry["access"],
                         title=entry.get("title"),
                         csrf_token=csrf,
+                        allow_workers=entry.get("allow_workers", True),
+                        allow_export=entry.get("allow_export", True),
                     )
                     return await call_next(request)
 
@@ -196,6 +199,8 @@ class RedisQueueDashboard(FastAPI):
                 "csrf_token": perms.csrf_token or "",
                 "custom_title": perms.title,
                 "auth_enabled": self.auth.enabled,
+                "allow_workers": perms.allow_workers,
+                "allow_export": perms.allow_export,
             }
             base.update(extra)
             return base
@@ -245,7 +250,13 @@ class RedisQueueDashboard(FastAPI):
         @self.get("/workers", response_class=HTMLResponse)
         async def read_workers(request: Request):
             try:
+                perms = _get_permissions(request)
+                if self.auth.enabled and not perms.allow_workers:
+                    raise HTTPException(status_code=403, detail="Workers page disabled")
                 worker_data = get_workers(self.redis_url)
+                worker_data = [
+                    w for w in worker_data if worker_visible(w.queues, perms.queues)
+                ]
 
                 return self.templates.TemplateResponse(
                     "workers.html",
@@ -257,6 +268,8 @@ class RedisQueueDashboard(FastAPI):
                         },
                     ),
                 )
+            except HTTPException:
+                raise
             except Exception as e:
                 logger.exception("An error occurred while reading workers: %s", e)
                 raise HTTPException(
@@ -264,11 +277,19 @@ class RedisQueueDashboard(FastAPI):
                 )
 
         @self.get("/workers/json", response_model=list[WorkerData])
-        async def read_workers():
+        async def read_workers_json(request: Request):
             try:
+                perms = _get_permissions(request)
+                if self.auth.enabled and not perms.allow_workers:
+                    raise HTTPException(status_code=403, detail="Workers page disabled")
                 worker_data = get_workers(self.redis_url)
+                worker_data = [
+                    w for w in worker_data if worker_visible(w.queues, perms.queues)
+                ]
 
                 return worker_data
+            except HTTPException:
+                raise
             except Exception as e:
                 logger.exception(
                     "An error occurred while reading worker data in json:", e
@@ -483,10 +504,15 @@ class RedisQueueDashboard(FastAPI):
         @self.get("/export", response_class=HTMLResponse)
         async def export(request: Request):
             try:
+                perms = _get_permissions(request)
+                if self.auth.enabled and not perms.allow_export:
+                    raise HTTPException(status_code=403, detail="Export page disabled")
                 return self.templates.TemplateResponse(
                     "export.html",
                     _ctx(request, {"active_tab": "export"}),
                 )
+            except HTTPException:
+                raise
             except Exception as e:
                 logger.exception(
                     "An error occurred reading export data template: %s", e
@@ -500,6 +526,8 @@ class RedisQueueDashboard(FastAPI):
         def export_queues(request: Request):
             try:
                 perms = _get_permissions(request)
+                if self.auth.enabled and not perms.allow_export:
+                    raise HTTPException(status_code=403, detail="Export page disabled")
                 queue_data = get_job_registry_amount(
                     self.redis_url,
                     allowed_queues=perms.queues,
@@ -512,6 +540,8 @@ class RedisQueueDashboard(FastAPI):
                 return StreamingResponse(
                     output, headers=headers, media_type="application/octet-stream"
                 )
+            except HTTPException:
+                raise
             except Exception as e:
                 logger.exception("An error occurred while exporting: %s", e)
                 raise HTTPException(
@@ -519,9 +549,19 @@ class RedisQueueDashboard(FastAPI):
                 )
 
         @self.get("/export/workers")
-        def export_workers():
+        def export_workers(request: Request):
             try:
+                perms = _get_permissions(request)
+                if self.auth.enabled and not perms.allow_export:
+                    raise HTTPException(status_code=403, detail="Export page disabled")
+                if self.auth.enabled and not perms.allow_workers:
+                    raise HTTPException(
+                        status_code=403, detail="Workers export disabled"
+                    )
                 worker_data = get_workers(self.redis_url)
+                worker_data = [
+                    w for w in worker_data if worker_visible(w.queues, perms.queues)
+                ]
                 json_dict = convert_worker_data_to_json_dict(worker_data)
                 df = convert_workers_dict_to_list(json_dict)
                 csv_data = export_to_csv(df, "worker_data.csv")
@@ -532,6 +572,8 @@ class RedisQueueDashboard(FastAPI):
                 return StreamingResponse(
                     output, headers=headers, media_type="application/octet-stream"
                 )
+            except HTTPException:
+                raise
             except Exception as e:
                 logger.exception("An error occurred while exporting: %s", e)
                 raise HTTPException(
@@ -542,6 +584,8 @@ class RedisQueueDashboard(FastAPI):
         def export_jobs(request: Request):
             try:
                 perms = _get_permissions(request)
+                if self.auth.enabled and not perms.allow_export:
+                    raise HTTPException(status_code=403, detail="Export page disabled")
                 paginated = get_jobs(
                     self.redis_url,
                     "all",
@@ -559,6 +603,8 @@ class RedisQueueDashboard(FastAPI):
                 return StreamingResponse(
                     output, headers=headers, media_type="application/octet-stream"
                 )
+            except HTTPException:
+                raise
             except Exception as e:
                 logger.exception("An error occurred while exporting: %s", e)
                 raise HTTPException(

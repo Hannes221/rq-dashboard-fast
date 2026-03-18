@@ -20,6 +20,8 @@ class TokenPermissions(BaseModel):
     access: str = "read"
     title: Optional[str] = None
     csrf_token: Optional[str] = None
+    allow_workers: bool = True
+    allow_export: bool = True
 
 
 class AuthConfig:
@@ -58,6 +60,8 @@ class AuthConfig:
                 "queues": entry.get("queues", ["*"]),
                 "access": entry.get("access", "read"),
                 "title": entry.get("title"),
+                "allow_workers": entry.get("allow_workers", True),
+                "allow_export": entry.get("allow_export", True),
             }
 
         if not self._tokens:
@@ -88,3 +92,10 @@ def queue_allowed(queue_name: str, allowed_queues: list[str]) -> bool:
     if "*" in allowed_queues:
         return True
     return queue_name in allowed_queues
+
+
+def worker_visible(worker_queues: list[str], allowed_queues: list[str]) -> bool:
+    """Return True if a worker shares at least one queue with the allowed list."""
+    if "*" in allowed_queues:
+        return True
+    return bool(set(worker_queues) & set(allowed_queues))
