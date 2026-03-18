@@ -168,7 +168,7 @@
     var tableBody = document.querySelector("#jobs tbody");
     tableBody.innerHTML = "";
 
-    var states = ["scheduled", "queued", "started", "failed", "deferred", "finished"];
+    var states = ["scheduled", "queued", "started", "failed", "deferred", "finished", "canceled", "stopped"];
     data.forEach(function (queue) {
       states.forEach(function (state) {
         if (!queue[state]) return;
@@ -304,6 +304,8 @@
               <option value="failed">Failed</option>
               <option value="deferred">Deferred</option>
               <option value="finished">Finished</option>
+              <option value="canceled">Canceled</option>
+              <option value="stopped">Stopped</option>
             </select>
           </div>
         </th>
@@ -324,7 +326,7 @@
     </thead>
     <tbody>
       {% for queue in job_data %} {% for state in ["queued", "started",
-      "failed", "deferred", "scheduled", "finished"] %} {% for job in queue[state] %}
+      "failed", "deferred", "scheduled", "finished", "canceled", "stopped"] %} {% for job in queue[state] %}
       <tr class="tr-stripe">
         <td class="td-cell">
           <a class="text-blue-700 dark:text-blue-400" href="#" data-job-id="{{ job.id }}">{{ job.id }}</a>

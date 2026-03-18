@@ -40,6 +40,8 @@ class QueueJobRegistryStats(BaseModel):
     failed: List[JobData]
     deferred: List[JobData]
     finished: List[JobData]
+    canceled: List[JobData]
+    stopped: List[JobData]
 
 
 class PaginatedJobResponse(BaseModel):
@@ -84,6 +86,7 @@ def get_job_registrys(
                     job_ids.extend(queue.started_job_registry.get_job_ids())
                     job_ids.extend(queue.deferred_job_registry.get_job_ids())
                     job_ids.extend(queue.scheduled_job_registry.get_job_ids())
+                    job_ids.extend(queue.canceled_job_registry.get_job_ids())
                     total += len(job_ids)
                     job_ids = job_ids[start_index:end_index]
                 elif state == "scheduled":
@@ -114,6 +117,11 @@ def get_job_registrys(
                     job_ids = queue.deferred_job_registry.get_job_ids(
                         start=start_index, end=end_index - 1
                     )
+                elif state == "canceled":
+                    total += queue.canceled_job_registry.count
+                    job_ids = queue.canceled_job_registry.get_job_ids(
+                        start=start_index, end=end_index - 1
+                    )
 
                 scheduled_jobs = []
                 scheduled = scheduler.get_jobs()
@@ -134,52 +142,33 @@ def get_job_registrys(
                 deferred_jobs = []
                 finished_jobs = []
                 queued_jobs = []
+                canceled_jobs = []
+                stopped_jobs = []
 
                 jobs = jobs_fetched
                 for job in jobs:
                     if job is None:
                         continue
                     status = job.get_status()
+                    job_data_item = JobData(
+                        id=job.id,
+                        name=job.description,
+                        created_at=job.created_at,
+                    )
                     if status == "started":
-                        started_jobs.append(
-                            JobData(
-                                id=job.id,
-                                name=job.description,
-                                created_at=job.created_at,
-                            )
-                        )
+                        started_jobs.append(job_data_item)
                     elif status == "failed":
-                        failed_jobs.append(
-                            JobData(
-                                id=job.id,
-                                name=job.description,
-                                created_at=job.created_at,
-                            )
-                        )
+                        failed_jobs.append(job_data_item)
                     elif status == "deferred":
-                        deferred_jobs.append(
-                            JobData(
-                                id=job.id,
-                                name=job.description,
-                                created_at=job.created_at,
-                            )
-                        )
+                        deferred_jobs.append(job_data_item)
                     elif status == "finished":
-                        finished_jobs.append(
-                            JobData(
-                                id=job.id,
-                                name=job.description,
-                                created_at=job.created_at,
-                            )
-                        )
+                        finished_jobs.append(job_data_item)
                     elif status == "queued":
-                        queued_jobs.append(
-                            JobData(
-                                id=job.id,
-                                name=job.description,
-                                created_at=job.created_at,
-                            )
-                        )
+                        queued_jobs.append(job_data_item)
+                    elif status == "canceled":
+                        canceled_jobs.append(job_data_item)
+                    elif status == "stopped":
+                        stopped_jobs.append(job_data_item)
 
                 result.append(
                     QueueJobRegistryStats(
@@ -190,6 +179,8 @@ def get_job_registrys(
                         failed=failed_jobs,
                         deferred=deferred_jobs,
                         finished=finished_jobs,
+                        canceled=canceled_jobs,
+                        stopped=stopped_jobs,
                     )
                 )
 
@@ -295,6 +286,8 @@ def convert_queue_job_registry_stats_to_json_dict(
                 "failed": [job_data_to_dict(job) for job in job_stats.failed],
                 "deferred": [job_data_to_dict(job) for job in job_stats.deferred],
                 "finished": [job_data_to_dict(job) for job in job_stats.finished],
+                "canceled": [job_data_to_dict(job) for job in job_stats.canceled],
+                "stopped": [job_data_to_dict(job) for job in job_stats.stopped],
             }
             job_stats_dict[job_stats.queue_name] = stats_dict
             queue_stats_list = [job_stats_dict]

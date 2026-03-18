@@ -21,6 +21,7 @@ export default defineConfig({
   safelist: [
     'badge-failed', 'badge-started', 'badge-queued',
     'badge-finished', 'badge-deferred', 'badge-scheduled',
+    'badge-canceled', 'badge-stopped',
     // Pagination (dynamically generated in JS)
     'opacity-40', 'cursor-not-allowed', 'min-w-9', 'h-9',
     'bg-blue-600', 'dark:bg-blue-500', 'cursor-default',
@@ -47,5 +48,7 @@ export default defineConfig({
     'badge-finished': 'badge bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
     'badge-deferred': 'badge bg-gray-100 text-gray-700 dark:bg-gray-600/30 dark:text-gray-300',
     'badge-scheduled': 'badge bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300',
+    'badge-canceled': 'badge bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300',
+    'badge-stopped': 'badge bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300',
   },
 })

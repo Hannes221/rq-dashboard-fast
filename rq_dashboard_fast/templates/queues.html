@@ -100,7 +100,7 @@
     data.forEach(function (queue_stats) {
       var safeQueueName = escapeHtml(queue_stats.queue_name);
       var encodedQueueName = encodeURIComponent(queue_stats.queue_name);
-      var states = ['queued', 'started', 'failed', 'deferred', 'finished'];
+      var states = ['queued', 'started', 'failed', 'deferred', 'finished', 'canceled'];
       var cells = states.map(function (state) {
         return '<td class="td-cell"><a class="text-blue-700 dark:text-blue-400" href="' + baseurl + '/jobs?state=' + state + '&queue_name=' + encodedQueueName + '">' + queue_stats[state] + '</a></td>';
       }).join('');
@@ -135,6 +135,7 @@
         <th class="th-cell">Failed</th>
         <th class="th-cell">Deferred</th>
         <th class="th-cell">Finished</th>
+        <th class="th-cell">Canceled</th>
         {% if access == "admin" %}<th class="th-cell">Actions</th>{% endif %}
       </tr>
     </thead>
@@ -169,6 +170,11 @@
         <td class="td-cell">
           <a class="text-blue-700 dark:text-blue-400" href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=finished">
             {{ queue_stats.finished }}
+          </a>
+        </td>
+        <td class="td-cell">
+          <a class="text-blue-700 dark:text-blue-400" href="{{baseurl}}/jobs?queue={{ queue_stats.queue_name }}&state=canceled">
+            {{ queue_stats.canceled }}
           </a>
         </td>
         {% if access == "admin" %}

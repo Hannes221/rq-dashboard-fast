@@ -16,6 +16,7 @@ class QueueRegistryStats(BaseModel):
     failed: int
     deferred: int
     finished: int
+    canceled: int
 
 
 logger = logging.getLogger(__name__)
@@ -50,6 +51,7 @@ def get_job_registry_amount(
             failed_jobs = len(queue.failed_job_registry.get_job_ids())
             deferred_jobs = len(queue.deferred_job_registry.get_job_ids())
             queued_jobs = len(queue.get_job_ids())
+            canceled_jobs = len(queue.canceled_job_registry.get_job_ids())
 
             result.append(
                 QueueRegistryStats(
@@ -59,6 +61,7 @@ def get_job_registry_amount(
                     failed=failed_jobs,
                     deferred=deferred_jobs,
                     finished=finished_jobs,
+                    canceled=canceled_jobs,
                 )
             )
         return result
@@ -93,6 +96,7 @@ def convert_queue_data_to_json_dict(queue_data: list[QueueRegistryStats]) -> lis
                 "failed": queue_stats.failed,
                 "deferred": queue_stats.deferred,
                 "finished": queue_stats.finished,
+                "canceled": queue_stats.canceled,
             }
             queue_stats_dict[queue_stats.queue_name] = stats_dict
 
