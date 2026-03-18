@@ -16,6 +16,7 @@ class QueueRegistryStats(BaseModel):
     failed: int
     deferred: int
     finished: int
+    canceled: int
 
 
 logger = logging.getLogger(__name__)
@@ -29,7 +30,7 @@ def get_queues(redis_url: str) -> list[Queue]:
 
         return queues
     except Exception as error:
-        logger.exception("Error reading Queues for redis connection: ", error)
+        logger.exception("Error reading Queues for redis connection: %s", error)
         raise HTTPException(
             status_code=500,
             detail=str("Error reading Queues for redis connection"),
@@ -50,6 +51,7 @@ def get_job_registry_amount(
             failed_jobs = len(queue.failed_job_registry.get_job_ids())
             deferred_jobs = len(queue.deferred_job_registry.get_job_ids())
             queued_jobs = len(queue.get_job_ids())
+            canceled_jobs = len(queue.canceled_job_registry.get_job_ids())
 
             result.append(
                 QueueRegistryStats(
@@ -59,11 +61,12 @@ def get_job_registry_amount(
                     failed=failed_jobs,
                     deferred=deferred_jobs,
                     finished=finished_jobs,
+                    canceled=canceled_jobs,
                 )
             )
         return result
     except Exception as error:
-        logger.exception("Error reading registrys for queue: ", error)
+        logger.exception("Error reading registrys for queue: %s", error)
         raise HTTPException(
             status_code=500, detail=str("Error reading registrys for queue")
         )
@@ -79,7 +82,7 @@ def delete_jobs_for_queue(queue_name, redis_url) -> list[str]:
 
         return result
     except Exception as error:
-        logger.exception("Error deleting jobs in queue: ", error)
+        logger.exception("Error deleting jobs in queue: %s", error)
         raise HTTPException(status_code=500, detail=str("Error deleting jobs in queue"))
 
 
@@ -93,6 +96,7 @@ def convert_queue_data_to_json_dict(queue_data: list[QueueRegistryStats]) -> lis
                 "failed": queue_stats.failed,
                 "deferred": queue_stats.deferred,
                 "finished": queue_stats.finished,
+                "canceled": queue_stats.canceled,
             }
             queue_stats_dict[queue_stats.queue_name] = stats_dict
 
@@ -100,9 +104,9 @@ def convert_queue_data_to_json_dict(queue_data: list[QueueRegistryStats]) -> lis
         return queue_stats_list
     except Exception as error:
         logger.exception(
-            "Error converting queue items list to JSON dictionary: ", error
+            "Error converting queue items list to JSON dictionary: %s", error
         )
-        raise Exception(
+        raise HTTPException(
             status_code=500,
             detail="Error converting queue items list to JSON dictionary",
         )
@@ -122,5 +126,7 @@ def convert_queues_dict_to_list(input_data: list[dict]) -> list[dict]:
                     queue_details.append(queue_info)
         return queue_details
     except Exception as error:
-        logger.exception("Error converting queues dict to list: ", error)
-        raise Exception(status_code=500, detail="Error converting queues dict to list")
+        logger.exception("Error converting queues dict to list: %s", error)
+        raise HTTPException(
+            status_code=500, detail="Error converting queues dict to list"
+        )

@@ -68,6 +68,8 @@ tokens:
     queues: ["emails", "notifications"]  # queues this token can see (required)
     access: read                 # "read" or "admin" (default: "read")
     title: "Email Team Dashboard"  # custom page title (optional)
+    allow_workers: false         # hide workers page (default: true)
+    allow_export: false          # hide export page (default: true)
 
   - hash: "a1b2c3d..."
     queues: ["*"]                # wildcard — access to all queues
@@ -82,11 +84,18 @@ tokens:
 | `queues` | Yes | List of queue names this token can access. Use `["*"]` for all queues. |
 | `access` | No | `read` (view only) or `admin` (view + delete, requeue, clear). Defaults to `read`. |
 | `title` | No | Custom title shown in the header and the browser tab. |
+| `allow_workers` | No | `true` or `false`. When `false`, the Workers page and worker export are disabled (returns 403) and the nav link is hidden. Defaults to `true`. |
+| `allow_export` | No | `true` or `false`. When `false`, the Export page and all export endpoints are disabled (returns 403) and the nav link is hidden. Defaults to `true`. |
+| `hide_meta` | No | `true` or `false`. When `true`, the job metadata section is hidden on the job detail page. Useful for preventing exposure of internal metadata to scoped users. Defaults to `false`. |
 
 ### Access Levels
 
 - **`read`** — View queues, jobs, and workers. Export data. Delete/requeue/clear buttons are hidden.
 - **`admin`** — Everything in `read`, plus delete jobs, requeue failed jobs, and clear queues.
+
+### Worker Visibility
+
+Workers are automatically filtered based on queue access. A token with `queues: ["emails", "notifications"]` will only see workers that listen on at least one of those queues. Workers listening exclusively on other queues are hidden. Tokens with `queues: ["*"]` see all workers.
 
 ## How Authentication Works
 
@@ -129,7 +138,20 @@ tokens:
     title: "Email Team Dashboard"
 ```
 
-The email team sees only the `emails` and `notifications` queues. Delete and requeue buttons are hidden. The page header and browser tab both show "Email Team Dashboard".
+The email team sees only the `emails` and `notifications` queues, and only workers that listen on those queues. Delete and requeue buttons are hidden. The page header and browser tab both show "Email Team Dashboard".
+
+### Restricted read-only view (no workers or export)
+
+```yaml
+tokens:
+  - hash: "1111abcd..."
+    queues: ["emails"]
+    access: read
+    allow_workers: false
+    allow_export: false
+```
+
+The token can view jobs and queues for `emails` only. The Workers and Export nav links are hidden, and direct access to those pages returns 403.
 
 ### Admin with full access
 

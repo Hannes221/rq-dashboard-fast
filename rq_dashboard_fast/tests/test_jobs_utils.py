@@ -97,6 +97,8 @@ def test_convert_queue_job_registry_stats_to_json_dict():
         failed=[],
         deferred=[],
         finished=[],
+        canceled=[],
+        stopped=[],
     )
 
     queue_stats_2 = QueueJobRegistryStats(
@@ -107,6 +109,8 @@ def test_convert_queue_job_registry_stats_to_json_dict():
         failed=[],
         deferred=[],
         finished=[],
+        canceled=[],
+        stopped=[],
     )
     queue_data = [queue_stats_1, queue_stats_2]
     result_json = convert_queue_job_registry_stats_to_json_dict(queue_data)
@@ -123,6 +127,8 @@ def test_convert_queue_job_registry_stats_to_json_dict():
                 "failed": [],
                 "deferred": [],
                 "finished": [],
+                "canceled": [],
+                "stopped": [],
             },
             "Queue 2": {
                 "scheduled": [],
@@ -134,6 +140,8 @@ def test_convert_queue_job_registry_stats_to_json_dict():
                 "failed": [],
                 "deferred": [],
                 "finished": [],
+                "canceled": [],
+                "stopped": [],
             },
         }
     ]
@@ -155,6 +163,8 @@ def test_convert_queue_job_registry_dict_to_list():
                 "failed": [],
                 "deferred": [],
                 "finished": [],
+                "canceled": [],
+                "stopped": [],
             }
         }
     ]
@@ -166,6 +176,7 @@ def test_convert_queue_job_registry_dict_to_list():
             "status": "scheduled",
             "job_name": "Job 1",
             "created_at": "2020-01-01T00:00:00",
+            "ended_at": "",
         },
         {
             "id": "2",
@@ -173,6 +184,7 @@ def test_convert_queue_job_registry_dict_to_list():
             "status": "queued",
             "job_name": "Job 2",
             "created_at": "2020-01-01T00:00:00",
+            "ended_at": "",
         },
     ]
 

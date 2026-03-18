@@ -69,10 +69,22 @@ def test_delete_jobs_for_queue(setup_redis):
 
 def test_convert_queue_data_to_json_dict():
     queue_stats_1 = QueueRegistryStats(
-        queue_name="Queue 1", queued=10, started=5, failed=2, deferred=3, finished=20
+        queue_name="Queue 1",
+        queued=10,
+        started=5,
+        failed=2,
+        deferred=3,
+        finished=20,
+        canceled=1,
     )
     queue_stats_2 = QueueRegistryStats(
-        queue_name="Queue 2", queued=15, started=8, failed=1, deferred=0, finished=25
+        queue_name="Queue 2",
+        queued=15,
+        started=8,
+        failed=1,
+        deferred=0,
+        finished=25,
+        canceled=0,
     )
     queue_data = [queue_stats_1, queue_stats_2]
     result_json = convert_queue_data_to_json_dict(queue_data)
@@ -84,6 +96,7 @@ def test_convert_queue_data_to_json_dict():
                 "failed": 2,
                 "deferred": 3,
                 "finished": 20,
+                "canceled": 1,
             },
             "Queue 2": {
                 "queued": 15,
@@ -91,6 +104,7 @@ def test_convert_queue_data_to_json_dict():
                 "failed": 1,
                 "deferred": 0,
                 "finished": 25,
+                "canceled": 0,
             },
         }
     ]
@@ -107,6 +121,7 @@ def test_convert_queues_dict_to_list():
                 "failed": 2,
                 "deferred": 3,
                 "finished": 20,
+                "canceled": 1,
             },
             "Queue 2": {
                 "queued": 15,
@@ -114,6 +129,7 @@ def test_convert_queues_dict_to_list():
                 "failed": 1,
                 "deferred": 0,
                 "finished": 25,
+                "canceled": 0,
             },
         }
     ]
@@ -124,11 +140,13 @@ def test_convert_queues_dict_to_list():
         {"queue_name": "Queue 1", "status": "failed", "count": 2},
         {"queue_name": "Queue 1", "status": "deferred", "count": 3},
         {"queue_name": "Queue 1", "status": "finished", "count": 20},
+        {"queue_name": "Queue 1", "status": "canceled", "count": 1},
         {"queue_name": "Queue 2", "status": "queued", "count": 15},
         {"queue_name": "Queue 2", "status": "started", "count": 8},
         {"queue_name": "Queue 2", "status": "failed", "count": 1},
         {"queue_name": "Queue 2", "status": "deferred", "count": 0},
         {"queue_name": "Queue 2", "status": "finished", "count": 25},
+        {"queue_name": "Queue 2", "status": "canceled", "count": 0},
     ]
 
     result_list = convert_queues_dict_to_list(input_data)

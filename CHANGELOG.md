@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-03-18
+
+### Added
+- Canceled and Stopped job states — jobs in these states now appear in the dashboard instead of being silently dropped (fixes #95)
+- `canceled_job_registry` collection and "Canceled" column on the queues page
+- "Canceled" and "Stopped" filter options in the jobs state dropdown
+- Worker queue filtering — scoped tokens only see workers listening on their allowed queues
+- `allow_workers` config option — set to `false` to disable the Workers page and nav link for a token
+- `allow_export` config option — set to `false` to disable the Export page and nav link for a token
+- `hide_meta` config option — set to `true` to hide the metadata section on the job detail page
+- Job detail page: status badge, queue name, action buttons (requeue, delete) with confirmation dialogs
+- Job detail page: pretty-printed JSON rendering for dict/list results
+- Job detail page: timeline cards for created/enqueued/ended timestamps
+- Job detail page: exception block with red styling, shown prominently for failed jobs
+- `ended_at` field on job list — shows "Failed/Ended X ago" for completed jobs
+- `status` field on `JobDataDetailed` model
+- Queue column on the jobs list page
+- Relative timestamps ("2m ago", "3d ago") on the jobs page with full date+time on hover
+- View button (eye icon) on jobs list to open job details
+- Confirmation dialogs on delete and requeue actions
+- Skeleton (disabled) buttons for unavailable actions to maintain consistent row alignment
+- Badge styles for canceled (orange) and stopped (rose) states
+- `btn-view` and `btn-skeleton` button styles
+
+### Changed
+- Jobs table redesigned: columns reordered to Name | Status | Queue | Created | Actions
+- Job ID moved from primary link column to short ID suffix on job name (full ID on hover)
+- Queue filter dropdown moved to Queue column header (was under Name)
+- Actions column always visible (view for all users, requeue/delete for admin)
+- Job detail page redesigned from flat table to card-based layout
+- Empty sections (Result: None, Meta: {}) hidden on job detail page
+
+### Fixed
+- Pagination bug: jobs in canceled/stopped state were counted in total but dropped during rendering, causing blank pages at the end
+- `raise Exception(status_code=500, ...)` in queues.py and workers.py export helpers — `Exception` does not accept keyword args, causing `TypeError` at runtime. Changed to `HTTPException`.
+- Five routes missing `except HTTPException: raise` before generic `except Exception`, which swallowed intentional 403/500 responses
+- Queues page SSR links used undefined `{{baseurl}}` Jinja2 variable — changed to `{{prefix}}`
+- Queues page SSR links used `?queue=` parameter — changed to `?queue_name=` to match route
+- `logger.exception` calls across queues.py, workers.py, and routes using `,` instead of `%s` format specifier
+- `ended_at` now included in CSV job export (was silently dropped)
+- "Stopped" state filter now works (was missing collection branch in `get_job_registrys`)
+
 ## [0.7.2] - 2026-03-16
 
 ### Added

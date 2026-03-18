@@ -6,8 +6,8 @@
     <div class="flex items-center gap-6">
       <a href="{{prefix}}/jobs" class="header-link no-underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Jobs</a>
       <a href="{{prefix}}/queues" class="header-link no-underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Queues</a>
-      <a href="{{prefix}}/workers" class="header-link no-underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Workers</a>
-      <a href="{{prefix}}/export" class="header-link no-underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Export</a>
+      {% if allow_workers is not defined or allow_workers %}<a href="{{prefix}}/workers" class="header-link no-underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Workers</a>{% endif %}
+      {% if allow_export is not defined or allow_export %}<a href="{{prefix}}/export" class="header-link no-underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Export</a>{% endif %}
       <div class="w-px h-5 bg-gray-300 dark:bg-gray-600"></div>
       <button id="autorefresh-toggle" class="p-1.5 rounded-md border-none cursor-pointer transition-colors text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50" aria-label="Toggle autorefresh" title="Autorefresh: ON">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

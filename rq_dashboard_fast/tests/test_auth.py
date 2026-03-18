@@ -19,6 +19,7 @@ from rq_dashboard_fast.utils.auth import (
     generate_token_pair,
     hash_token,
     queue_allowed,
+    worker_visible,
 )
 
 # ---------------------------------------------------------------------------
@@ -395,3 +396,152 @@ class TestCustomTitle:
         config = AuthConfig(config_path)
         entry = config.resolve_hash(token_hash)
         assert entry["title"] == "My Dashboard"
+
+
+# ---------------------------------------------------------------------------
+# Worker visibility filtering
+# ---------------------------------------------------------------------------
+
+
+class TestWorkerVisible:
+    def test_wildcard_allows_all(self):
+        assert worker_visible(["emails", "payments"], ["*"]) is True
+
+    def test_overlap_allows(self):
+        assert worker_visible(["emails", "payments"], ["emails"]) is True
+
+    def test_no_overlap_denies(self):
+        assert worker_visible(["payments"], ["emails", "notifications"]) is False
+
+    def test_empty_worker_queues(self):
+        assert worker_visible([], ["emails"]) is False
+
+    def test_empty_allowed_queues(self):
+        assert worker_visible(["emails"], []) is False
+
+
+# ---------------------------------------------------------------------------
+# allow_workers / allow_export config parsing
+# ---------------------------------------------------------------------------
+
+
+class TestAllowWorkersExportConfig:
+    """Config parsing and defaults for allow_workers / allow_export."""
+
+    def test_defaults_to_true(self):
+        token, token_hash = generate_token_pair()
+        config_path = _make_auth_yaml(
+            [{"hash": token_hash, "queues": ["*"], "access": "admin"}]
+        )
+        config = AuthConfig(config_path)
+        entry = config.resolve_hash(token_hash)
+        assert entry["allow_workers"] is True
+        assert entry["allow_export"] is True
+        assert entry["hide_meta"] is False
+
+    def test_explicit_false(self):
+        token, token_hash = generate_token_pair()
+        config_path = _make_auth_yaml(
+            [
+                {
+                    "hash": token_hash,
+                    "queues": ["emails"],
+                    "access": "read",
+                    "allow_workers": False,
+                    "allow_export": False,
+                    "hide_meta": True,
+                }
+            ]
+        )
+        config = AuthConfig(config_path)
+        entry = config.resolve_hash(token_hash)
+        assert entry["allow_workers"] is False
+        assert entry["allow_export"] is False
+        assert entry["hide_meta"] is True
+
+    def test_permissions_model_defaults(self):
+        p = TokenPermissions()
+        assert p.allow_workers is True
+        assert p.allow_export is True
+        assert p.hide_meta is False
+
+
+# ---------------------------------------------------------------------------
+# Page access enforcement for allow_workers / allow_export
+# ---------------------------------------------------------------------------
+
+
+class TestPageAccessFlags:
+    """Verify that allow_workers=false / allow_export=false return 403."""
+
+    def _get_authenticated_client(self, token, token_hash, extra_config=None):
+        entry = {"hash": token_hash, "queues": ["*"], "access": "admin"}
+        if extra_config:
+            entry.update(extra_config)
+        config_path = _make_auth_yaml([entry])
+        app = _make_app(config_path)
+        client = TestClient(app, follow_redirects=False)
+
+        response = client.get(f"/?token={token}")
+        return client
+
+    def test_workers_page_blocked(self):
+        token, token_hash = generate_token_pair()
+        client = self._get_authenticated_client(
+            token, token_hash, {"allow_workers": False}
+        )
+        response = client.get("/workers")
+        assert response.status_code == 403
+
+    def test_workers_json_blocked(self):
+        token, token_hash = generate_token_pair()
+        client = self._get_authenticated_client(
+            token, token_hash, {"allow_workers": False}
+        )
+        response = client.get("/workers/json")
+        assert response.status_code == 403
+
+    def test_export_page_blocked(self):
+        token, token_hash = generate_token_pair()
+        client = self._get_authenticated_client(
+            token, token_hash, {"allow_export": False}
+        )
+        response = client.get("/export")
+        assert response.status_code == 403
+
+    def test_export_queues_blocked(self):
+        token, token_hash = generate_token_pair()
+        client = self._get_authenticated_client(
+            token, token_hash, {"allow_export": False}
+        )
+        response = client.get("/export/queues")
+        assert response.status_code == 403
+
+    def test_export_workers_blocked(self):
+        token, token_hash = generate_token_pair()
+        client = self._get_authenticated_client(
+            token, token_hash, {"allow_workers": False}
+        )
+        response = client.get("/export/workers")
+        assert response.status_code == 403
+
+    def test_export_jobs_blocked(self):
+        token, token_hash = generate_token_pair()
+        client = self._get_authenticated_client(
+            token, token_hash, {"allow_export": False}
+        )
+        response = client.get("/export/jobs")
+        assert response.status_code == 403
+
+    def test_workers_allowed_by_default(self):
+        token, token_hash = generate_token_pair()
+        client = self._get_authenticated_client(token, token_hash)
+        # Will 500 (no Redis) but should NOT be 403
+        response = client.get("/workers")
+        assert response.status_code != 403
+
+    def test_export_allowed_by_default(self):
+        token, token_hash = generate_token_pair()
+        client = self._get_authenticated_client(token, token_hash)
+        response = client.get("/export")
+        assert response.status_code != 403

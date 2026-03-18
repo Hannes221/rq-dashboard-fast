@@ -72,9 +72,12 @@
     document.getElementById("export-queues").addEventListener("click", function () {
       handle_format('export-queues-format', 'queues');
     });
-    document.getElementById("export-workers").addEventListener("click", function () {
-      handle_format('export-workers-format', 'workers');
-    });
+    var exportWorkersBtn = document.getElementById("export-workers");
+    if (exportWorkersBtn) {
+      exportWorkersBtn.addEventListener("click", function () {
+        handle_format('export-workers-format', 'workers');
+      });
+    }
     document.getElementById("export-jobs").addEventListener("click", function () {
       handle_format('export-jobs-format', 'jobs');
     });
@@ -86,7 +89,7 @@
     <thead>
       <tr>
         <th class="th-cell">Export Queues</th>
-        <th class="th-cell">Export Workers</th>
+        {% if allow_workers is not defined or allow_workers %}<th class="th-cell">Export Workers</th>{% endif %}
         <th class="th-cell">Export Jobs</th>
       </tr>
     </thead>
@@ -101,6 +104,7 @@
             </select>
           </div>
         </td>
+        {% if allow_workers is not defined or allow_workers %}
         <td class="td-cell">
           <div class="flex items-center gap-2.5 mt-2.5">
             <button class="btn-export" id="export-workers">Export Workers</button>
@@ -110,6 +114,7 @@
             </select>
           </div>
         </td>
+        {% endif %}
         <td class="td-cell">
           <div class="flex items-center gap-2.5 mt-2.5">
             <button class="btn-export" id="export-jobs">Export Jobs</button>
