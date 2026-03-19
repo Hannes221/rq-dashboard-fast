@@ -120,7 +120,11 @@
   function updateJobsData() {
     var selectedState = document.getElementById("state-filter").value;
     var selectedQueue = document.getElementById("queue-name-filter").value;
-    fetch(baseurl + "/jobs/json?state=" + selectedState + "&queue_name=" + selectedQueue + "&page=" + page + "&per_page=" + perPage)
+    var safePage = (Number.isFinite(page) && page > 0) ? page : 1;
+    var safePerPage = (Number.isFinite(perPage) && perPage > 0) ? perPage : 10;
+    page = safePage;
+    perPage = safePerPage;
+    fetch(baseurl + "/jobs/json?state=" + selectedState + "&queue_name=" + selectedQueue + "&page=" + safePage + "&per_page=" + safePerPage)
       .then(function (r) {
         if (!r.ok) throw new Error("HTTP " + r.status);
         return r.json();
