@@ -59,6 +59,52 @@
   let totalPages = {{ total_pages }};
   let totalJobs = {{ total }};
 
+  let sortCol = 'created_at';
+  let sortDir = 'desc';
+
+  function sortJobs(jobs) {
+    return jobs.slice().sort(function (a, b) {
+      var valA, valB;
+      if (sortCol === 'name') {
+        valA = (a.job.name || '').toLowerCase();
+        valB = (b.job.name || '').toLowerCase();
+        if (valA < valB) return sortDir === 'asc' ? -1 : 1;
+        if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+        return 0;
+      } else {
+        valA = a.job.created_at ? new Date(a.job.created_at).getTime() : 0;
+        valB = b.job.created_at ? new Date(b.job.created_at).getTime() : 0;
+        return sortDir === 'asc' ? valA - valB : valB - valA;
+      }
+    });
+  }
+
+  function setSort(col) {
+    if (sortCol === col) {
+      sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortCol = col;
+      sortDir = col === 'created_at' ? 'desc' : 'asc';
+    }
+    renderSortIndicators();
+    updateJobsData();
+  }
+
+  function renderSortIndicators() {
+    ['name', 'created_at'].forEach(function (col) {
+      var el = document.getElementById('sort-' + col);
+      if (!el) return;
+      var th = el.closest('th');
+      if (sortCol === col) {
+        el.textContent = sortDir === 'asc' ? ' ↑' : ' ↓';
+        th && th.classList.add('th-sorted');
+      } else {
+        el.textContent = ' ↕';
+        th && th.classList.remove('th-sorted');
+      }
+    });
+  }
+
   function goToPage(p) {
     if (p < 1 || p > totalPages) return;
     page = p;
@@ -192,51 +238,49 @@
 
     var isAdmin = "{{ access }}" === "admin";
     var states = ["scheduled", "queued", "started", "failed", "deferred", "finished", "canceled", "stopped"];
+
+    var allRows = [];
     data.forEach(function (queue) {
-      var queueName = escapeHtml(queue.queue_name);
       states.forEach(function (state) {
         if (!queue[state]) return;
         queue[state].forEach(function (job) {
-          var safeId = escapeHtml(job.id);
-          var safeName = escapeHtml(job.name);
-          var fullDate = new Date(job.created_at).toLocaleString();
-          var relDate = timeAgo(job.created_at);
-          var endedHtml = '';
-          if (job.ended_at) {
-            var endedFull = new Date(job.ended_at).toLocaleString();
-            var endedLabel = (state === "failed") ? "Failed" : "Ended";
-            endedHtml = '<div class="text-xs text-gray-400 dark:text-gray-500" title="' + endedFull + '">' + endedLabel + ' ' + timeAgo(job.ended_at) + '</div>';
-          }
-
-          // View button (always active)
-          var viewBtn = '<a class="btn-view" href="' + baseurl + '/job/' + encodeURIComponent(job.id) + '" title="View details">' + svgView + '</a>';
-
-          // Requeue button: active for failed jobs with admin, skeleton otherwise
-          var requeueBtn;
-          if (isAdmin && state === "failed") {
-            requeueBtn = '<button class="btn-requeue" data-requeue-id="' + safeId + '" title="Requeue">' + svgRequeue + '</button>';
-          } else {
-            requeueBtn = '<button class="btn-skeleton" disabled title="Requeue (failed jobs only)">' + svgRequeue + '</button>';
-          }
-
-          // Delete button: active for admin, skeleton otherwise
-          var deleteBtn;
-          if (isAdmin) {
-            deleteBtn = '<button class="btn-delete" data-delete-id="' + safeId + '" title="Delete">' + svgDelete + '</button>';
-          } else {
-            deleteBtn = '<button class="btn-skeleton" disabled title="Delete (admin only)">' + svgDelete + '</button>';
-          }
-
-          tableBody.innerHTML +=
-            '<tr class="tr-stripe">' +
-            '<td class="td-cell max-w-[300px] overflow-hidden text-ellipsis whitespace-nowrap"><span title="' + safeId + '">' + safeName + '</span><span class="ml-2 text-xs text-gray-400 dark:text-gray-500" title="' + safeId + '">' + shortId(job.id) + '</span></td>' +
-            '<td class="td-cell"><span class="badge-' + state + '">' + state + '</span></td>' +
-            '<td class="td-cell">' + queueName + '</td>' +
-            '<td class="td-cell whitespace-nowrap"><div title="' + fullDate + '">' + relDate + '</div>' + endedHtml + '</td>' +
-            '<td class="td-cell"><div class="flex items-center gap-1">' + viewBtn + requeueBtn + deleteBtn + '</div></td>' +
-            '</tr>';
+          allRows.push({ queueName: queue.queue_name, state: state, job: job });
         });
       });
+    });
+    allRows = sortJobs(allRows);
+
+    allRows.forEach(function (row) {
+      var job = row.job;
+      var state = row.state;
+      var safeId = escapeHtml(job.id);
+      var safeName = escapeHtml(job.name);
+      var safeQueue = escapeHtml(row.queueName);
+      var fullDate = new Date(job.created_at).toLocaleString();
+      var relDate = timeAgo(job.created_at);
+      var endedHtml = '';
+      if (job.ended_at) {
+        var endedFull = new Date(job.ended_at).toLocaleString();
+        var endedLabel = (state === "failed") ? "Failed" : "Ended";
+        endedHtml = '<div class="text-xs text-gray-400 dark:text-gray-500" title="' + endedFull + '">' + endedLabel + ' ' + timeAgo(job.ended_at) + '</div>';
+      }
+
+      var viewBtn = '<a class="btn-view" href="' + baseurl + '/job/' + encodeURIComponent(job.id) + '" title="View details">' + svgView + '</a>';
+      var requeueBtn = (isAdmin && state === "failed")
+        ? '<button class="btn-requeue" data-requeue-id="' + safeId + '" title="Requeue">' + svgRequeue + '</button>'
+        : '<button class="btn-skeleton" disabled title="Requeue (failed jobs only)">' + svgRequeue + '</button>';
+      var deleteBtn = isAdmin
+        ? '<button class="btn-delete" data-delete-id="' + safeId + '" title="Delete">' + svgDelete + '</button>'
+        : '<button class="btn-skeleton" disabled title="Delete (admin only)">' + svgDelete + '</button>';
+
+      tableBody.innerHTML +=
+        '<tr class="tr-stripe">' +
+        '<td class="td-cell max-w-[300px] overflow-hidden text-ellipsis whitespace-nowrap"><span title="' + safeId + '">' + safeName + '</span><span class="ml-2 text-xs text-gray-400 dark:text-gray-500" title="' + safeId + '">' + shortId(job.id) + '</span></td>' +
+        '<td class="td-cell"><span class="badge-' + state + '">' + state + '</span></td>' +
+        '<td class="td-cell">' + safeQueue + '</td>' +
+        '<td class="td-cell whitespace-nowrap"><div title="' + fullDate + '">' + relDate + '</div>' + endedHtml + '</td>' +
+        '<td class="td-cell"><div class="flex items-center gap-1">' + viewBtn + requeueBtn + deleteBtn + '</div></td>' +
+        '</tr>';
     });
 
     tableBody.querySelectorAll('[data-delete-id]').forEach(function (btn) {
@@ -307,6 +351,7 @@
     document.getElementById("state-filter").addEventListener("change", function () { page = 1; updateJobsData(); });
     document.getElementById("queue-name-filter").addEventListener("change", function () { page = 1; updateJobsData(); });
 
+    renderSortIndicators();
     renderPagination();
     updateJobsData();
   });
@@ -329,7 +374,9 @@
   <table id="jobs" class="data-table">
     <thead>
       <tr>
-        <th class="th-cell">Name</th>
+        <th class="th-cell cursor-pointer select-none" onclick="setSort('name')" title="Sort by name">
+          Name<span id="sort-name" class="text-gray-400 dark:text-gray-500 text-xs"> ↕</span>
+        </th>
         <th class="th-cell">
           <div class="flex flex-col gap-1">
             <span>Status</span>
@@ -357,7 +404,9 @@
             </select>
           </div>
         </th>
-        <th class="th-cell">Created</th>
+        <th class="th-cell cursor-pointer select-none" onclick="setSort('created_at')" title="Sort by date">
+          Created<span id="sort-created_at" class="text-gray-400 dark:text-gray-500 text-xs"> ↓</span>
+        </th>
         <th class="th-cell">Actions</th>
       </tr>
     </thead>
