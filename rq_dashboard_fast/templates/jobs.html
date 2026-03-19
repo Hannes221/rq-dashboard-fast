@@ -121,7 +121,10 @@
     var selectedState = document.getElementById("state-filter").value;
     var selectedQueue = document.getElementById("queue-name-filter").value;
     fetch(baseurl + "/jobs/json?state=" + selectedState + "&queue_name=" + selectedQueue + "&page=" + page + "&per_page=" + perPage)
-      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
       .then(function (response) {
         totalPages = response.total_pages;
         totalJobs = response.total;
