@@ -5,6 +5,7 @@ from typing import Any, List, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from redis import Redis
+from rq.exceptions import InvalidJobOperation
 from rq.job import Job
 from rq_scheduler import Scheduler
 
@@ -161,7 +162,11 @@ def get_job_registrys(
                 for job in jobs:
                     if job is None:
                         continue
-                    status = job.get_status()
+                    try:
+                        status = job.get_status()
+                    except InvalidJobOperation:
+                        logger.warning("Skipping job %s: status no longer available in Redis", job.id)
+                        continue
                     job_data_item = JobData(
                         id=job.id,
                         name=job.description,
@@ -220,18 +225,14 @@ def get_jobs(
     per_page: int = 10,
     allowed_queues: Optional[list[str]] = None,
 ) -> PaginatedJobResponse:
-    try:
-        return get_job_registrys(
-            redis_url,
-            queue_name,
-            state,
-            page,
-            per_page,
-            allowed_queues=allowed_queues,
-        )
-    except Exception as error:
-        logger.exception("Error fetching job data: %s", error)
-        raise HTTPException(status_code=500, detail=str("Error fetching job data"))
+    return get_job_registrys(
+        redis_url,
+        queue_name,
+        state,
+        page,
+        per_page,
+        allowed_queues=allowed_queues,
+    )
 
 
 def get_job(redis_url: str, job_id: str) -> JobDataDetailed:
