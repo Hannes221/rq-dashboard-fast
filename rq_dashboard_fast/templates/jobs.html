@@ -280,9 +280,14 @@
         ? '<button class="btn-delete" data-delete-id="' + safeId + '" title="Delete">' + svgDelete + '</button>'
         : '<button class="btn-skeleton" disabled title="Delete (admin only)">' + svgDelete + '</button>';
 
+      var safeShortId = escapeHtml(shortId(job.id));
       tableBody.innerHTML +=
         '<tr class="tr-stripe">' +
-        '<td class="td-cell max-w-[300px] overflow-hidden text-ellipsis whitespace-nowrap"><span title="' + safeId + '">' + safeName + '</span><span class="ml-2 text-xs text-gray-400 dark:text-gray-500" title="' + safeId + '">' + shortId(job.id) + '</span></td>' +
+        '<td class="td-cell max-w-[24rem] min-w-0">' +
+        '<div class="flex min-w-0 items-center gap-2">' +
+        '<span class="min-w-0 flex-1 truncate block" title="' + safeName + '">' + safeName + '</span>' +
+        '<span class="shrink-0 text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap" title="' + safeId + '">' + safeShortId + '</span>' +
+        '</div></td>' +
         '<td class="td-cell"><span class="badge-' + state + '">' + state + '</span></td>' +
         '<td class="td-cell">' + safeQueue + '</td>' +
         '<td class="td-cell whitespace-nowrap"><div title="' + fullDate + '">' + relDate + '</div>' + endedHtml + '</td>' +
@@ -376,9 +381,9 @@
 
 <div class="max-w-[90%] mx-auto mt-6 px-4">
   <p class="text-sm text-gray-600 dark:text-gray-400">
-    Filter jobs by state and queue. Hover over timestamps for full date, or over job names for the full ID.
+    Filter jobs by state and queue. Hover over timestamps for the full date, over the job name for the full name, or over the short ID for the full job id.
   </p>
-  <table id="jobs" class="data-table">
+  <table id="jobs" class="data-table table-fixed w-full">
     <thead>
       <tr>
         <th class="th-cell cursor-pointer select-none" onclick="setSort('name')" title="Sort by name">
@@ -421,9 +426,11 @@
       {% for queue in job_data %} {% for state in ["queued", "started",
       "failed", "deferred", "scheduled", "finished", "canceled", "stopped"] %} {% for job in queue[state] %}
       <tr class="tr-stripe">
-        <td class="td-cell max-w-[300px] overflow-hidden text-ellipsis whitespace-nowrap">
-          <span title="{{ job.id }}">{{ job.name }}</span>
-          <span class="ml-2 text-xs text-gray-400 dark:text-gray-500" title="{{ job.id }}">{{ job.id[:8] }}</span>
+        <td class="td-cell max-w-[24rem] min-w-0">
+          <div class="flex min-w-0 items-center gap-2">
+            <span class="min-w-0 flex-1 truncate block" title="{{ job.name | e }}">{{ job.name }}</span>
+            <span class="shrink-0 text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap" title="{{ job.id | e }}">{{ job.id[:8] }}</span>
+          </div>
         </td>
         <td class="td-cell"><span class="badge-{{ state }}">{{ state }}</span></td>
         <td class="td-cell">{{ queue.queue_name }}</td>
