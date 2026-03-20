@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2026-03-19
+
+### Added
+- Jobs table now defaults to newest-first ordering. For registry-based states (failed, finished, started, deferred, scheduled, canceled) ordering is done server-side using `desc=True` on `get_job_ids`, giving true global newest-first order across all pages. For the queued state, the Redis list is read from the tail and reversed for the same effect.
+- Sortable column headers on the jobs table (Name and Created). Clicking a header toggles ascending/descending with a ↑/↓/↕ indicator. Sorting is applied client-side within the returned page, which is the correct behaviour for `state=all` where results are combined from multiple registries.
+
+### Fixed
+- `InvalidJobOperation` error when `job.get_status()` is called on a job whose Redis hash has expired or been evicted. Affected jobs are now skipped with a warning log instead of crashing the entire request.
+- Redundant double-logging of the same error in Sentry: `get_jobs` re-caught and re-logged the `HTTPException` already raised by `get_job_registrys`. The redundant wrapper has been removed.
+- `page` and `perPage` JS variables becoming `undefined` after a failed fetch, causing subsequent autorefresh requests to send `page=undefined&per_page=undefined` (422 loop). Fixed by checking `r.ok` before parsing the response body, and by sanitising the variables at the start of each `updateJobsData` call so any pre-existing corrupted state self-heals.
+
 ## [0.8.0] - 2026-03-18
 
 ### Added

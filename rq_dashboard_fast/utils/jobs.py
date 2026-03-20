@@ -5,7 +5,9 @@ from typing import Any, List, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from redis import Redis
+from rq.exceptions import InvalidJobOperation
 from rq.job import Job
+from rq.utils import as_text
 from rq_scheduler import Scheduler
 
 from .auth import queue_allowed
@@ -94,35 +96,39 @@ def get_job_registrys(
                 elif state == "scheduled":
                     total += queue.scheduled_job_registry.count
                     job_ids = queue.scheduled_job_registry.get_job_ids(
-                        start=start_index, end=end_index - 1
+                        start=start_index, end=end_index - 1, desc=True
                     )
                 elif state == "queued":
                     total += queue.count
-                    job_ids = queue.get_job_ids(offset=start_index, length=per_page)
+                    # Redis LIST has no native desc; use negative indices to read
+                    # from the tail (newest end) and reverse for newest-first order.
+                    raw = redis.lrange(queue.key, -(start_index + per_page), -(start_index + 1))
+                    job_ids = [as_text(jid) for jid in raw]
+                    job_ids.reverse()
                 elif state == "finished":
                     total += queue.finished_job_registry.count
                     job_ids = queue.finished_job_registry.get_job_ids(
-                        start=start_index, end=end_index - 1
+                        start=start_index, end=end_index - 1, desc=True
                     )
                 elif state == "failed":
                     total += queue.failed_job_registry.count
                     job_ids = queue.failed_job_registry.get_job_ids(
-                        start=start_index, end=end_index - 1
+                        start=start_index, end=end_index - 1, desc=True
                     )
                 elif state == "started":
                     total += queue.started_job_registry.count
                     job_ids = queue.started_job_registry.get_job_ids(
-                        start=start_index, end=end_index - 1
+                        start=start_index, end=end_index - 1, desc=True
                     )
                 elif state == "deferred":
                     total += queue.deferred_job_registry.count
                     job_ids = queue.deferred_job_registry.get_job_ids(
-                        start=start_index, end=end_index - 1
+                        start=start_index, end=end_index - 1, desc=True
                     )
                 elif state == "canceled":
                     total += queue.canceled_job_registry.count
                     job_ids = queue.canceled_job_registry.get_job_ids(
-                        start=start_index, end=end_index - 1
+                        start=start_index, end=end_index - 1, desc=True
                     )
                 elif state == "stopped":
                     # Stopped jobs live in started_job_registry with status "stopped".
@@ -161,7 +167,11 @@ def get_job_registrys(
                 for job in jobs:
                     if job is None:
                         continue
-                    status = job.get_status()
+                    try:
+                        status = job.get_status()
+                    except InvalidJobOperation:
+                        logger.warning("Skipping job %s: status no longer available in Redis", job.id)
+                        continue
                     job_data_item = JobData(
                         id=job.id,
                         name=job.description,
@@ -220,18 +230,14 @@ def get_jobs(
     per_page: int = 10,
     allowed_queues: Optional[list[str]] = None,
 ) -> PaginatedJobResponse:
-    try:
-        return get_job_registrys(
-            redis_url,
-            queue_name,
-            state,
-            page,
-            per_page,
-            allowed_queues=allowed_queues,
-        )
-    except Exception as error:
-        logger.exception("Error fetching job data: %s", error)
-        raise HTTPException(status_code=500, detail=str("Error fetching job data"))
+    return get_job_registrys(
+        redis_url,
+        queue_name,
+        state,
+        page,
+        per_page,
+        allowed_queues=allowed_queues,
+    )
 
 
 def get_job(redis_url: str, job_id: str) -> JobDataDetailed:
