@@ -198,3 +198,10 @@ After modifying templates or `uno.config.ts`, run `npm run build:css` and commit
 ## Contributing
 
 If you want to contribute, reach out or create a PR directly.
+
+## Poem
+
+Redis hums at midnight's gate,
+Jobs take flight, then regenerate.
+Workers wait, and dashboards sing,
+In queues of code, we bring our spring.
