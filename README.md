@@ -8,6 +8,13 @@
 `RQ Dashboard FastAPI` is a general purpose, lightweight FastAPI-based web frontend to monitor your RQ queues, jobs, and workers in real-time.
 Goal of this package is to ease integration into FastAPI-Applications and provide a Docker Image for convenience.
 
+## Poem
+
+Queues whisper softly in Redis light,  
+Workers wake and carry jobs through night.  
+From failed to finished, each task finds its way,  
+And dashboards keep the pulse of every day.
+
 <img width="1645" height="422" alt="rq-dashboard-fast" src="https://github.com/user-attachments/assets/27f51d83-47d2-4fe2-b491-8b01e8370544" />
 
 <br />
