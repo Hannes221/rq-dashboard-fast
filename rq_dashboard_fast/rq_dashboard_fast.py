@@ -81,7 +81,7 @@ class RedisQueueDashboard(FastAPI):
         *args,
         **kwargs,
     ):
-        super().__init__(root_path=prefix, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         package_directory = Path(__file__).resolve().parent
         static_directory = package_directory / "static"
